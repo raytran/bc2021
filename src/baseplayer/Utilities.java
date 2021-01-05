@@ -63,4 +63,32 @@ public class Utilities {
                 center.translate(-1, -1),
         };
     }
+
+    /**
+     * Offsets a given map location in a direction by variable # of units
+     * @param dir direction to offset
+     * @param units number of units to offset by
+     * @return offset maplocation
+     */
+    static MapLocation offsetLocation(MapLocation loc, Direction dir, int units) {
+        switch (dir) {
+            case NORTH:
+                return loc.translate(0, units);
+            case EAST:
+                return loc.translate(units, 0);
+            case SOUTH:
+                return loc.translate(0, -units);
+            case WEST:
+                return loc.translate(-units, 0);
+            case NORTHEAST:
+                return loc.translate((int) (units * Math.sqrt(2)/2), (int) (units * Math.sqrt(2)/2));
+            case NORTHWEST:
+                return loc.translate(-(int) (units * Math.sqrt(2)/2), (int) (units * Math.sqrt(2)/2));
+            case SOUTHEAST:
+                return loc.translate((int) (units * Math.sqrt(2)/2), -(int) (units * Math.sqrt(2)/2));
+            case SOUTHWEST:
+                return loc.translate(-(int) (units * Math.sqrt(2)/2), -(int) (units * Math.sqrt(2)/2));
+        }
+        throw new RuntimeException("Shouldn't be here...");
+    }
 }

@@ -1,5 +1,6 @@
 package baseplayer.flags;
 
+import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotType;
 
@@ -18,13 +19,14 @@ public class Flags {
     // flagType (FlagType.ordinal())  flag-specific info
 
 
+
+    // How far to shift to get to flag bits
+    private static int FLAG_START_SHIFT = 21;
+
     // ENEMY_SPOTTED
     // Deltas are stored in 7 bit twos-complement encoding
     // [23:21]     [20:14]       [13:7]        [6:5]             [4:0]
     // flagType    enemyDeltaX   enemyDeltaY   enemyRobotType    unused
-
-    // How far to shift to get to flag bits
-    private static int FLAG_START_SHIFT = 21;
 
     /**
      * @param location of the enemy
@@ -49,6 +51,35 @@ public class Flags {
         );
         RobotType enemyType = RobotType.values()[(flag >>> 5) & 0b11];
         return new EnemySpottedInfo(location, enemyType);
+    }
+
+    // BOUNDARY_SPOTTED
+    // Deltas are stored in 7 bit twos-complement encoding
+    // [23:21]     [20:14]       [13:7]        [6:3]                                 [2:0]
+    // flagType    enemyDeltaX   enemyDeltaY   boundaryType (Direction.ordinal())    unused
+    /**
+     * @param location of the boundary
+     * @return flag for boundary at location
+     */
+    public static int encodeBoundarySpotted(MapLocation location, Direction boundaryDir) {
+        int flag = encodeFlagType(FlagType.BOUNDARY_SPOTTED);
+        flag ^= (location.x & 0b1111111) << 14;
+        flag ^= (location.y & 0b1111111) << 7;
+        flag ^= boundaryDir.ordinal() << 3;
+        return flag;
+    }
+
+    /**
+     * @param flag to be decoded
+     * @return information for boundary spotted
+     */
+    public static BoundarySpottedInfo decodeBoundarySpotted(int flag) {
+        MapLocation location = new MapLocation (
+                signExtend((flag >>> 14) & 0b1111111, 7),
+                signExtend((flag >>> 7) & 0b1111111, 7)
+        );
+        Direction boundaryDir = Direction.values()[(flag >>> 3) & 0b1111];
+        return new BoundarySpottedInfo(location, boundaryDir);
     }
 
     /**
