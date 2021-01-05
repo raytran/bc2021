@@ -1,9 +1,9 @@
-package scoutingtest;
+package baseplayer;
 
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.RobotController;
-import battlecode.common.RobotType;
+import baseplayer.flags.EnemySpottedInfo;
+import baseplayer.flags.FlagType;
+import baseplayer.flags.Flags;
+import battlecode.common.*;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -21,6 +21,7 @@ public class BotEnlightenment extends BotController {
     public void run() throws GameActionException {
         //RobotType toBuild = Utilities.randomSpawnableRobotType();
         RobotType toBuild = RobotType.MUCKRAKER;
+        MapLocation myLoc = rc.getLocation();
         int influence = 50;
         Direction originalSpawnDir = nextSpawnDirection;
         while (!enemyFound) {
@@ -39,9 +40,17 @@ public class BotEnlightenment extends BotController {
         // Check baseplayer.flags
         for (Integer id : spawnedIds){
             if (rc.canGetFlag(id)){
-                if (rc.getFlag(id) == 69){
-                    enemyFound = true;
-                    System.out.println("Enemy found; flag read");
+                int flag = rc.getFlag(id);
+                switch (Flags.decodeFlagType(flag)){
+                    case ENEMY_SPOTTED:
+                        enemyFound = true;
+                        EnemySpottedInfo info = Flags.decodeEnemySpotted(flag);
+                        System.out.println("Enemy of type " + info.enemyType
+                                + " found at " + (info.delta.x + myLoc.x) + " , " + (info.delta.y + myLoc.y)
+                                + " by " + id);
+                        break;
+                    default:
+                        break;
                 }
             }
         }
