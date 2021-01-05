@@ -25,6 +25,6 @@ public class BotMuckraker extends BotController {
             }
         }
         if (tryMove(Utilities.randomDirection()))
-            System.out.println("I moved!");
+            System.out.println("I moved! I am " + age + " turns old");
     }
 }

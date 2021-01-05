@@ -11,6 +11,6 @@ public class BotSlanderer extends BotController {
     @Override
     public void run() throws GameActionException {
         if (tryMove(Utilities.randomDirection()))
-            System.out.println("I moved!");
+            System.out.println("I moved! And I am " + age + "turns old!");
     }
 }

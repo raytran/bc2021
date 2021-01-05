@@ -6,9 +6,11 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 
 public abstract class BotController {
+    int age;
     RobotController rc;
 
     public BotController(RobotController rc) {
+        age = 0;
         this.rc = rc;
     }
 
@@ -27,6 +29,13 @@ public abstract class BotController {
      */
     public void moveTo(MapLocation loc) throws GameActionException {
         //TODO
+    }
+
+    /**
+     * Increases the recorded age of the robot by 1
+     */
+    public void incrementAge(){
+        age += 1;
     }
 
     /**

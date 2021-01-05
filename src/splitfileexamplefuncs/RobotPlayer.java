@@ -33,6 +33,7 @@ public strictfp class RobotPlayer {
         while (true) {
             try {
                 controller.run();
+                controller.incrementAge();
                 Clock.yield();
             } catch (Exception e) {
                 System.out.println(rc.getType() + " Exception");
