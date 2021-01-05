@@ -23,6 +23,7 @@ public class Utilities {
             Direction.WEST,
             Direction.NORTHWEST,
     };
+
     /**
      * Returns a random Direction.
      *
@@ -40,5 +41,4 @@ public class Utilities {
     static RobotType randomSpawnableRobotType() {
         return spawnableRobot[(int) (Math.random() * spawnableRobot.length)];
     }
-
 }

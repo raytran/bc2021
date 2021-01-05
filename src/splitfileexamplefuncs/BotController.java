@@ -11,14 +11,17 @@ public abstract class BotController {
     public BotController(RobotController rc) {
         this.rc = rc;
     }
+
     /**
-     * Always runs in a loop
+     * Runs the bot. When the function ends, Clock.yield() is called from the main thread
+     *
      * @throws GameActionException
      */
     public abstract void run() throws GameActionException;
 
     /**
      * Moves robot to a specified location
+     *
      * @param loc Location to move to
      * @throws GameActionException
      */

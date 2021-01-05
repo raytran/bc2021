@@ -1,5 +1,8 @@
 package splitfileexamplefuncs;
-import battlecode.common.*;
+
+import battlecode.common.Clock;
+import battlecode.common.GameActionException;
+import battlecode.common.RobotController;
 
 public strictfp class RobotPlayer {
     /**
