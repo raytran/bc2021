@@ -1,20 +1,32 @@
 package baseplayer;
 
 import baseplayer.nav.NavigationController;
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
 public abstract class BotController {
+    int parentID;
+    MapLocation parentLoc;
     RobotController rc;
     NavigationController nav;
     int age;
 
-    public BotController(RobotController rc) {
+    public BotController(RobotController rc) throws GameActionException {
         age = 0;
         this.rc = rc;
         this.nav = new NavigationController(rc);
+        if (rc.getType() != RobotType.ENLIGHTENMENT_CENTER){
+            MapLocation myLoc = rc.getLocation();
+            for (MapLocation neighbor : Utilities.getPossibleNeighbors(myLoc)) {
+                if (rc.onTheMap(neighbor)){
+                    RobotInfo robotHere = rc.senseRobotAtLocation(neighbor);
+                    if (robotHere != null && robotHere.type.equals(RobotType.ENLIGHTENMENT_CENTER)) {
+                        parentLoc = neighbor;
+                        parentID = robotHere.ID;
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -23,16 +35,6 @@ public abstract class BotController {
      * @throws GameActionException
      */
     public abstract void run() throws GameActionException;
-
-    /**
-     * Moves robot to a specified location
-     *
-     * @param target Location to move to
-     * @throws GameActionException
-     */
-    public void moveTo(MapLocation target) throws GameActionException {
-        this.nav.moveTo(target);
-    }
 
     /**
      * Increases the recorded age of the robot by 1
