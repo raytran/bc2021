@@ -5,8 +5,10 @@ import baseplayer.flags.FlagType;
 import baseplayer.flags.Flags;
 import battlecode.common.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class BotMuckraker extends BotController {
-    Direction searchBoundaryDirection = Direction.NORTH;
     Direction scoutingDirection;
     MapLocation parentLoc;
     int parentID;
@@ -44,12 +46,15 @@ public class BotMuckraker extends BotController {
         FlagType parentFlagType = Flags.decodeFlagType(parentFlag);
         if (parentFlagType.equals(FlagType.BOUNDARY_REQUIRED)) {
             BoundaryRequiredInfo info = Flags.decodeBoundaryRequired(parentFlag);
-            if (!info.northFound) searchBoundaryDirection = Direction.NORTH;
-            if (!info.eastFound) searchBoundaryDirection = Direction.EAST;
-            if (!info.southFound) searchBoundaryDirection = Direction.SOUTH;
-            if (!info.westFound) searchBoundaryDirection = Direction.WEST;
+            List<Direction> boundaryDirectionsToSearch = new ArrayList<>();
+            if (!info.northFound) boundaryDirectionsToSearch.add(Direction.NORTH);
+            if (!info.eastFound) boundaryDirectionsToSearch.add(Direction.EAST);
+            if (!info.southFound) boundaryDirectionsToSearch.add(Direction.SOUTH);
+            if (!info.westFound) boundaryDirectionsToSearch.add(Direction.WEST);
+
+            for (Direction searchBoundaryDirection : boundaryDirectionsToSearch)
+                signalForBoundary(searchBoundaryDirection);
         }
-        signalForBoundary(searchBoundaryDirection);
 
 
         tryMove(scoutingDirection);
