@@ -1,4 +1,5 @@
 package baseplayer;
+import baseplayer.flags.BoundaryRequiredInfo;
 import baseplayer.flags.BoundarySpottedInfo;
 import baseplayer.flags.EnemySpottedInfo;
 import baseplayer.flags.Flags;
@@ -6,7 +7,8 @@ import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotType;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
+
+import static org.junit.Assert.*;
 
 public class FlagEncodeDecodeTest {
     @Test
@@ -58,5 +60,30 @@ public class FlagEncodeDecodeTest {
         BoundarySpottedInfo info4 = Flags.decodeBoundarySpotted(flag4);
         assertEquals(info4.boundaryDirection, Direction.SOUTHWEST);
         assertEquals(info4.delta, new MapLocation(-63, -63));
+    }
+
+
+    @Test
+    public void testEncodeDecodeBoundaryRequired() {
+        int flag = Flags.encodeBoundaryRequired(true, false, false, true);
+        BoundaryRequiredInfo info = Flags.decodeBoundaryRequired(flag);
+        assertTrue(info.northFound);
+        assertFalse(info.eastFound);
+        assertFalse(info.southFound);
+        assertTrue(info.westFound);
+
+        int flag2 = Flags.encodeBoundaryRequired(false, false, false, false);
+        BoundaryRequiredInfo info2 = Flags.decodeBoundaryRequired(flag2);
+        assertFalse(info2.northFound);
+        assertFalse(info2.eastFound);
+        assertFalse(info2.southFound);
+        assertFalse(info2.westFound);
+
+        int flag3 = Flags.encodeBoundaryRequired(true, true, true, true);
+        BoundaryRequiredInfo info3 = Flags.decodeBoundaryRequired(flag3);
+        assertTrue(info3.northFound);
+        assertTrue(info3.eastFound);
+        assertTrue(info3.southFound);
+        assertTrue(info3.westFound);
     }
 }

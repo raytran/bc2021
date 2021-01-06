@@ -1,32 +1,34 @@
 package baseplayer;
 
+import baseplayer.flags.BoundaryRequiredInfo;
+import baseplayer.flags.FlagType;
 import baseplayer.flags.Flags;
 import battlecode.common.*;
 
 public class BotMuckraker extends BotController {
+    Direction searchBoundaryDirection = Direction.NORTH;
     Direction scoutingDirection;
     MapLocation parentLoc;
-    public BotMuckraker(RobotController rc) {
+    int parentID;
+    public BotMuckraker(RobotController rc) throws GameActionException {
         super(rc);
+        MapLocation myLoc = rc.getLocation();
+        for (MapLocation neighbor : Utilities.getPossibleNeighbors(myLoc)) {
+            RobotInfo robotHere = rc.senseRobotAtLocation(neighbor);
+            if (robotHere != null && robotHere.type.equals(RobotType.ENLIGHTENMENT_CENTER)) {
+                parentLoc = neighbor;
+                scoutingDirection = parentLoc.directionTo(myLoc);
+                parentID = robotHere.ID;
+                break;
+            }
+        }
+
+        assert parentLoc != null;
+        assert scoutingDirection != null;
     }
 
     @Override
     public void run() throws GameActionException {
-        MapLocation myLoc = rc.getLocation();
-        //Find where our parent is
-        if (age == 0) {
-            for (MapLocation neighbor : Utilities.getPossibleNeighbors(myLoc)) {
-                RobotInfo robotHere = rc.senseRobotAtLocation(neighbor);
-                if (robotHere != null && robotHere.type.equals(RobotType.ENLIGHTENMENT_CENTER)) {
-                    parentLoc = neighbor;
-                    scoutingDirection = parentLoc.directionTo(myLoc);
-                    break;
-                }
-            }
-
-            assert parentLoc != null;
-            assert scoutingDirection != null;
-        }
         Team enemy = rc.getTeam().opponent();
         // Found a robot ?
         for (RobotInfo robot : rc.senseNearbyRobots()) {
@@ -38,7 +40,17 @@ public class BotMuckraker extends BotController {
             }
         }
 
-        signalForBoundary(Direction.NORTH);
+        int parentFlag = rc.getFlag(parentID);
+        FlagType parentFlagType = Flags.decodeFlagType(parentFlag);
+        if (parentFlagType.equals(FlagType.BOUNDARY_REQUIRED)) {
+            BoundaryRequiredInfo info = Flags.decodeBoundaryRequired(parentFlag);
+            if (!info.northFound) searchBoundaryDirection = Direction.NORTH;
+            if (!info.eastFound) searchBoundaryDirection = Direction.EAST;
+            if (!info.southFound) searchBoundaryDirection = Direction.SOUTH;
+            if (!info.westFound) searchBoundaryDirection = Direction.WEST;
+        }
+        signalForBoundary(searchBoundaryDirection);
+
 
         tryMove(scoutingDirection);
     }
@@ -62,14 +74,15 @@ public class BotMuckraker extends BotController {
         int steps = 0;
         for (int n = 0; n < Math.sqrt(rc.getType().sensorRadiusSquared); n++) {
             // Throughout the search, maintain that maxOffset is off the map while minOffset is on the map
-            System.out.println("Max offset: " + maxOffset + "Min offset: " + minOffset);
+            //System.out.println("Max offset: " + maxOffset + "Min offset: " + minOffset);
             int newOffset = (maxOffset + minOffset)/2;
             if (maxOffset == minOffset + 1) {
                 // Boundary pinpointed! maxOffset is off grid while minOffset is on grid
                 MapLocation boundaryLoc = Utilities.offsetLocation(rc.getLocation(), searchDirection, minOffset);
-                System.out.println(searchDirection + " boundary found at " + boundaryLoc);
+                MapLocation boundaryDelta = new MapLocation(boundaryLoc.x - parentLoc.x, boundaryLoc.y - parentLoc.y);
+                //System.out.println(searchDirection + " boundary found at " + boundaryLoc);
                 // Signal here
-                rc.setFlag(Flags.encodeBoundarySpotted(boundaryLoc, searchDirection));
+                rc.setFlag(Flags.encodeBoundarySpotted(boundaryDelta, searchDirection));
                 return;
             }
             MapLocation newLoc = Utilities.offsetLocation(rc.getLocation(), searchDirection, newOffset);

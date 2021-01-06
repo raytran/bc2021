@@ -55,16 +55,16 @@ public class Flags {
 
     // BOUNDARY_SPOTTED
     // Deltas are stored in 7 bit twos-complement encoding
-    // [23:21]     [20:14]       [13:7]        [6:3]                                 [2:0]
-    // flagType    enemyDeltaX   enemyDeltaY   boundaryType (Direction.ordinal())    unused
+    // [23:21]     [20:14]          [13:7]           [6:3]                                 [2:0]
+    // flagType    boundaryDeltaX   boundaryDeltaY   boundaryType (Direction.ordinal())    unused
     /**
-     * @param location of the boundary
+     * @param boundaryDelta of the boundary
      * @return flag for boundary at location
      */
-    public static int encodeBoundarySpotted(MapLocation location, Direction boundaryDir) {
+    public static int encodeBoundarySpotted(MapLocation boundaryDelta, Direction boundaryDir) {
         int flag = encodeFlagType(FlagType.BOUNDARY_SPOTTED);
-        flag ^= (location.x & 0b1111111) << 14;
-        flag ^= (location.y & 0b1111111) << 7;
+        flag ^= (boundaryDelta.x & 0b1111111) << 14;
+        flag ^= (boundaryDelta.y & 0b1111111) << 7;
         flag ^= boundaryDir.ordinal() << 3;
         return flag;
     }
@@ -81,6 +81,40 @@ public class Flags {
         Direction boundaryDir = Direction.values()[(flag >>> 3) & 0b1111];
         return new BoundarySpottedInfo(location, boundaryDir);
     }
+
+
+    // BOUNDARY_REQUIRED
+    // Deltas are stored in 7 bit twos-complement encoding
+    // [23:21]     [20]        [19]       [18]       [17]
+    // flagType    N_found     E_found    S_found    W_found
+    /**
+     * @param north true if north boundary found
+     * @param east true if east boundary found
+     * @param south true if south boundary found
+     * @param west true if west boundary found
+     * @return flag for boundary at location
+     */
+    public static int encodeBoundaryRequired(boolean north, boolean east, boolean south, boolean west) {
+        int flag = encodeFlagType(FlagType.BOUNDARY_REQUIRED);
+        flag ^= (north ? 1 : 0) << 20;
+        flag ^= (east ? 1 : 0) << 19;
+        flag ^= (south ? 1 : 0) << 18;
+        flag ^= (west ? 1 : 0) << 17;
+        return flag;
+    }
+
+    /**
+     * @param flag to be decoded
+     * @return information for boundary required
+     */
+    public static BoundaryRequiredInfo decodeBoundaryRequired(int flag) {
+        boolean north = ((flag >> 20) & 1) == 1;
+        boolean east = ((flag >> 19) & 1) == 1;
+        boolean south = ((flag >> 18) & 1) == 1;
+        boolean west = ((flag >> 17) & 1) == 1;
+        return new BoundaryRequiredInfo(north, east, south, west);
+    }
+
 
     /**
      * @param flag to be decoded
