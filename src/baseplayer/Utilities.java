@@ -11,14 +11,14 @@ import java.util.List;
  * Static utility methods
  */
 public class Utilities {
-    static final double EPSILON = 0.001;
-    static final RobotType[] spawnableRobot = {
+    public static final double EPSILON = 0.001;
+    public static final RobotType[] spawnableRobot = {
             RobotType.POLITICIAN,
             RobotType.SLANDERER,
             RobotType.MUCKRAKER,
     };
 
-    static final Direction[] directions = {
+    public static final Direction[] directions = {
             Direction.NORTH,
             Direction.NORTHEAST,
             Direction.EAST,
@@ -34,7 +34,7 @@ public class Utilities {
      *
      * @return a random Direction
      */
-    static Direction randomDirection() {
+    public static Direction randomDirection() {
         return directions[(int) (Math.random() * directions.length)];
     }
 
@@ -43,7 +43,7 @@ public class Utilities {
      *
      * @return a random RobotType
      */
-    static RobotType randomSpawnableRobotType() {
+    public static RobotType randomSpawnableRobotType() {
         return spawnableRobot[(int) (Math.random() * spawnableRobot.length)];
     }
 
@@ -52,7 +52,7 @@ public class Utilities {
      * @param center center tile
      * @return array of 8 neighbors
      */
-    static MapLocation[] getPossibleNeighbors(MapLocation center){
+    public static MapLocation[] getPossibleNeighbors(MapLocation center){
         return new MapLocation[] {
                 center.translate(0, 1),
                 center.translate(0, -1),
@@ -71,7 +71,7 @@ public class Utilities {
      * @param units number of units to offset by
      * @return offset maplocation
      */
-    static MapLocation offsetLocation(MapLocation loc, Direction dir, int units) {
+    public static MapLocation offsetLocation(MapLocation loc, Direction dir, int units) {
         switch (dir) {
             case NORTH:
                 return loc.translate(0, units);
@@ -98,11 +98,23 @@ public class Utilities {
      * @param loc2 second loc
      * @return slope between points
      */
-    static double getSlope(MapLocation loc1, MapLocation loc2) {
+    public static double getSlope(MapLocation loc1, MapLocation loc2) {
         return ((double) loc2.y - loc1.y)/((double) (loc2.x - loc1.x)  + EPSILON);
     }
 
-    static boolean isClose(double d1, double d2) {
+    public static boolean isClose(double d1, double d2) {
         return Math.abs(d1 - d2) < 5;
+    }
+
+    /**
+     *
+     * @param dir
+     * @return true if direction is a diagonal
+     */
+    public static boolean isDiagonal(Direction dir){
+        return (dir == Direction.NORTHEAST
+                || dir == Direction.NORTHWEST
+                || dir == Direction.SOUTHEAST
+                || dir == Direction.SOUTHWEST);
     }
 }

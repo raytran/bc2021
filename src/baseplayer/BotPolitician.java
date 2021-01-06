@@ -21,7 +21,5 @@ public class BotPolitician extends BotController {
             System.out.println("empowered");
             return;
         }
-        if (tryMove(Utilities.randomDirection()))
-            System.out.println("I moved!");
     }
 }
