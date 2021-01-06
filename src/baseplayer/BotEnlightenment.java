@@ -12,21 +12,23 @@ import java.util.Set;
 
 public class BotEnlightenment extends BotController {
 
-    Set<Integer> spawnedIds = new HashSet<>();
+    private Set<Integer> spawnedIds = new HashSet<>();
+    private Optional<Integer> northBoundary;
+    private Optional<Integer> eastBoundary;
+    private Optional<Integer> southBoundary;
+    private Optional<Integer> westBoundary;
+    private boolean enemyFound = false;
+    private Direction nextSpawnDirection = Direction.NORTH;
+    private VoteController voteController;
 
-    Optional<Integer> northBoundary;
-    Optional<Integer> eastBoundary;
-    Optional<Integer> southBoundary;
-    Optional<Integer> westBoundary;
 
-    boolean enemyFound = false;
-    Direction nextSpawnDirection = Direction.NORTH;
     public BotEnlightenment(RobotController rc) throws GameActionException {
         super(rc);
         northBoundary = Optional.empty();
         eastBoundary = Optional.empty();
         southBoundary = Optional.empty();
         westBoundary = Optional.empty();
+        voteController = new VoteController(rc);
 
         // Don't know any bounds
         rc.setFlag(Flags.encodeBoundaryRequired(false, false, false, false));
@@ -37,7 +39,7 @@ public class BotEnlightenment extends BotController {
         //RobotType toBuild = Utilities.randomSpawnableRobotType();
         RobotType toBuild = RobotType.MUCKRAKER;
         MapLocation myLoc = rc.getLocation();
-        int influence = 50;
+        int influence = 1;
         Direction originalSpawnDir = nextSpawnDirection;
         while (!enemyFound) {
             nextSpawnDirection = nextSpawnDirection.rotateRight();
@@ -79,7 +81,6 @@ public class BotEnlightenment extends BotController {
                                 if (!eastBoundary.isPresent()) {
                                     eastBoundary = Optional.of((myLoc.x + info2.delta.x));
                                     changed = true;
-
                                     System.out.println("EAST BOUNDARY FOUND at " + eastBoundary.get());
                                 }
                                 break;
@@ -115,6 +116,12 @@ public class BotEnlightenment extends BotController {
                         break;
                 }
             }
+        }
+
+        // Bid for votes
+        int influenceToBid = voteController.influenceToBid();
+        if (influenceToBid > 0) {
+            rc.bid(influenceToBid);
         }
     }
 }
