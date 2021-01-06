@@ -10,6 +10,11 @@ import java.util.Optional;
 public abstract class BotController {
     int age;
     RobotController rc;
+    int movementState = 0;
+    Direction heading = Direction.NORTH;
+    int closest = 0;
+    double movementSlope = 0;
+
 
     public BotController(RobotController rc) {
         age = 0;
@@ -26,11 +31,59 @@ public abstract class BotController {
     /**
      * Moves robot to a specified location
      *
-     * @param loc Location to move to
+     * @param target Location to move to
      * @throws GameActionException
      */
-    public void moveTo(MapLocation loc) throws GameActionException {
-        //TODO
+    public void moveTo(MapLocation target) throws GameActionException {
+        // Try bug0
+        // move in direction
+        // if we see a wall, move along wall until we can move directly again
+
+        switch(movementState){
+            case 0:
+                heading = rc.getLocation().directionTo(target);
+                // normal movement
+                if (canMoveInDir(heading)) {
+                    if (rc.canMove(heading)) {
+                        rc.move(heading);
+                    }
+                } else {
+                    movementState = 1;
+                    closest = rc.getLocation().distanceSquaredTo(target);
+                    movementSlope = getMovementSlope(target);
+                }
+                break;
+            case 1:
+                while (!canMoveInDir(heading)) {
+                    heading = heading.rotateRight();
+                }
+                // Now we can move forward, but should we?
+                if (canMoveInDir(heading.rotateLeft())) {
+                   heading = heading.rotateLeft();
+                }
+
+                if (rc.canMove(heading)){
+                    rc.move(heading);
+                    if (/*Utilities.isClose(getMovementSlope(target), movementSlope) &&*/
+                            rc.getLocation().distanceSquaredTo(target) < closest) {
+                        movementState = 0;
+                    }
+                }
+                break;
+        }
+    }
+
+    private double getMovementSlope(MapLocation target) {
+        return Utilities.getSlope(target, rc.getLocation());
+    }
+
+
+
+    //Checks to see if we can move in desiredDirection
+    private boolean canMoveInDir(Direction desiredDirection) throws GameActionException {
+        MapLocation loc = rc.adjacentLocation(desiredDirection);
+        //TODO set to Util constant
+        return rc.onTheMap(loc) && !rc.isLocationOccupied(loc) && rc.sensePassability(loc) > 0.2;
     }
 
     /**

@@ -57,7 +57,8 @@ public class BotMuckraker extends BotController {
         }
 
 
-        tryMove(scoutingDirection);
+        //tryMove(scoutingDirection);
+        moveTo(new MapLocation(1, 29));
     }
 
 

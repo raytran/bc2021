@@ -11,6 +11,7 @@ import java.util.List;
  * Static utility methods
  */
 public class Utilities {
+    static final double EPSILON = 0.001;
     static final RobotType[] spawnableRobot = {
             RobotType.POLITICIAN,
             RobotType.SLANDERER,
@@ -90,5 +91,18 @@ public class Utilities {
                 return loc.translate(-(int) (units * Math.sqrt(2)/2), -(int) (units * Math.sqrt(2)/2));
         }
         throw new RuntimeException("Shouldn't be here...");
+    }
+
+    /**
+     * @param loc1 first loc
+     * @param loc2 second loc
+     * @return slope between points
+     */
+    static double getSlope(MapLocation loc1, MapLocation loc2) {
+        return ((double) loc2.y - loc1.y)/((double) (loc2.x - loc1.x)  + EPSILON);
+    }
+
+    static boolean isClose(double d1, double d2) {
+        return Math.abs(d1 - d2) < 5;
     }
 }
