@@ -6,7 +6,7 @@ import battlecode.common.RobotInfo;
 import battlecode.common.Team;
 
 public class BotPolitician extends BotController {
-    public BotPolitician(RobotController rc) {
+    public BotPolitician(RobotController rc) throws GameActionException {
         super(rc);
     }
 

@@ -4,7 +4,7 @@ import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 
 public class BotSlanderer extends BotController {
-    public BotSlanderer(RobotController rc) {
+    public BotSlanderer(RobotController rc) throws GameActionException {
         super(rc);
     }
 
