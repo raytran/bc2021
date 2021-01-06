@@ -14,10 +14,10 @@ public class BotEnlightenment extends BotController {
 
     Set<Integer> spawnedIds = new HashSet<>();
 
-    Optional<MapLocation> northBoundary;
-    Optional<MapLocation> eastBoundary;
-    Optional<MapLocation> southBoundary;
-    Optional<MapLocation> westBoundary;
+    Optional<Integer> northBoundary;
+    Optional<Integer> eastBoundary;
+    Optional<Integer> southBoundary;
+    Optional<Integer> westBoundary;
 
     boolean enemyFound = false;
     Direction nextSpawnDirection = Direction.NORTH;
@@ -70,41 +70,31 @@ public class BotEnlightenment extends BotController {
                         switch (info2.boundaryDirection) {
                             case NORTH:
                                 if (!northBoundary.isPresent()) {
-                                    northBoundary = Optional.of(
-                                            new MapLocation(myLoc.x + info2.delta.x, myLoc.y + info2.delta.y)
-                                    );
+                                    northBoundary = Optional.of(myLoc.y + info2.delta.y);
                                     changed = true;
-
-                                    System.out.println("NORTH BOUNDARY FOUND at " + northBoundary.get().y );
+                                    System.out.println("NORTH BOUNDARY FOUND at " + northBoundary.get());
                                 }
                                 break;
                             case EAST:
                                 if (!eastBoundary.isPresent()) {
-                                    eastBoundary = Optional.of(
-                                            new MapLocation(myLoc.x + info2.delta.x, myLoc.y + info2.delta.y)
-                                    );
+                                    eastBoundary = Optional.of((myLoc.x + info2.delta.x));
                                     changed = true;
 
-                                    System.out.println("EAST BOUNDARY FOUND at " + eastBoundary.get().x);
+                                    System.out.println("EAST BOUNDARY FOUND at " + eastBoundary.get());
                                 }
                                 break;
                             case SOUTH:
                                 if (!southBoundary.isPresent()) {
-                                    southBoundary = Optional.of(
-                                            new MapLocation(myLoc.x + info2.delta.x, myLoc.y + info2.delta.y)
-                                    );
+                                    southBoundary = Optional.of(myLoc.y + info2.delta.y);
                                     changed = true;
-
-                                    System.out.println("SOUTH BOUNDARY FOUND at " + southBoundary.get().y );
+                                    System.out.println("SOUTH BOUNDARY FOUND at " + southBoundary.get());
                                 }
                                 break;
                             case WEST:
                                 if (!westBoundary.isPresent()) {
-                                    westBoundary = Optional.of(
-                                            new MapLocation(myLoc.x + info2.delta.x, myLoc.y + info2.delta.y)
-                                    );
+                                    westBoundary = Optional.of(myLoc.x + info2.delta.x);
                                     changed = true;
-                                    System.out.println("WEST BOUNDARY FOUND at " + westBoundary.get().x);
+                                    System.out.println("WEST BOUNDARY FOUND at " + westBoundary.get());
                                 }
                                 break;
                             default:
