@@ -1,39 +1,179 @@
 package baseplayer;
 
+import baseplayer.eccontrollers.FlagController;
+import baseplayer.eccontrollers.VoteController;
 import baseplayer.flags.*;
 import battlecode.common.*;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public class BotEnlightenment extends BotController {
-
-    private Set<Integer> spawnedIds = new HashSet<>();
+    private List<Map.Entry<MapLocation, RobotType>> reportedEnemies = new LinkedList<>();
+    private Map<Integer, RobotType> spawnedRobots = new HashMap<>();
+    private int muckrakerCount = 0;
+    private int politicianCount = 0;
+    private int slandererCount = 0;
     private Optional<Integer> northBoundary;
     private Optional<Integer> eastBoundary;
     private Optional<Integer> southBoundary;
     private Optional<Integer> westBoundary;
-    private boolean enemyFound = false;
-    private Direction nextSpawnDirection = Direction.NORTH;
+
+
     private VoteController voteController;
+    private FlagController flagController;
 
 
     public BotEnlightenment(RobotController rc) throws GameActionException {
         super(rc);
+        voteController = new VoteController(rc, this);
+        flagController = new FlagController(rc, this);
+
         northBoundary = Optional.empty();
         eastBoundary = Optional.empty();
         southBoundary = Optional.empty();
         westBoundary = Optional.empty();
-        voteController = new VoteController(rc);
 
         // Don't know any bounds
         rc.setFlag(Flags.encodeBoundaryRequired(FlagAddress.ANY, false, false, false, false));
     }
 
+    public void checkRep(){
+        assert muckrakerCount > 0;
+        assert politicianCount > 0;
+        assert slandererCount > 0;
+    }
+
+    /**
+     * Report the spawning of a new robot
+     * @param id id of the robot that spawned
+     * @param robotType type of the robot that spawned
+     */
+    public void reportSpawn(int id, RobotType robotType) {
+        spawnedRobots.put(id, robotType);
+    }
+
+    /**
+     * Report the death of a spawned robot
+     * @param id of the robot that died
+     */
+    public void reportDeath(int id) {
+        spawnedRobots.get(id);
+    }
+
+    /**
+     * @return known muckraker count
+     */
+    public int getMuckrakerCount() {
+        assert muckrakerCount > 0;
+        return muckrakerCount;
+    }
+
+    /**
+     * @return known politician count
+     */
+    public int getPoliticianCount() {
+        assert politicianCount > 0;
+        return politicianCount;
+    }
+
+    /**
+     * @return known slanderer count
+     */
+    public int getSlandererCount() {
+        assert slandererCount > 0;
+        return slandererCount;
+    }
+
+    /**
+     * @return true if north found
+     */
+    public boolean isNorthBoundaryFound() {
+        return northBoundary.isPresent();
+    }
+
+    /**
+     * @return true if south found
+     */
+    public boolean isSouthBoundaryFound() {
+        return southBoundary.isPresent();
+    }
+
+
+    /**
+     * @return true if east found
+     */
+    public boolean isEastBoundaryFound() {
+        return eastBoundary.isPresent();
+    }
+
+    /**
+     * @return true if west found
+     */
+    public boolean isWestBoundaryFound() {
+        return westBoundary.isPresent();
+    }
+
+    /**
+     * @return set of spawned robot ids
+     */
+    public Set<Integer> getSpawnedIds() {
+        return spawnedRobots.keySet();
+    }
+
+    /**
+     * Report the death of an enemy
+     * @param enemySpottedInfo the spotting info for the enemy
+     */
+    public void reportEnemy(EnemySpottedInfo enemySpottedInfo) {
+        MapLocation myLoc = rc.getLocation();
+        MapLocation location = new MapLocation(enemySpottedInfo.delta.x + myLoc.x, enemySpottedInfo.delta.y + myLoc.y);
+        reportedEnemies.add(new AbstractMap.SimpleImmutableEntry<>(location, enemySpottedInfo.enemyType));
+    }
+
+    /**
+     * Report the discovery of the north boundary
+     * @param boundary exact location
+     */
+    public void reportNorthBoundary(int boundary) {
+        if (!northBoundary.isPresent()){
+            northBoundary = Optional.of(boundary);
+        }
+    }
+
+    /**
+     * Report the discovery of the east boundary
+     * @param boundary exact location
+     */
+    public void reportEastBoundary(int boundary) {
+        if (!eastBoundary.isPresent()){
+            eastBoundary = Optional.of(boundary);
+        }
+    }
+
+    /**
+     * Report the discovery of the south boundary
+     * @param boundary exact location
+     */
+    public void reportSouthBoundary(int boundary) {
+        if (!southBoundary.isPresent()){
+            southBoundary = Optional.of(boundary);
+        }
+    }
+
+    /**
+     * Report the discovery of the west boundary
+     * @param boundary exact location
+     */
+    public void reportWestBoundary(int boundary) {
+        if (!westBoundary.isPresent()){
+            westBoundary = Optional.of(boundary);
+        }
+    }
+
     @Override
     public void run() throws GameActionException {
         //RobotType toBuild = Utilities.randomSpawnableRobotType();
+        /*
         RobotType toBuild = RobotType.MUCKRAKER;
         MapLocation myLoc = rc.getLocation();
         int influence = 1;
@@ -50,78 +190,10 @@ public class BotEnlightenment extends BotController {
                 break;
             }
         }
-
-        // Check baseplayer.flags
-        for (Integer id : spawnedIds){
-            if (rc.canGetFlag(id)){
-                int flag = rc.getFlag(id);
-                if (Flags.addressedForCurrentBot(rc, flag,true)) {
-                    switch (Flags.decodeFlagType(flag)){
-                        case ENEMY_SPOTTED:
-                            enemyFound = true;
-                            EnemySpottedInfo info = Flags.decodeEnemySpotted(flag);
-                            //System.out.println("Enemy of type " + info.enemyType
-                            //        + " found at " + (info.delta.x + myLoc.x) + " , " + (info.delta.y + myLoc.y)
-                            //        + " by " + id);
-                            break;
-                        case BOUNDARY_SPOTTED:
-                            BoundarySpottedInfo info2 = Flags.decodeBoundarySpotted(flag);
-                            boolean changed = false;
-                            switch (info2.boundaryType) {
-                                case NORTH:
-                                    if (!northBoundary.isPresent()) {
-                                        northBoundary = Optional.of(info2.exactBoundaryLocation);
-                                        changed = true;
-                                        System.out.println("NORTH BOUNDARY FOUND at " + northBoundary.get());
-                                    }
-                                    break;
-                                case EAST:
-                                    if (!eastBoundary.isPresent()) {
-                                        eastBoundary = Optional.of((info2.exactBoundaryLocation));
-                                        changed = true;
-                                        System.out.println("EAST BOUNDARY FOUND at " + eastBoundary.get());
-                                    }
-                                    break;
-                                case SOUTH:
-                                    if (!southBoundary.isPresent()) {
-                                        southBoundary = Optional.of(info2.exactBoundaryLocation);
-                                        changed = true;
-                                        System.out.println("SOUTH BOUNDARY FOUND at " + southBoundary.get());
-                                    }
-                                    break;
-                                case WEST:
-                                    if (!westBoundary.isPresent()) {
-                                        westBoundary = Optional.of(info2.exactBoundaryLocation);
-                                        changed = true;
-                                        System.out.println("WEST BOUNDARY FOUND at " + westBoundary.get());
-                                    }
-                                    break;
-                                default:
-                                    //TODO refactor boundary spotted flag?
-                                    throw new RuntimeException("Shouldn't be here...");
-                            }
-
-                            if (changed) {
-                                rc.setFlag(Flags.encodeBoundaryRequired(
-                                        FlagAddress.ANY,
-                                        northBoundary.isPresent(),
-                                        eastBoundary.isPresent(),
-                                        southBoundary.isPresent(),
-                                        westBoundary.isPresent())
-                                );
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-        }
-
+         */
+        // Read and update flags
+        flagController.run();
         // Bid for votes
-        int influenceToBid = voteController.influenceToBid();
-        if (influenceToBid > 0) {
-            rc.bid(influenceToBid);
-        }
+        voteController.run();
     }
 }
