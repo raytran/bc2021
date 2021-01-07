@@ -1,6 +1,7 @@
 package baseplayer;
 
 import baseplayer.eccontrollers.FlagController;
+import baseplayer.eccontrollers.SpawnController;
 import baseplayer.eccontrollers.VoteController;
 import baseplayer.flags.*;
 import battlecode.common.*;
@@ -21,13 +22,13 @@ public class BotEnlightenment extends BotController {
 
     private VoteController voteController;
     private FlagController flagController;
-
+    private SpawnController spawnController;
 
     public BotEnlightenment(RobotController rc) throws GameActionException {
         super(rc);
         voteController = new VoteController(rc, this);
         flagController = new FlagController(rc, this);
-
+        spawnController = new SpawnController(rc,this);
         northBoundary = Optional.empty();
         eastBoundary = Optional.empty();
         southBoundary = Optional.empty();
@@ -36,8 +37,35 @@ public class BotEnlightenment extends BotController {
         // Don't know any bounds
         rc.setFlag(Flags.encodeBoundaryRequired(FlagAddress.ANY, false, false, false, false));
     }
-
-    public void checkRep(){
+    @Override
+    public void run() throws GameActionException {
+        //RobotType toBuild = Utilities.randomSpawnableRobotType();
+        /*
+        RobotType toBuild = RobotType.MUCKRAKER;
+        MapLocation myLoc = rc.getLocation();
+        int influence = 1;
+        Direction originalSpawnDir = nextSpawnDirection;
+        while (!enemyFound) {
+            nextSpawnDirection = nextSpawnDirection.rotateRight();
+            if (originalSpawnDir.equals(nextSpawnDirection)){
+                break;
+            }
+            if (rc.canBuildRobot(toBuild, nextSpawnDirection, influence)){
+                //Built the robot, add id to total
+                rc.buildRobot(toBuild, nextSpawnDirection, influence);
+                spawnedIds.add(rc.senseRobotAtLocation(rc.getLocation().add(nextSpawnDirection)).ID);
+                break;
+            }
+        }
+         */
+        //Run spawn controller
+        spawnController.run();
+        // Read and update flags
+        flagController.run();
+        // Bid for votes
+        voteController.run();
+    }
+    private void checkRep(){
         assert muckrakerCount > 0;
         assert politicianCount > 0;
         assert slandererCount > 0;
@@ -50,21 +78,45 @@ public class BotEnlightenment extends BotController {
      */
     public void reportSpawn(int id, RobotType robotType) {
         spawnedRobots.put(id, robotType);
+        switch(robotType){
+            case MUCKRAKER:
+                muckrakerCount++;
+                break;
+            case POLITICIAN:
+                politicianCount++;
+                break;
+            case SLANDERER:
+                slandererCount++;
+                break;
+            default: throw new RuntimeException("SPAWNING ILLEGAL UNIT");
+        }
     }
-
     /**
      * Report the death of a spawned robot
      * @param id of the robot that died
      */
     public void reportDeath(int id) {
-        spawnedRobots.get(id);
+        RobotType robotType = spawnedRobots.get(id);
+        switch(robotType){
+            case MUCKRAKER:
+                muckrakerCount--;
+                break;
+            case POLITICIAN:
+                politicianCount--;
+                break;
+            case SLANDERER:
+                slandererCount--;
+                break;
+            default: throw new RuntimeException("AN ILLEGAL UNIT DIED");
+        }
+        spawnedRobots.remove(id);
     }
 
     /**
      * @return known muckraker count
      */
     public int getMuckrakerCount() {
-        assert muckrakerCount > 0;
+        assert muckrakerCount >= 0;
         return muckrakerCount;
     }
 
@@ -72,7 +124,7 @@ public class BotEnlightenment extends BotController {
      * @return known politician count
      */
     public int getPoliticianCount() {
-        assert politicianCount > 0;
+        assert politicianCount >= 0;
         return politicianCount;
     }
 
@@ -80,7 +132,7 @@ public class BotEnlightenment extends BotController {
      * @return known slanderer count
      */
     public int getSlandererCount() {
-        assert slandererCount > 0;
+        assert slandererCount >= 0;
         return slandererCount;
     }
 
@@ -170,30 +222,5 @@ public class BotEnlightenment extends BotController {
         }
     }
 
-    @Override
-    public void run() throws GameActionException {
-        //RobotType toBuild = Utilities.randomSpawnableRobotType();
-        /*
-        RobotType toBuild = RobotType.MUCKRAKER;
-        MapLocation myLoc = rc.getLocation();
-        int influence = 1;
-        Direction originalSpawnDir = nextSpawnDirection;
-        while (!enemyFound) {
-            nextSpawnDirection = nextSpawnDirection.rotateRight();
-            if (originalSpawnDir.equals(nextSpawnDirection)){
-                break;
-            }
-            if (rc.canBuildRobot(toBuild, nextSpawnDirection, influence)){
-                //Built the robot, add id to total
-                rc.buildRobot(toBuild, nextSpawnDirection, influence);
-                spawnedIds.add(rc.senseRobotAtLocation(rc.getLocation().add(nextSpawnDirection)).ID);
-                break;
-            }
-        }
-         */
-        // Read and update flags
-        flagController.run();
-        // Bid for votes
-        voteController.run();
-    }
+
 }

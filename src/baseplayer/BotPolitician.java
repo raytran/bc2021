@@ -15,11 +15,17 @@ public class BotPolitician extends BotController {
         Team enemy = rc.getTeam().opponent();
         int actionRadius = rc.getType().actionRadiusSquared;
         RobotInfo[] attackable = rc.senseNearbyRobots(actionRadius, enemy);
-        if (attackable.length != 0 && rc.canEmpower(actionRadius)) {
-            System.out.println("empowering...");
-            rc.empower(actionRadius);
-            System.out.println("empowered");
-            return;
+        int numEnemies = attackable.length;
+        int convictionLeft = rc.getConviction() - 10;
+        if (attackable.length != 0 && convictionLeft > 0) {
+            for(RobotInfo robot : attackable){
+                if(convictionLeft / numEnemies > robot.getConviction()){
+                    rc.empower(actionRadius);
+                }
+            }
+        }
+        else{
+            nav.bugTo(rc.getLocation().translate(1,1));
         }
     }
 }
