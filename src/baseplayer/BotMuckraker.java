@@ -35,7 +35,7 @@ public class BotMuckraker extends BotController {
             if (robot.team.equals(enemy)){
                 MapLocation robotLoc = robot.getLocation();
                 MapLocation delta = new MapLocation(robotLoc.x - parentLoc.x, robotLoc.y - parentLoc.y);
-                rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.ANY, delta, robot.getType()));
+                rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.PARENT_ENLIGHTENMENT_CENTER, delta, robot.getType()));
                 return;
             }
         }

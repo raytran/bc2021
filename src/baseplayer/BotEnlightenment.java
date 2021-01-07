@@ -9,7 +9,7 @@ import battlecode.common.*;
 import java.util.*;
 
 public class BotEnlightenment extends BotController {
-    private List<Map.Entry<MapLocation, RobotType>> reportedEnemies = new LinkedList<>();
+    private List<EnemySpottedInfo> reportedEnemies = new LinkedList<>();
     private Map<Integer, RobotType> spawnedRobots = new HashMap<>();
     private int muckrakerCount = 0;
     private int politicianCount = 0;
@@ -39,25 +39,6 @@ public class BotEnlightenment extends BotController {
     }
     @Override
     public void run() throws GameActionException {
-        //RobotType toBuild = Utilities.randomSpawnableRobotType();
-        /*
-        RobotType toBuild = RobotType.MUCKRAKER;
-        MapLocation myLoc = rc.getLocation();
-        int influence = 1;
-        Direction originalSpawnDir = nextSpawnDirection;
-        while (!enemyFound) {
-            nextSpawnDirection = nextSpawnDirection.rotateRight();
-            if (originalSpawnDir.equals(nextSpawnDirection)){
-                break;
-            }
-            if (rc.canBuildRobot(toBuild, nextSpawnDirection, influence)){
-                //Built the robot, add id to total
-                rc.buildRobot(toBuild, nextSpawnDirection, influence);
-                spawnedIds.add(rc.senseRobotAtLocation(rc.getLocation().add(nextSpawnDirection)).ID);
-                break;
-            }
-        }
-         */
         //Run spawn controller
         spawnController.run();
         // Read and update flags
@@ -91,6 +72,7 @@ public class BotEnlightenment extends BotController {
             default: throw new RuntimeException("SPAWNING ILLEGAL UNIT");
         }
     }
+
     /**
      * Report the death of a spawned robot
      * @param id of the robot that died
@@ -166,6 +148,16 @@ public class BotEnlightenment extends BotController {
     }
 
     /**
+     * @return true if all boundaries are found
+     */
+    public boolean areAllBoundariesFound() {
+        return isNorthBoundaryFound()
+                || isSouthBoundaryFound()
+                || isWestBoundaryFound()
+                || isEastBoundaryFound();
+    }
+
+    /**
      * @return set of spawned robot ids
      */
     public Set<Integer> getSpawnedIds() {
@@ -177,9 +169,8 @@ public class BotEnlightenment extends BotController {
      * @param enemySpottedInfo the spotting info for the enemy
      */
     public void reportEnemy(EnemySpottedInfo enemySpottedInfo) {
-        MapLocation myLoc = rc.getLocation();
-        MapLocation location = new MapLocation(enemySpottedInfo.delta.x + myLoc.x, enemySpottedInfo.delta.y + myLoc.y);
-        reportedEnemies.add(new AbstractMap.SimpleImmutableEntry<>(location, enemySpottedInfo.enemyType));
+        //MapLocation location = new MapLocation(enemySpottedInfo.delta.x + myLoc.x, enemySpottedInfo.delta.y + myLoc.y);
+        reportedEnemies.add(enemySpottedInfo);
     }
 
     /**
@@ -222,5 +213,15 @@ public class BotEnlightenment extends BotController {
         }
     }
 
+    /**
+     * Get the latest reported location
+     */
+    public Optional<EnemySpottedInfo> getLatestReportedEnemyLocation(){
+        if (reportedEnemies.size() > 0){
+            return Optional.of(reportedEnemies.get(reportedEnemies.size() - 1));
+        }else{
+            return Optional.empty();
+        }
+    }
 
 }

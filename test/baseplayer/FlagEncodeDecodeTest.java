@@ -10,20 +10,21 @@ import static org.junit.Assert.*;
 public class FlagEncodeDecodeTest {
     @Test
     public void testEncodeDecodeEnemySpotted() {
-        int flag = Flags.encodeEnemySpotted(FlagAddress.ANY, new MapLocation(29, 23), RobotType.MUCKRAKER);
+        int flag = Flags.encodeEnemySpotted(FlagAddress.PARENT_ENLIGHTENMENT_CENTER, new MapLocation(29, 23), RobotType.MUCKRAKER);
+        assertEquals(FlagType.ENEMY_SPOTTED, Flags.decodeFlagType(flag));
         EnemySpottedInfo info = Flags.decodeEnemySpotted(flag);
-        assertEquals(FlagAddress.ANY, Flags.decodeFlagAddress(flag));
+        assertEquals(FlagAddress.PARENT_ENLIGHTENMENT_CENTER, Flags.decodeFlagAddress(flag));
         assertEquals(info.enemyType, RobotType.MUCKRAKER);
         assertEquals(info.delta, new MapLocation(29, 23));
 
 
-        int flag2 = Flags.encodeEnemySpotted(FlagAddress.MUCKRAKER, new MapLocation(63, 63), RobotType.ENLIGHTENMENT_CENTER);
-        assertEquals(FlagAddress.MUCKRAKER, Flags.decodeFlagAddress(flag2));
+        int flag2 = Flags.encodeEnemySpotted(FlagAddress.PARENT_ENLIGHTENMENT_CENTER, new MapLocation(63, 63), RobotType.ENLIGHTENMENT_CENTER);
+        assertEquals(FlagAddress.PARENT_ENLIGHTENMENT_CENTER, Flags.decodeFlagAddress(flag2));
         EnemySpottedInfo info2 = Flags.decodeEnemySpotted(flag2);
         assertEquals(info2.enemyType, RobotType.ENLIGHTENMENT_CENTER);
         assertEquals(info2.delta, new MapLocation(63, 63));
 
-        int flag3 = Flags.encodeEnemySpotted(FlagAddress.ANY, new MapLocation(-29, -23), RobotType.SLANDERER);
+        int flag3 = Flags.encodeEnemySpotted(FlagAddress.PARENT_ENLIGHTENMENT_CENTER, new MapLocation(-29, -23), RobotType.SLANDERER);
         EnemySpottedInfo info3 = Flags.decodeEnemySpotted(flag3);
         assertEquals(info3.enemyType, RobotType.SLANDERER);
         assertEquals(info3.delta, new MapLocation(-29, -23));

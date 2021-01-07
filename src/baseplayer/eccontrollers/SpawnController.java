@@ -19,17 +19,13 @@ public class SpawnController implements ECController{
         RobotType toBuild = robotToSpawn();
         MapLocation myLoc = rc.getLocation();
         int influence = 1;
-        Direction originalSpawnDir = nextSpawnDirection;
 
-        nextSpawnDirection = nextSpawnDirection.rotateRight();
-        while(true) {
-            if (originalSpawnDir.equals(nextSpawnDirection)) {
-                break;
-            }
+        for (int i=0; i<8;i++) {
             if (rc.canBuildRobot(toBuild, nextSpawnDirection, influence)) {
                 //Built the robot, add id to total
                 rc.buildRobot(toBuild, nextSpawnDirection, influence);
                 ec.reportSpawn(rc.senseRobotAtLocation(rc.getLocation().add(nextSpawnDirection)).ID, robotToSpawn());
+                nextSpawnDirection = nextSpawnDirection.rotateRight();
                 break;
             }
         }
