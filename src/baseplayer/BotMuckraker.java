@@ -1,8 +1,6 @@
 package baseplayer;
 
-import baseplayer.flags.BoundaryRequiredInfo;
-import baseplayer.flags.FlagType;
-import baseplayer.flags.Flags;
+import baseplayer.flags.*;
 import battlecode.common.*;
 
 import java.util.ArrayList;
@@ -37,7 +35,7 @@ public class BotMuckraker extends BotController {
             if (robot.team.equals(enemy)){
                 MapLocation robotLoc = robot.getLocation();
                 MapLocation delta = new MapLocation(robotLoc.x - parentLoc.x, robotLoc.y - parentLoc.y);
-                rc.setFlag(Flags.encodeEnemySpotted(delta, robot.getType()));
+                rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.ANY, delta, robot.getType()));
                 return;
             }
         }
@@ -46,16 +44,15 @@ public class BotMuckraker extends BotController {
         FlagType parentFlagType = Flags.decodeFlagType(parentFlag);
         if (parentFlagType.equals(FlagType.BOUNDARY_REQUIRED)) {
             BoundaryRequiredInfo info = Flags.decodeBoundaryRequired(parentFlag);
-            List<Direction> boundaryDirectionsToSearch = new ArrayList<>();
-            if (!info.northFound) boundaryDirectionsToSearch.add(Direction.NORTH);
-            if (!info.eastFound) boundaryDirectionsToSearch.add(Direction.EAST);
-            if (!info.southFound) boundaryDirectionsToSearch.add(Direction.SOUTH);
-            if (!info.westFound) boundaryDirectionsToSearch.add(Direction.WEST);
+            List<BoundaryType> boundaryDirectionsToSearch = new ArrayList<>();
+            if (!info.northFound) boundaryDirectionsToSearch.add(BoundaryType.NORTH);
+            if (!info.eastFound) boundaryDirectionsToSearch.add(BoundaryType.EAST);
+            if (!info.southFound) boundaryDirectionsToSearch.add(BoundaryType.SOUTH);
+            if (!info.westFound) boundaryDirectionsToSearch.add(BoundaryType.WEST);
 
-            for (Direction searchBoundaryDirection : boundaryDirectionsToSearch)
+            for (BoundaryType searchBoundaryDirection : boundaryDirectionsToSearch)
                 signalForBoundary(searchBoundaryDirection);
         }
-
 
         nav.fuzzyMove(scoutingDirection);
     }
@@ -63,7 +60,8 @@ public class BotMuckraker extends BotController {
 
     // Binary search along the sensor radius to find boundary, if any
     // Sets boundary flag in direction if found.
-    private void signalForBoundary(Direction searchDirection) throws GameActionException {
+    private void signalForBoundary(BoundaryType requestedBoundary) throws GameActionException {
+        Direction searchDirection = BoundaryType.toDirection(requestedBoundary);
         int maxOffset = (int) Math.sqrt(rc.getType().sensorRadiusSquared);
         int minOffset = 0;
         MapLocation extreme = Utilities.offsetLocation(rc.getLocation(), searchDirection, maxOffset);
@@ -84,10 +82,11 @@ public class BotMuckraker extends BotController {
             if (maxOffset == minOffset + 1) {
                 // Boundary pinpointed! maxOffset is off grid while minOffset is on grid
                 MapLocation boundaryLoc = Utilities.offsetLocation(rc.getLocation(), searchDirection, minOffset);
-                MapLocation boundaryDelta = new MapLocation(boundaryLoc.x - parentLoc.x, boundaryLoc.y - parentLoc.y);
-                //System.out.println(searchDirection + " boundary found at " + boundaryLoc);
-                // Signal here
-                rc.setFlag(Flags.encodeBoundarySpotted(boundaryDelta, searchDirection));
+                if (searchDirection == Direction.NORTH || searchDirection == Direction.SOUTH){
+                    rc.setFlag(Flags.encodeBoundarySpotted(FlagAddress.PARENT_ENLIGHTENMENT_CENTER, boundaryLoc.y, requestedBoundary));
+                }else{
+                    rc.setFlag(Flags.encodeBoundarySpotted(FlagAddress.PARENT_ENLIGHTENMENT_CENTER, boundaryLoc.x, requestedBoundary));
+                }
                 return;
             }
             MapLocation newLoc = Utilities.offsetLocation(rc.getLocation(), searchDirection, newOffset);

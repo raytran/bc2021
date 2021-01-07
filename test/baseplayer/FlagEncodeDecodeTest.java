@@ -1,8 +1,5 @@
 package baseplayer;
-import baseplayer.flags.BoundaryRequiredInfo;
-import baseplayer.flags.BoundarySpottedInfo;
-import baseplayer.flags.EnemySpottedInfo;
-import baseplayer.flags.Flags;
+import baseplayer.flags.*;
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotType;
@@ -13,24 +10,26 @@ import static org.junit.Assert.*;
 public class FlagEncodeDecodeTest {
     @Test
     public void testEncodeDecodeEnemySpotted() {
-        int flag = Flags.encodeEnemySpotted(new MapLocation(29, 23), RobotType.MUCKRAKER);
+        int flag = Flags.encodeEnemySpotted(FlagAddress.ANY, new MapLocation(29, 23), RobotType.MUCKRAKER);
         EnemySpottedInfo info = Flags.decodeEnemySpotted(flag);
+        assertEquals(FlagAddress.ANY, Flags.decodeFlagAddress(flag));
         assertEquals(info.enemyType, RobotType.MUCKRAKER);
         assertEquals(info.delta, new MapLocation(29, 23));
 
 
-        int flag2 = Flags.encodeEnemySpotted(new MapLocation(63, 63), RobotType.ENLIGHTENMENT_CENTER);
+        int flag2 = Flags.encodeEnemySpotted(FlagAddress.MUCKRAKER, new MapLocation(63, 63), RobotType.ENLIGHTENMENT_CENTER);
+        assertEquals(FlagAddress.MUCKRAKER, Flags.decodeFlagAddress(flag2));
         EnemySpottedInfo info2 = Flags.decodeEnemySpotted(flag2);
         assertEquals(info2.enemyType, RobotType.ENLIGHTENMENT_CENTER);
         assertEquals(info2.delta, new MapLocation(63, 63));
 
-        int flag3 = Flags.encodeEnemySpotted(new MapLocation(-29, -23), RobotType.SLANDERER);
+        int flag3 = Flags.encodeEnemySpotted(FlagAddress.ANY, new MapLocation(-29, -23), RobotType.SLANDERER);
         EnemySpottedInfo info3 = Flags.decodeEnemySpotted(flag3);
         assertEquals(info3.enemyType, RobotType.SLANDERER);
         assertEquals(info3.delta, new MapLocation(-29, -23));
 
 
-        int flag4 = Flags.encodeEnemySpotted(new MapLocation(-63, -63), RobotType.POLITICIAN);
+        int flag4 = Flags.encodeEnemySpotted(FlagAddress.ANY, new MapLocation(-63, -63), RobotType.POLITICIAN);
         EnemySpottedInfo info4 = Flags.decodeEnemySpotted(flag4);
         assertEquals(info4.enemyType, RobotType.POLITICIAN);
         assertEquals(info4.delta, new MapLocation(-63, -63));
@@ -39,47 +38,47 @@ public class FlagEncodeDecodeTest {
 
     @Test
     public void testEncodeDecodeBoundarySpotted() {
-        int flag = Flags.encodeBoundarySpotted(new MapLocation(29, 23), Direction.NORTH);
+        int flag = Flags.encodeBoundarySpotted(FlagAddress.ANY, 30063, BoundaryType.EAST);
         BoundarySpottedInfo info = Flags.decodeBoundarySpotted(flag);
-        assertEquals(info.boundaryDirection, Direction.NORTH);
-        assertEquals(info.delta, new MapLocation(29, 23));
+        assertEquals(BoundaryType.EAST, info.boundaryType);
+        assertEquals(30063, info.exactBoundaryLocation);
 
 
-        int flag2 = Flags.encodeBoundarySpotted(new MapLocation(63, 63), Direction.NORTHEAST);
+        int flag2 = Flags.encodeBoundarySpotted(FlagAddress.ANY, 0, BoundaryType.SOUTH);
         BoundarySpottedInfo info2 = Flags.decodeBoundarySpotted(flag2);
-        assertEquals(info2.boundaryDirection, Direction.NORTHEAST);
-        assertEquals(info2.delta, new MapLocation(63, 63));
+        assertEquals(BoundaryType.SOUTH, info2.boundaryType);
+        assertEquals(0, info2.exactBoundaryLocation);
 
-        int flag3 = Flags.encodeBoundarySpotted(new MapLocation(-29, -23), Direction.SOUTH);
+        int flag3 = Flags.encodeBoundarySpotted(FlagAddress.ANY, 28410, BoundaryType.WEST);
         BoundarySpottedInfo info3 = Flags.decodeBoundarySpotted(flag3);
-        assertEquals(info3.boundaryDirection, Direction.SOUTH);
-        assertEquals(info3.delta, new MapLocation(-29, -23));
+        assertEquals(BoundaryType.WEST, info3.boundaryType);
+        assertEquals(28410, info3.exactBoundaryLocation);
 
 
-        int flag4 = Flags.encodeBoundarySpotted(new MapLocation(-63, -63), Direction.SOUTHWEST);
+        int flag4 = Flags.encodeBoundarySpotted(FlagAddress.ANY, 2910, BoundaryType.NORTH);
         BoundarySpottedInfo info4 = Flags.decodeBoundarySpotted(flag4);
-        assertEquals(info4.boundaryDirection, Direction.SOUTHWEST);
-        assertEquals(info4.delta, new MapLocation(-63, -63));
+        assertEquals(BoundaryType.NORTH, info4.boundaryType);
+        assertEquals(2910, info4.exactBoundaryLocation);
     }
 
 
     @Test
     public void testEncodeDecodeBoundaryRequired() {
-        int flag = Flags.encodeBoundaryRequired(true, false, false, true);
+        int flag = Flags.encodeBoundaryRequired(FlagAddress.MUCKRAKER, true, false, false, true);
         BoundaryRequiredInfo info = Flags.decodeBoundaryRequired(flag);
         assertTrue(info.northFound);
         assertFalse(info.eastFound);
         assertFalse(info.southFound);
         assertTrue(info.westFound);
 
-        int flag2 = Flags.encodeBoundaryRequired(false, false, false, false);
+        int flag2 = Flags.encodeBoundaryRequired(FlagAddress.POLITICIAN, false, false, false, false);
         BoundaryRequiredInfo info2 = Flags.decodeBoundaryRequired(flag2);
         assertFalse(info2.northFound);
         assertFalse(info2.eastFound);
         assertFalse(info2.southFound);
         assertFalse(info2.westFound);
 
-        int flag3 = Flags.encodeBoundaryRequired(true, true, true, true);
+        int flag3 = Flags.encodeBoundaryRequired(FlagAddress.SLANDERER, true, true, true, true);
         BoundaryRequiredInfo info3 = Flags.decodeBoundaryRequired(flag3);
         assertTrue(info3.northFound);
         assertTrue(info3.eastFound);

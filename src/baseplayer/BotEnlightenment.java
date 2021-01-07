@@ -1,9 +1,6 @@
 package baseplayer;
 
-import baseplayer.flags.BoundarySpottedInfo;
-import baseplayer.flags.EnemySpottedInfo;
-import baseplayer.flags.FlagType;
-import baseplayer.flags.Flags;
+import baseplayer.flags.*;
 import battlecode.common.*;
 
 import java.util.HashSet;
@@ -31,7 +28,7 @@ public class BotEnlightenment extends BotController {
         voteController = new VoteController(rc);
 
         // Don't know any bounds
-        rc.setFlag(Flags.encodeBoundaryRequired(false, false, false, false));
+        rc.setFlag(Flags.encodeBoundaryRequired(FlagAddress.ANY, false, false, false, false));
     }
 
     @Override
@@ -58,62 +55,65 @@ public class BotEnlightenment extends BotController {
         for (Integer id : spawnedIds){
             if (rc.canGetFlag(id)){
                 int flag = rc.getFlag(id);
-                switch (Flags.decodeFlagType(flag)){
-                    case ENEMY_SPOTTED:
-                        enemyFound = true;
-                        EnemySpottedInfo info = Flags.decodeEnemySpotted(flag);
-                        //System.out.println("Enemy of type " + info.enemyType
-                        //        + " found at " + (info.delta.x + myLoc.x) + " , " + (info.delta.y + myLoc.y)
-                        //        + " by " + id);
-                        break;
-                    case BOUNDARY_SPOTTED:
-                        BoundarySpottedInfo info2 = Flags.decodeBoundarySpotted(flag);
-                        boolean changed = false;
-                        switch (info2.boundaryDirection) {
-                            case NORTH:
-                                if (!northBoundary.isPresent()) {
-                                    northBoundary = Optional.of(myLoc.y + info2.delta.y);
-                                    changed = true;
-                                    System.out.println("NORTH BOUNDARY FOUND at " + northBoundary.get());
-                                }
-                                break;
-                            case EAST:
-                                if (!eastBoundary.isPresent()) {
-                                    eastBoundary = Optional.of((myLoc.x + info2.delta.x));
-                                    changed = true;
-                                    System.out.println("EAST BOUNDARY FOUND at " + eastBoundary.get());
-                                }
-                                break;
-                            case SOUTH:
-                                if (!southBoundary.isPresent()) {
-                                    southBoundary = Optional.of(myLoc.y + info2.delta.y);
-                                    changed = true;
-                                    System.out.println("SOUTH BOUNDARY FOUND at " + southBoundary.get());
-                                }
-                                break;
-                            case WEST:
-                                if (!westBoundary.isPresent()) {
-                                    westBoundary = Optional.of(myLoc.x + info2.delta.x);
-                                    changed = true;
-                                    System.out.println("WEST BOUNDARY FOUND at " + westBoundary.get());
-                                }
-                                break;
-                            default:
-                                //TODO refactor boundary spotted flag?
-                                throw new RuntimeException("Shouldn't be here...");
-                        }
+                if (Flags.addressedForCurrentBot(rc, flag,true)) {
+                    switch (Flags.decodeFlagType(flag)){
+                        case ENEMY_SPOTTED:
+                            enemyFound = true;
+                            EnemySpottedInfo info = Flags.decodeEnemySpotted(flag);
+                            //System.out.println("Enemy of type " + info.enemyType
+                            //        + " found at " + (info.delta.x + myLoc.x) + " , " + (info.delta.y + myLoc.y)
+                            //        + " by " + id);
+                            break;
+                        case BOUNDARY_SPOTTED:
+                            BoundarySpottedInfo info2 = Flags.decodeBoundarySpotted(flag);
+                            boolean changed = false;
+                            switch (info2.boundaryType) {
+                                case NORTH:
+                                    if (!northBoundary.isPresent()) {
+                                        northBoundary = Optional.of(info2.exactBoundaryLocation);
+                                        changed = true;
+                                        System.out.println("NORTH BOUNDARY FOUND at " + northBoundary.get());
+                                    }
+                                    break;
+                                case EAST:
+                                    if (!eastBoundary.isPresent()) {
+                                        eastBoundary = Optional.of((info2.exactBoundaryLocation));
+                                        changed = true;
+                                        System.out.println("EAST BOUNDARY FOUND at " + eastBoundary.get());
+                                    }
+                                    break;
+                                case SOUTH:
+                                    if (!southBoundary.isPresent()) {
+                                        southBoundary = Optional.of(info2.exactBoundaryLocation);
+                                        changed = true;
+                                        System.out.println("SOUTH BOUNDARY FOUND at " + southBoundary.get());
+                                    }
+                                    break;
+                                case WEST:
+                                    if (!westBoundary.isPresent()) {
+                                        westBoundary = Optional.of(info2.exactBoundaryLocation);
+                                        changed = true;
+                                        System.out.println("WEST BOUNDARY FOUND at " + westBoundary.get());
+                                    }
+                                    break;
+                                default:
+                                    //TODO refactor boundary spotted flag?
+                                    throw new RuntimeException("Shouldn't be here...");
+                            }
 
-                        if (changed) {
-                            rc.setFlag(Flags.encodeBoundaryRequired(
-                                    northBoundary.isPresent(),
-                                    eastBoundary.isPresent(),
-                                    southBoundary.isPresent(),
-                                    westBoundary.isPresent())
-                            );
-                        }
-                        break;
-                    default:
-                        break;
+                            if (changed) {
+                                rc.setFlag(Flags.encodeBoundaryRequired(
+                                        FlagAddress.ANY,
+                                        northBoundary.isPresent(),
+                                        eastBoundary.isPresent(),
+                                        southBoundary.isPresent(),
+                                        westBoundary.isPresent())
+                                );
+                            }
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
         }
