@@ -5,25 +5,15 @@ import battlecode.common.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class BotMuckraker extends BotController {
+    Optional<MapLocation> enemyLocation;
     Direction scoutingDirection;
-    MapLocation parentLoc;
-    int parentID;
     public BotMuckraker(RobotController rc) throws GameActionException {
         super(rc);
-        MapLocation myLoc = rc.getLocation();
-        for (MapLocation neighbor : Utilities.getPossibleNeighbors(myLoc)) {
-            RobotInfo robotHere = rc.senseRobotAtLocation(neighbor);
-            if (robotHere != null && robotHere.type.equals(RobotType.ENLIGHTENMENT_CENTER)) {
-                parentLoc = neighbor;
-                scoutingDirection = parentLoc.directionTo(myLoc);
-                parentID = robotHere.ID;
-                break;
-            }
-        }
-
-        assert parentLoc != null;
+        enemyLocation = Optional.empty();
+        scoutingDirection = parentLoc.directionTo(rc.getLocation());
         assert scoutingDirection != null;
     }
 
@@ -36,25 +26,39 @@ public class BotMuckraker extends BotController {
                 MapLocation robotLoc = robot.getLocation();
                 MapLocation delta = new MapLocation(robotLoc.x - parentLoc.x, robotLoc.y - parentLoc.y);
                 rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.PARENT_ENLIGHTENMENT_CENTER, delta, robot.getType()));
-                return;
             }
         }
 
         int parentFlag = rc.getFlag(parentID);
-        FlagType parentFlagType = Flags.decodeFlagType(parentFlag);
-        if (parentFlagType.equals(FlagType.BOUNDARY_REQUIRED)) {
-            BoundaryRequiredInfo info = Flags.decodeBoundaryRequired(parentFlag);
-            List<BoundaryType> boundaryDirectionsToSearch = new ArrayList<>();
-            if (!info.northFound) boundaryDirectionsToSearch.add(BoundaryType.NORTH);
-            if (!info.eastFound) boundaryDirectionsToSearch.add(BoundaryType.EAST);
-            if (!info.southFound) boundaryDirectionsToSearch.add(BoundaryType.SOUTH);
-            if (!info.westFound) boundaryDirectionsToSearch.add(BoundaryType.WEST);
+        if (Flags.addressedForCurrentBot(rc, parentFlag, false)) {
+            FlagType parentFlagType = Flags.decodeFlagType(parentFlag);
+            switch (parentFlagType){
+                case BOUNDARY_REQUIRED:
+                    BoundaryRequiredInfo info = Flags.decodeBoundaryRequired(parentFlag);
+                    List<BoundaryType> boundaryDirectionsToSearch = new ArrayList<>();
+                    if (!info.northFound) boundaryDirectionsToSearch.add(BoundaryType.NORTH);
+                    if (!info.eastFound) boundaryDirectionsToSearch.add(BoundaryType.EAST);
+                    if (!info.southFound) boundaryDirectionsToSearch.add(BoundaryType.SOUTH);
+                    if (!info.westFound) boundaryDirectionsToSearch.add(BoundaryType.WEST);
 
-            for (BoundaryType searchBoundaryDirection : boundaryDirectionsToSearch)
-                signalForBoundary(searchBoundaryDirection);
+                    for (BoundaryType searchBoundaryDirection : boundaryDirectionsToSearch)
+                        signalForBoundary(searchBoundaryDirection);
+                    break;
+                case ENEMY_SPOTTED:
+                    if (!enemyLocation.isPresent()){
+                        EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(parentFlag);
+                        enemyLocation = Optional.of(parentLoc.translate(enemySpottedInfo.delta.x, enemySpottedInfo.delta.y));
+                    }
+                    break;
+            }
         }
 
-        nav.fuzzyMove(scoutingDirection);
+        if (enemyLocation.isPresent()){
+            //System.out.println("GOING TO ENEMY");
+            nav.bugTo(enemyLocation.get());
+        } else {
+            nav.fuzzyMove(scoutingDirection);
+        }
     }
 
 

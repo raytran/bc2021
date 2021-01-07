@@ -31,6 +31,9 @@ public class SpawnController implements ECController{
         }
     }
     private RobotType robotToSpawn() {
+
+        return RobotType.MUCKRAKER;
+        /*
         int round = rc.getRoundNum();
         if(ec.getMuckrakerCount() <= 8 ){
             System.out.print("COUNT: " + ec.getMuckrakerCount());
@@ -46,5 +49,7 @@ public class SpawnController implements ECController{
         //else{
          //   return RobotType.MUCKRAKER;
         //}
+
+         */
     }
 }

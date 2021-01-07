@@ -5,10 +5,11 @@ import baseplayer.flags.BoundarySpottedInfo;
 import baseplayer.flags.EnemySpottedInfo;
 import baseplayer.flags.FlagAddress;
 import baseplayer.flags.Flags;
-import battlecode.common.Clock;
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
+import battlecode.common.RobotType;
 
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -37,14 +38,15 @@ public class FlagController implements ECController {
 
     private void readFlags() throws GameActionException{
         // Check baseplayer.flags
-        for (Integer id : ec.getSpawnedIds()) {
-            if (rc.canGetFlag(id)){
+        for (Map.Entry<Integer, RobotType> entry : ec.getNSpawnedRobotInfos(50)) {
+            int id = entry.getKey();
+            if (rc.canGetFlag(id)) {
                 int flag = rc.getFlag(id);
                 if (Flags.addressedForCurrentBot(rc, flag,true)) {
                     switch (Flags.decodeFlagType(flag)){
                         case ENEMY_SPOTTED:
                             ec.reportEnemy(Flags.decodeEnemySpotted(flag));
-                            System.out.println("Enemy spotted received");
+                            //System.out.println("Enemy spotted received");
                             break;
                         case BOUNDARY_SPOTTED:
                             BoundarySpottedInfo info2 = Flags.decodeBoundarySpotted(flag);
@@ -82,10 +84,10 @@ public class FlagController implements ECController {
         //TODO more sophisticated flagging
         Optional<EnemySpottedInfo> enemyReport = ec.getLatestReportedEnemyLocation();
         if (enemyReport.isPresent() && (ec.areAllBoundariesFound() || rc.getRoundNum() % 2 == 0)) {
-            System.out.println("EC Flagging enemy");
+            //System.out.println("EC Flagging enemy");
             rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.ANY, enemyReport.get().delta, enemyReport.get().enemyType));
         } else {
-            System.out.println("EC Flagging boundary");
+            //System.out.println("EC Flagging boundary");
             rc.setFlag(Flags.encodeBoundaryRequired(
                     FlagAddress.ANY,
                     ec.isNorthBoundaryFound(),

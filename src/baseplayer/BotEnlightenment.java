@@ -1,5 +1,7 @@
 package baseplayer;
 
+import baseplayer.ds.CircularLinkedList;
+import baseplayer.ds.LinkedListNode;
 import baseplayer.eccontrollers.FlagController;
 import baseplayer.eccontrollers.SpawnController;
 import baseplayer.eccontrollers.VoteController;
@@ -9,8 +11,12 @@ import battlecode.common.*;
 import java.util.*;
 
 public class BotEnlightenment extends BotController {
-    private List<EnemySpottedInfo> reportedEnemies = new LinkedList<>();
-    private Map<Integer, RobotType> spawnedRobots = new HashMap<>();
+    private final List<EnemySpottedInfo> reportedEnemies = new LinkedList<>();
+    private final CircularLinkedList<Map.Entry<Integer,RobotType>> spawnedRobots = new CircularLinkedList<>();
+    private final HashMap<Integer, LinkedListNode<Map.Entry<Integer, RobotType>>> robotIdToLLN = new HashMap<>();
+    private LinkedListNode<Map.Entry<Integer, RobotType>> lastSample;
+
+
     private int muckrakerCount = 0;
     private int politicianCount = 0;
     private int slandererCount = 0;
@@ -23,6 +29,7 @@ public class BotEnlightenment extends BotController {
     private VoteController voteController;
     private FlagController flagController;
     private SpawnController spawnController;
+
 
     public BotEnlightenment(RobotController rc) throws GameActionException {
         super(rc);
@@ -58,7 +65,10 @@ public class BotEnlightenment extends BotController {
      * @param robotType type of the robot that spawned
      */
     public void reportSpawn(int id, RobotType robotType) {
-        spawnedRobots.put(id, robotType);
+        LinkedListNode<Map.Entry<Integer, RobotType>> newLLN
+                = spawnedRobots.addToTail(new AbstractMap.SimpleImmutableEntry<>(id, robotType));
+        robotIdToLLN.put(id, newLLN);
+
         switch(robotType){
             case MUCKRAKER:
                 muckrakerCount++;
@@ -78,8 +88,10 @@ public class BotEnlightenment extends BotController {
      * @param id of the robot that died
      */
     public void reportDeath(int id) {
-        RobotType robotType = spawnedRobots.get(id);
-        switch(robotType){
+        LinkedListNode<Map.Entry<Integer, RobotType>> toBeRemoved = robotIdToLLN.get(id);
+        robotIdToLLN.remove(id);
+        spawnedRobots.remove(toBeRemoved);
+        switch(toBeRemoved.getData().getValue()){
             case MUCKRAKER:
                 muckrakerCount--;
                 break;
@@ -91,7 +103,6 @@ public class BotEnlightenment extends BotController {
                 break;
             default: throw new RuntimeException("AN ILLEGAL UNIT DIED");
         }
-        spawnedRobots.remove(id);
     }
 
     /**
@@ -158,10 +169,24 @@ public class BotEnlightenment extends BotController {
     }
 
     /**
-     * @return set of spawned robot ids
+     * Return the n sampled robot ids
+     * If n <= num robot ids, then returns all
+     * @return set of n randomly sampled robot ids
      */
-    public Set<Integer> getSpawnedIds() {
-        return spawnedRobots.keySet();
+    public List<Map.Entry<Integer, RobotType>> getNSpawnedRobotInfos(int n) {
+        if (n <= 0){
+            throw new IllegalArgumentException("Cannot sample <= 0 ids");
+        } else {
+            if (spawnedRobots.getSize() == 0){
+                return new ArrayList<>();
+            } else {
+                //int before = Clock.getBytecodeNum();
+                List<Map.Entry<Integer, RobotType>> samples = spawnedRobots.sampleWithMemory(n);
+                //int after = Clock.getBytecodeNum();
+                //System.out.println("Used bytecode : " + (after-before));
+                return samples;
+            }
+        }
     }
 
     /**
