@@ -45,6 +45,19 @@ public class NavigationController {
     }
 
     /**
+     * Bugs if far away, dijkstra if close enough
+     * @param target target location
+     * @throws GameActionException
+     */
+    public void bugAndDijkstraTo(MapLocation target) throws GameActionException {
+        if (rc.getLocation().distanceSquaredTo(target) > rc.getType().sensorRadiusSquared){
+            bugTo(target);
+        }else{
+            localDijkstraTo(target);
+        }
+    }
+
+    /**
      * Dijkstra to a location
      * Only works within sensing range
      * @param target target location
@@ -82,8 +95,7 @@ public class NavigationController {
         int initBytecode = Clock.getBytecodesLeft();
         int senseRadius = rc.getType().sensorRadiusSquared;
         if (rc.getLocation().distanceSquaredTo(target) > senseRadius) {
-            //System.err.println("Tried to pathfind outside of sense radius");
-            return null;
+            throw new RuntimeException("Tried to pathfind outside of sense radius");
         }
 
         Map<MapLocation, Double> passabilityMap = new HashMap<>();
@@ -108,7 +120,7 @@ public class NavigationController {
             for (MapLocation neighborLoc :  Utilities.getPossibleNeighbors(current.getValue())) {
                 if (neighborLoc.isWithinDistanceSquared(startingLoc, senseRadius) && rc.onTheMap(neighborLoc)){
                     if (!passabilityMap.containsKey(neighborLoc)) {
-                        passabilityMap.put(neighborLoc, rc.sensePassability(neighborLoc));
+                        passabilityMap.put(neighborLoc, rc.isLocationOccupied(neighborLoc) ? 0 : rc.sensePassability(neighborLoc));
                     }
                     double newCost = currentCost + (1 - passabilityMap.get(neighborLoc));
                     if (!costMap.containsKey(neighborLoc) || newCost < costMap.get(neighborLoc)) {
