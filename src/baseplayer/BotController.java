@@ -31,10 +31,11 @@ public abstract class BotController {
 
     /**
      * Runs the bot. When the function ends, Clock.yield() is called from the main thread
+     * Must return this or a new bot for the next round (used to convert slanderers)
      *
      * @throws GameActionException
      */
-    public abstract void run() throws GameActionException;
+    public abstract BotController run() throws GameActionException;
 
     /**
      * Increases the recorded age of the robot by 1

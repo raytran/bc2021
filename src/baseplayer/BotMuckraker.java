@@ -18,7 +18,7 @@ public class BotMuckraker extends BotController {
     }
 
     @Override
-    public void run() throws GameActionException {
+    public BotController run() throws GameActionException {
         Team enemy = rc.getTeam().opponent();
         // Found a robot ?
         for (RobotInfo robot : rc.senseNearbyRobots()) {
@@ -59,6 +59,8 @@ public class BotMuckraker extends BotController {
         } else {
             nav.fuzzyMove(scoutingDirection);
         }
+
+        return this;
     }
 
 

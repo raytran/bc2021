@@ -18,7 +18,7 @@ public class SpawnController implements ECController{
     public void run() throws GameActionException {
         RobotType toBuild = robotToSpawn();
         MapLocation myLoc = rc.getLocation();
-        int influence = 1;
+        int influence = 11;
 
         for (int i=0; i<8;i++) {
             if (rc.canBuildRobot(toBuild, nextSpawnDirection, influence)) {
@@ -31,9 +31,6 @@ public class SpawnController implements ECController{
         }
     }
     private RobotType robotToSpawn() {
-
-        return RobotType.MUCKRAKER;
-        /*
         int round = rc.getRoundNum();
         if(ec.getMuckrakerCount() <= 8 ){
             System.out.print("COUNT: " + ec.getMuckrakerCount());
@@ -46,10 +43,5 @@ public class SpawnController implements ECController{
             return RobotType.SLANDERER;
         }
         else return RobotType.SLANDERER;
-        //else{
-         //   return RobotType.MUCKRAKER;
-        //}
-
-         */
     }
 }

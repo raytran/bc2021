@@ -45,13 +45,14 @@ public class BotEnlightenment extends BotController {
         rc.setFlag(Flags.encodeBoundaryRequired(FlagAddress.ANY, false, false, false, false));
     }
     @Override
-    public void run() throws GameActionException {
+    public BotController run() throws GameActionException {
         //Run spawn controller
         spawnController.run();
         // Read and update flags
         flagController.run();
         // Bid for votes
         voteController.run();
+        return this;
     }
     private void checkRep(){
         assert muckrakerCount > 0;

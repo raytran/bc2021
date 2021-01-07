@@ -75,6 +75,7 @@ public class CircularLinkedList<T> {
             }
         }
 
+        checkRep();
         size -= 1;
     }
 
