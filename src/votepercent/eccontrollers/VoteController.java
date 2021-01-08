@@ -1,6 +1,5 @@
 package votepercent.eccontrollers;
 
-import battlecode.common.Clock;
 import votepercent.BotEnlightenment;
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
@@ -15,9 +14,10 @@ public class VoteController implements ECController {
     private final double epsilon;
     private final int delta;
     private int percent;
-    private int prev_percent = 0;
+    private int prevPercent = 0;
     private int prev_votes = 0;
-    private final static int MAX_VOTE_PERCENT = 50;
+    private boolean prev_voted = false;
+    private final static int MAX_VOTE_PERCENT = 25;
     private final static int VOTE_WIN_COUNT = 1501;
     private final static int MAX_ROUNDS = 3000;
     private int[] counts = new int[MAX_VOTE_PERCENT + 1];
@@ -44,14 +44,13 @@ public class VoteController implements ECController {
      */
     @Override
     public void run() throws GameActionException {
-        int initialByte = Clock.getBytecodesLeft();
         int current_votes = rc.getTeamVotes();
         int current_influence = rc.getInfluence();
 
         // if team won the previous voting round
         if (current_votes - this.prev_votes == 1) {
             System.out.println(rc.getTeam() + " won the last round");
-            for (int i = this.prev_percent; i<= MAX_VOTE_PERCENT; i++){
+            for (int i = this.prevPercent; i<= MAX_VOTE_PERCENT; i++){
                 this.counts[i]++;
                 this.wins[i]++;
             }
@@ -60,9 +59,9 @@ public class VoteController implements ECController {
                 this.percent -= this.delta;
             }
         // if team lost the previous voting round
-        } else {
+        } else if (this.prev_voted) {
             System.out.println(rc.getTeam() + " lost the last round");
-            for (int i = 0; i<=this.prev_percent; i++) {
+            for (int i = 0; i<=this.prevPercent && i<=MAX_VOTE_PERCENT; i++) {
                 this.counts[i]++;
             }
             if (this.epsilon >= Math.random() && current_votes < VOTE_WIN_COUNT) {
@@ -71,12 +70,15 @@ public class VoteController implements ECController {
             }
         }
         this.prev_votes = current_votes;
-        System.out.println("First block used Bytecode of " + (initialByte - Clock.getBytecodesLeft()));
 
-        if (rc.canBid(this.percent*current_influence/100)){
-            System.out.println(rc.getTeam() + " bid " + this.percent*current_influence/100);
-            rc.bid(this.percent*current_influence/100);
-            this.prev_percent = this.percent;
+        int toVote = (int) (this.percent*(double)current_influence/100);
+        if (rc.canBid(toVote)){
+            System.out.println(rc.getTeam() + " bid " + toVote);
+            rc.bid(toVote);
+            this.prev_voted = true;
+            this.prevPercent = this.percent;
+        } else if (toVote > current_influence) {
+            this.prev_voted = false;
         }
 
         int[] setSizes = new int[MAX_VOTE_PERCENT +1];
@@ -87,13 +89,13 @@ public class VoteController implements ECController {
         }
         int remaining = MAX_ROUNDS-rc.getRoundNum();
         double estimatedWinProb = 0.0;
-        int a = 0;
+        int a = this.prevPercent -this.delta;
         while (current_votes + remaining*estimatedWinProb <= VOTE_WIN_COUNT) {
-            if (a<= MAX_VOTE_PERCENT) {
+            if (a <= MAX_VOTE_PERCENT) {
                 int setSize = this.counts[a] + setSizes[a];
                 if (setSize > 0) {
                     estimatedWinProb = (double) this.wins[a] / setSize;
-                    System.out.println(current_votes + remaining*estimatedWinProb);
+                    System.out.println(current_votes + remaining * estimatedWinProb);
                     a++;
                 } else {
                     break;

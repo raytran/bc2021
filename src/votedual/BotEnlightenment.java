@@ -1,9 +1,9 @@
-package votepercent;
+package votedual;
 
-import votepercent.eccontrollers.FlagController;
-import votepercent.eccontrollers.SpawnController;
-import votepercent.eccontrollers.VoteController;
-import votepercent.flags.*;
+import votedual.eccontrollers.FlagController;
+import votedual.eccontrollers.SpawnController;
+import votedual.eccontrollers.VoteController;
+import votedual.flags.*;
 import battlecode.common.*;
 
 import java.util.*;
@@ -26,7 +26,7 @@ public class BotEnlightenment extends BotController {
 
     public BotEnlightenment(RobotController rc) throws GameActionException {
         super(rc);
-        voteController = new VoteController(rc, this, 1, 1, .25);
+        voteController = new VoteController(rc, this, 1, .1);
         flagController = new FlagController(rc, this);
         spawnController = new SpawnController(rc,this);
         northBoundary = Optional.empty();
