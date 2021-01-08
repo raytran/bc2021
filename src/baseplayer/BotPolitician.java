@@ -42,18 +42,22 @@ public class BotPolitician extends BotController {
 
              */
         } else {
-            int parentFlag = rc.getFlag(parentID);
-            if (Flags.addressedForCurrentBot(rc, parentFlag, false)) {
-                FlagType parentFlagType = Flags.decodeFlagType(parentFlag);
-                switch (parentFlagType){
-                    case ENEMY_SPOTTED:
-                        if (!enemyLocation.isPresent()){
-                            EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(parentFlag);
-                            enemyLocation = Optional.of(parentLoc.translate(enemySpottedInfo.delta.x, enemySpottedInfo.delta.y));
-                        }
-                        break;
-                    default:
-                        break;
+            // Politicians get converted; they may be converted from the enemy therefore losing parentID
+            //TODO setup (lost parent message/response)
+            if (parentID.isPresent()) {
+                int parentFlag = rc.getFlag(parentID.get());
+                if (Flags.addressedForCurrentBot(rc, parentFlag, false)) {
+                    FlagType parentFlagType = Flags.decodeFlagType(parentFlag);
+                    switch (parentFlagType){
+                        case ENEMY_SPOTTED:
+                            if (!enemyLocation.isPresent()){
+                                EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(parentFlag);
+                                enemyLocation = Optional.of(parentLoc.translate(enemySpottedInfo.delta.x, enemySpottedInfo.delta.y));
+                            }
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
 
@@ -64,7 +68,6 @@ public class BotPolitician extends BotController {
                 Direction random = Utilities.randomDirection();
                 nav.fuzzyMove(random);
             }
-
         }
         return this;
     }

@@ -26,10 +26,14 @@ public class BotMuckraker extends BotController {
                 MapLocation robotLoc = robot.getLocation();
                 MapLocation delta = new MapLocation(robotLoc.x - parentLoc.x, robotLoc.y - parentLoc.y);
                 rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.PARENT_ENLIGHTENMENT_CENTER, delta, robot.getType()));
+
+                if (rc.canExpose(robot.ID)) {
+                    rc.expose(robot.ID);
+                }
             }
         }
 
-        int parentFlag = rc.getFlag(parentID);
+        int parentFlag = rc.getFlag(parentID.get());
         if (Flags.addressedForCurrentBot(rc, parentFlag, false)) {
             FlagType parentFlagType = Flags.decodeFlagType(parentFlag);
             switch (parentFlagType){

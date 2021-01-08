@@ -3,8 +3,10 @@ package baseplayer;
 import baseplayer.nav.NavigationController;
 import battlecode.common.*;
 
+import java.util.Optional;
+
 public abstract class BotController {
-    int parentID;
+    Optional<Integer> parentID = Optional.empty();
     MapLocation parentLoc;
     RobotController rc;
     NavigationController nav;
@@ -21,7 +23,7 @@ public abstract class BotController {
                     RobotInfo robotHere = rc.senseRobotAtLocation(neighbor);
                     if (robotHere != null && robotHere.type.equals(RobotType.ENLIGHTENMENT_CENTER)) {
                         parentLoc = neighbor;
-                        parentID = robotHere.ID;
+                        parentID = Optional.of(robotHere.ID);
                         break;
                     }
                 }

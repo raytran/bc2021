@@ -167,12 +167,17 @@ public class NavigationController {
             reverseBugDir();
         }
 
-        while (!canMoveInDir(heading)) {
-            if (bugDir == BugDirection.RIGHT)
-                heading = heading.rotateRight();
-            else
-                heading = heading.rotateLeft();
+        for (int i = 0; i < 8; i ++) {
+            if (!canMoveInDir(heading)) {
+                if (bugDir == BugDirection.RIGHT)
+                    heading = heading.rotateRight();
+                else
+                    heading = heading.rotateLeft();
+            } else {
+                break;
+            }
         }
+
         // Now we can move forward, but should we?
         if (bugDir == BugDirection.RIGHT) {
             if (canMoveInDir(heading.rotateLeft())) {

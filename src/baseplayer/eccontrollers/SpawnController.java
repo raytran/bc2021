@@ -18,7 +18,7 @@ public class SpawnController implements ECController{
     public void run() throws GameActionException {
         RobotType toBuild = robotToSpawn();
         MapLocation myLoc = rc.getLocation();
-        int influence = 11;
+        int influence = 200;
 
         for (int i=0; i<8;i++) {
             if (rc.canBuildRobot(toBuild, nextSpawnDirection, influence)) {
