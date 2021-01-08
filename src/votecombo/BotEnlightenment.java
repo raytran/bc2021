@@ -1,9 +1,9 @@
-package votepercent;
+package votecombo;
 
-import votepercent.eccontrollers.FlagController;
-import votepercent.eccontrollers.SpawnController;
-import votepercent.eccontrollers.VoteController;
-import votepercent.flags.*;
+import votecombo.eccontrollers.FlagController;
+import votecombo.eccontrollers.SpawnController;
+import votecombo.eccontrollers.VoteController;
+import votecombo.flags.*;
 import battlecode.common.*;
 
 import java.util.*;
