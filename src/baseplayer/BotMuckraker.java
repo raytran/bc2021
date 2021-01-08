@@ -20,6 +20,8 @@ public class BotMuckraker extends BotController {
     @Override
     public BotController run() throws GameActionException {
         Team enemy = rc.getTeam().opponent();
+
+        boolean enemyFound = false;
         // Found a robot ?
         for (RobotInfo robot : rc.senseNearbyRobots()) {
             if (robot.team.equals(enemy)){
@@ -27,10 +29,23 @@ public class BotMuckraker extends BotController {
                 MapLocation delta = new MapLocation(robotLoc.x - parentLoc.x, robotLoc.y - parentLoc.y);
                 rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.PARENT_ENLIGHTENMENT_CENTER, delta, robot.getType()));
 
+                if (robot.type == RobotType.POLITICIAN
+                        && robot.influence - 10 > robot.getConviction()
+                        && robot.location.distanceSquaredTo(rc.getLocation()) < robot.type.actionRadiusSquared) {
+                    nav.fuzzyMove(robot.location.directionTo(rc.getLocation()));
+                    return this;
+                }
+
                 if (rc.canExpose(robot.ID)) {
                     rc.expose(robot.ID);
                 }
+
+                enemyFound = true;
             }
+        }
+
+        if (!enemyFound && enemyLocation.isPresent() && enemyLocation.get().distanceSquaredTo(rc.getLocation()) < 5) {
+            enemyLocation = Optional.empty();
         }
 
         int parentFlag = rc.getFlag(parentID.get());
@@ -65,50 +80,5 @@ public class BotMuckraker extends BotController {
         }
 
         return this;
-    }
-
-
-    // Binary search along the sensor radius to find boundary, if any
-    // Sets boundary flag in direction if found.
-    private void signalForBoundary(BoundaryType requestedBoundary) throws GameActionException {
-        Direction searchDirection = BoundaryType.toDirection(requestedBoundary);
-        int maxOffset = (int) Math.sqrt(rc.getType().sensorRadiusSquared);
-        int minOffset = 0;
-        MapLocation extreme = Utilities.offsetLocation(rc.getLocation(), searchDirection, maxOffset);
-
-        // Nothing to do if the extreme didn't find anything...
-        if (rc.onTheMap(extreme)) {
-            return;
-        }
-
-        // We found something that's not on the map!
-        // Start a binary search to pinpoint the location
-        // We shouldn't need to loop more than sense radius times (if we do, something is very wrong)
-        int steps = 0;
-        for (int n = 0; n < Math.sqrt(rc.getType().sensorRadiusSquared); n++) {
-            // Throughout the search, maintain that maxOffset is off the map while minOffset is on the map
-            //System.out.println("Max offset: " + maxOffset + "Min offset: " + minOffset);
-            int newOffset = (maxOffset + minOffset)/2;
-            if (maxOffset == minOffset + 1) {
-                // Boundary pinpointed! maxOffset is off grid while minOffset is on grid
-                MapLocation boundaryLoc = Utilities.offsetLocation(rc.getLocation(), searchDirection, minOffset);
-                if (searchDirection == Direction.NORTH || searchDirection == Direction.SOUTH){
-                    rc.setFlag(Flags.encodeBoundarySpotted(FlagAddress.PARENT_ENLIGHTENMENT_CENTER, boundaryLoc.y, requestedBoundary));
-                }else{
-                    rc.setFlag(Flags.encodeBoundarySpotted(FlagAddress.PARENT_ENLIGHTENMENT_CENTER, boundaryLoc.x, requestedBoundary));
-                }
-                return;
-            }
-            MapLocation newLoc = Utilities.offsetLocation(rc.getLocation(), searchDirection, newOffset);
-            if (rc.onTheMap(newLoc)) {
-                minOffset = newOffset;
-            } else {
-                maxOffset = newOffset;
-            }
-            steps += 1;
-        }
-
-        System.err.println("Too many steps: " + steps + " steps.");
-        throw new RuntimeException("Binary search too many times! Check code.");
     }
 }

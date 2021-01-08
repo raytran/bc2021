@@ -29,6 +29,11 @@ public class BotPolitician extends BotController {
         RobotInfo[] attackable = rc.senseNearbyRobots(actionRadius, enemy);
         int numEnemies = attackable.length;
         int convictionLeft = rc.getConviction() - 10;
+
+        if (attackable.length != 0 && enemyLocation.isPresent() && enemyLocation.get().distanceSquaredTo(rc.getLocation()) < 5) {
+            enemyLocation = Optional.empty();
+        }
+
         if (attackable.length != 0 && convictionLeft > 0) {
             if (rc.canEmpower(actionRadius)){
                 rc.empower(actionRadius);
