@@ -4,9 +4,9 @@ import battlecode.common.*;
 import battlecode.common.GameActionException;
 
 public class ECSpawnController implements ECController{
-    private static final int POLITICIAN_RATE = 10;
-    private static final int MUCKRAKER_RATE = 1;
-    private static final int SLANDERER_RATE = 20;
+    private static double POLITICIAN_RATE = 0.2;
+    private static double MUCKRAKER_RATE = 0.5;
+    private static double SLANDERER_RATE = 0.3;
     private final RobotController rc;
     private final BotEnlightenment ec;
     private final ECBudgetController bc;
@@ -21,30 +21,69 @@ public class ECSpawnController implements ECController{
         RobotType toBuild = robotToSpawn();
         MapLocation myLoc = rc.getLocation();
         int budget = bc.getBotBudget();
-        int influence = 200;
+        int influence = toBuild.equals(RobotType.MUCKRAKER) ? 1 : budget ;
+        if(budget > 20 || toBuild.equals(RobotType.MUCKRAKER)) {
+            for (int i = 0; i < 8; i++) {
+                //TODO This line is causing us not to spawn every turn we are not spawning even if it costs 1
+                if (rc.canBuildRobot(toBuild, nextSpawnDirection, influence)) {
+                    //Built the robot, add id to total
+                    rc.buildRobot(toBuild, nextSpawnDirection, influence);
+                    ec.recordSpawn(rc.senseRobotAtLocation(rc.getLocation().add(nextSpawnDirection)).ID, robotToSpawn());
+                    System.out.println("SPAWNING " + toBuild);
+                    break;
+                }
+                else{
+                    nextSpawnDirection = nextSpawnDirection.rotateRight();
 
-        for (int i=0; i<8;i++) {
-            if (rc.canBuildRobot(toBuild, nextSpawnDirection, influence)) {
-                //Built the robot, add id to total
-                rc.buildRobot(toBuild, nextSpawnDirection, influence);
-                ec.recordSpawn(rc.senseRobotAtLocation(rc.getLocation().add(nextSpawnDirection)).ID, robotToSpawn());
-                nextSpawnDirection = nextSpawnDirection.rotateRight();
-                break;
+                    System.out.println("NOT SPAWNING BECAUSE WE CAN'T CURRENTLY BUILD A ROBOT");
+                    System.out.println(toBuild + " " + influence + "" + nextSpawnDirection);
+                }
             }
         }
+        else{
+            System.out.println("NOT SPAWNING THIS ROUND BECAUSE OUR BUDGET IS TOO LOW");
+        }
     }
+    //Round by round hard coding / changing the spawn rates over time
     private RobotType robotToSpawn() {
-        int round = rc.getRoundNum();
-        if(ec.getMuckrakerCount() <= 8 ){
-            System.out.print("COUNT: " + ec.getMuckrakerCount());
+        int roundNum = rc.getRoundNum();
+        if (roundNum < 9) {
+            MUCKRAKER_RATE = 1.0;
+            POLITICIAN_RATE = 0.0;
+            SLANDERER_RATE = 0.0;
+        }
+        if (roundNum >= 9 && roundNum <= 2700 ){
+            MUCKRAKER_RATE = 0.5;
+            POLITICIAN_RATE = 0.2;
+            SLANDERER_RATE = 0.3;
+        }
+       if(roundNum > 2700) {
+            MUCKRAKER_RATE = 0.65;
+            POLITICIAN_RATE = 0.35;
+            SLANDERER_RATE = 0.0;
+        }
+        //Special conditions
+        RobotInfo[] robots = rc.senseNearbyRobots(RobotType.ENLIGHTENMENT_CENTER.sensorRadiusSquared,rc.getTeam().opponent());
+        for(RobotInfo robot : robots){
+            if(robot.getType() == RobotType.MUCKRAKER){
+                System.out.println("Disabled Slanderer spawning");
+                MUCKRAKER_RATE = 0.25;
+                POLITICIAN_RATE = 0.75;
+                SLANDERER_RATE = 0.0;
+            }
+        }
+        if((double)ec.getMuckrakerCount() /  rc.getRobotCount()  < MUCKRAKER_RATE){
             return RobotType.MUCKRAKER;
         }
-        if(round % POLITICIAN_RATE == 0 || ec.getPoliticianCount() < 1){
-            return RobotType.POLITICIAN;
-        }
-        if(round % SLANDERER_RATE == 0 || ec.getSlandererCount() < 1){
+        if((double) ec.getSlandererCount() / rc.getRobotCount() < SLANDERER_RATE){
             return RobotType.SLANDERER;
         }
-        else return RobotType.SLANDERER;
+        if((double) ec.getPoliticianCount() / rc.getRobotCount() < POLITICIAN_RATE){
+            return RobotType.POLITICIAN;
+        }
+        else{
+            System.out.println("TRYING TO SPAWN AN ENLIGHTENMENT CENTER");
+            return RobotType.MUCKRAKER;
+        }
     }
 }

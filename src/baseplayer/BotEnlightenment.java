@@ -34,6 +34,8 @@ public class BotEnlightenment extends BotController {
     }
     @Override
     public BotController run() throws GameActionException {
+        //Run budget controller
+        budgetController.run();
         //Run spawn controller
         spawnController.run();
         // Read and update flags
