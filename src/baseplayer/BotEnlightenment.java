@@ -128,6 +128,10 @@ public class BotEnlightenment extends BotController {
         return slandererCount;
     }
 
+    public int getLocalRobotCount(){
+        return slandererCount + politicianCount + muckrakerCount;
+    }
+
 
     /**
      * Return the n sampled robot ids

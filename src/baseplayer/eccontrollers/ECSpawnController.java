@@ -72,13 +72,13 @@ public class ECSpawnController implements ECController{
                 SLANDERER_RATE = 0.0;
             }
         }
-        if((double)ec.getMuckrakerCount() /  rc.getRobotCount()  < MUCKRAKER_RATE){
+        if((double)ec.getMuckrakerCount() /  ec.getLocalRobotCount()  < MUCKRAKER_RATE){
             return RobotType.MUCKRAKER;
         }
-        if((double) ec.getSlandererCount() / rc.getRobotCount() < SLANDERER_RATE){
+        if((double) ec.getSlandererCount() / ec.getLocalRobotCount() < SLANDERER_RATE){
             return RobotType.SLANDERER;
         }
-        if((double) ec.getPoliticianCount() / rc.getRobotCount() < POLITICIAN_RATE){
+        if((double) ec.getPoliticianCount() / ec.getLocalRobotCount() < POLITICIAN_RATE){
             return RobotType.POLITICIAN;
         }
         else{
