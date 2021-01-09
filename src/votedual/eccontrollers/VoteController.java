@@ -11,7 +11,7 @@ public class VoteController implements ECController {
     private final RobotController rc;
     private final BotEnlightenment ec;
     private final int delta;
-    private int votePercent = 2;
+    private int votePercent = 0;
     private int prevPercent = 0;
     private int voteFlat = 1;
     private int prevFlat = 0;
@@ -103,11 +103,9 @@ public class VoteController implements ECController {
                 }
             }
         }
-
-
         this.prevVotes = currentVotes;
 
-        boolean updateFlat = this.voteFlat < MAX_VOTE_FLAT && this.votePercent == 0;
+        boolean updateFlat = this.voteFlat < MAX_VOTE_FLAT;
         if (updateFlat) {
             System.out.println("Adjusting flat vote amount");
             this.prevAdjustFlat = true;

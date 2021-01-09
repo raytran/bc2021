@@ -14,7 +14,7 @@ public class ECVoteController implements ECController {
     private final BotEnlightenment ec;
     private final ECBudgetController bc;
     private final int delta;
-    private int votePercent = 2;
+    private int votePercent = 0;
     private int prevPercent = 0;
     private int voteFlat = 1;
     private int prevFlat = 0;
@@ -111,7 +111,7 @@ public class ECVoteController implements ECController {
 
         this.prevVotes = currentVotes;
 
-        boolean updateFlat = this.voteFlat < MAX_VOTE_FLAT && this.votePercent == 0;
+        boolean updateFlat = this.voteFlat < MAX_VOTE_FLAT;
         if (updateFlat) {
             System.out.println("Adjusting flat vote amount");
             this.prevAdjustFlat = true;
@@ -169,7 +169,7 @@ public class ECVoteController implements ECController {
             }
         }
         System.out.println(rc.getTeam() + " set their " + active + " amount to " + a);
-        this.voteFlat = (updateFlat ? a : this.voteFlat);
-        this.votePercent = (updateFlat ? this.votePercent : a);
+        this.voteFlat = updateFlat ? a : this.voteFlat;
+        this.votePercent = updateFlat ? this.votePercent : a;
     }
 }
