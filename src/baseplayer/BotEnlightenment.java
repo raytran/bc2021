@@ -16,15 +16,9 @@ public class BotEnlightenment extends BotController {
     private final HashMap<Integer, LinkedListNode<Map.Entry<Integer, RobotType>>> robotIdToLLN = new HashMap<>();
     private LinkedListNode<Map.Entry<Integer, RobotType>> lastSample;
 
-
     private int muckrakerCount = 0;
     private int politicianCount = 0;
     private int slandererCount = 0;
-    private Optional<Integer> northBoundary;
-    private Optional<Integer> eastBoundary;
-    private Optional<Integer> southBoundary;
-    private Optional<Integer> westBoundary;
-
 
     private VoteController voteController;
     private FlagController flagController;
@@ -36,13 +30,6 @@ public class BotEnlightenment extends BotController {
         voteController = new VoteController(rc, this);
         flagController = new FlagController(rc, this);
         spawnController = new SpawnController(rc,this);
-        northBoundary = Optional.empty();
-        eastBoundary = Optional.empty();
-        southBoundary = Optional.empty();
-        westBoundary = Optional.empty();
-
-        // Don't know any bounds
-        rc.setFlag(Flags.encodeBoundaryRequired(FlagAddress.ANY, false, false, false, false));
     }
     @Override
     public BotController run() throws GameActionException {
@@ -52,6 +39,11 @@ public class BotEnlightenment extends BotController {
         flagController.run();
         // Bid for votes
         voteController.run();
+
+        // Search for boundary if we can
+        if (Clock.getBytecodesLeft() > 1000){
+            searchForNearbyBoundaries();
+        }
         return this;
     }
     private void checkRep(){
@@ -130,44 +122,6 @@ public class BotEnlightenment extends BotController {
         return slandererCount;
     }
 
-    /**
-     * @return true if north found
-     */
-    public boolean isNorthBoundaryFound() {
-        return northBoundary.isPresent();
-    }
-
-    /**
-     * @return true if south found
-     */
-    public boolean isSouthBoundaryFound() {
-        return southBoundary.isPresent();
-    }
-
-
-    /**
-     * @return true if east found
-     */
-    public boolean isEastBoundaryFound() {
-        return eastBoundary.isPresent();
-    }
-
-    /**
-     * @return true if west found
-     */
-    public boolean isWestBoundaryFound() {
-        return westBoundary.isPresent();
-    }
-
-    /**
-     * @return true if all boundaries are found
-     */
-    public boolean areAllBoundariesFound() {
-        return isNorthBoundaryFound()
-                || isSouthBoundaryFound()
-                || isWestBoundaryFound()
-                || isEastBoundaryFound();
-    }
 
     /**
      * Return the n sampled robot ids
@@ -195,48 +149,7 @@ public class BotEnlightenment extends BotController {
      * @param enemySpottedInfo the spotting info for the enemy
      */
     public void reportEnemy(EnemySpottedInfo enemySpottedInfo) {
-        //MapLocation location = new MapLocation(enemySpottedInfo.delta.x + myLoc.x, enemySpottedInfo.delta.y + myLoc.y);
         reportedEnemies.add(enemySpottedInfo);
-    }
-
-    /**
-     * Report the discovery of the north boundary
-     * @param boundary exact location
-     */
-    public void reportNorthBoundary(int boundary) {
-        if (!northBoundary.isPresent()){
-            northBoundary = Optional.of(boundary);
-        }
-    }
-
-    /**
-     * Report the discovery of the east boundary
-     * @param boundary exact location
-     */
-    public void reportEastBoundary(int boundary) {
-        if (!eastBoundary.isPresent()){
-            eastBoundary = Optional.of(boundary);
-        }
-    }
-
-    /**
-     * Report the discovery of the south boundary
-     * @param boundary exact location
-     */
-    public void reportSouthBoundary(int boundary) {
-        if (!southBoundary.isPresent()){
-            southBoundary = Optional.of(boundary);
-        }
-    }
-
-    /**
-     * Report the discovery of the west boundary
-     * @param boundary exact location
-     */
-    public void reportWestBoundary(int boundary) {
-        if (!westBoundary.isPresent()){
-            westBoundary = Optional.of(boundary);
-        }
     }
 
     /**
@@ -249,5 +162,4 @@ public class BotEnlightenment extends BotController {
             return Optional.empty();
         }
     }
-
 }

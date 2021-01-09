@@ -27,8 +27,8 @@ public class Flags {
 
     // ENEMY_SPOTTED
     // Deltas are stored in 7 bit twos-complement encoding
-    // [23:21]     [20:18]    [17:11]       [10:4]        [3:2]             [1:0]
-    // flagType    address    enemyDeltaX   enemyDeltaY   enemyRobotType    unused
+    // [23:21]     [20:18]    [17:11]        [10:4]         [3:2]             [1:0]
+    // flagType    address    enemyX % 128   enemyY % 128   enemyRobotType    unused
 
     /**
      * @param location of the enemy
@@ -36,8 +36,8 @@ public class Flags {
      */
     public static int encodeEnemySpotted(FlagAddress address, MapLocation location, RobotType enemyType) {
         int flag = encodeFlagBase(FlagType.ENEMY_SPOTTED, address);
-        flag ^= (location.x & 0b1111111) << 11;
-        flag ^= (location.y & 0b1111111) << 4;
+        flag ^= ((location.x % 128) & 0b1111111) << 11;
+        flag ^= ((location.y % 128) & 0b1111111) << 4;
         flag ^= enemyType.ordinal() << 2;
         return flag;
     }
@@ -46,13 +46,31 @@ public class Flags {
      * @param flag to be decoded
      * @return information for enemy spotted
      */
-    public static EnemySpottedInfo decodeEnemySpotted(int flag) {
-        MapLocation location = new MapLocation (
-                signExtend((flag >>> 11) & 0b1111111, 7),
-                signExtend((flag >>> 4) & 0b1111111, 7)
-        );
+    public static EnemySpottedInfo decodeEnemySpotted(MapLocation currentLoc, int flag) {
+        int xMod128 = (flag >>> 11) & 0b1111111;
+        int yMod128 = (flag >>> 4) & 0b1111111;
+        int xOffset = (currentLoc.x / 128) * 128;
+        int yOffset = (currentLoc.y / 128) * 128;
+
+        MapLocation actualLocation = new MapLocation(xMod128 + xOffset, yMod128 + yOffset);
+        MapLocation alternative = actualLocation.translate(-128, 0);
+        if (alternative.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(actualLocation)){
+            actualLocation = alternative;
+        }
+        alternative = actualLocation.translate(128, 0);
+        if (alternative.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(actualLocation)){
+            actualLocation = alternative;
+        }
+        alternative = actualLocation.translate(0, -128);
+        if (alternative.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(actualLocation)){
+            actualLocation = alternative;
+        }
+        alternative = actualLocation.translate(0, 128);
+        if (alternative.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(actualLocation)){
+            actualLocation = alternative;
+        }
         RobotType enemyType = RobotType.values()[(flag >>> 2) & 0b11];
-        return new EnemySpottedInfo(location, enemyType);
+        return new EnemySpottedInfo(actualLocation, enemyType);
     }
 
     // BOUNDARY_SPOTTED
@@ -79,40 +97,6 @@ public class Flags {
         BoundaryType boundaryType = BoundaryType.values[(flag >> 1) & 0b11];
         return new BoundarySpottedInfo(exactBoundaryLocation, boundaryType);
     }
-
-
-    // BOUNDARY_REQUIRED
-    // Deltas are stored in 7 bit twos-complement encoding
-    // [23:21]      [20:18]     [17]        [16]       [15]       [14]
-    // flagType     address     N_found     E_found    S_found    W_found
-    /**
-     * @param north true if north boundary found
-     * @param east true if east boundary found
-     * @param south true if south boundary found
-     * @param west true if west boundary found
-     * @return flag for boundary at location
-     */
-    public static int encodeBoundaryRequired(FlagAddress address, boolean north, boolean east, boolean south, boolean west) {
-        int flag = encodeFlagBase(FlagType.BOUNDARY_REQUIRED, address);
-        flag ^= (north ? 1 : 0) << 17;
-        flag ^= (east ? 1 : 0) << 16;
-        flag ^= (south ? 1 : 0) << 15;
-        flag ^= (west ? 1 : 0) << 14;
-        return flag;
-    }
-
-    /**
-     * @param flag to be decoded
-     * @return information for boundary required
-     */
-    public static BoundaryRequiredInfo decodeBoundaryRequired(int flag) {
-        boolean north = ((flag >> 17) & 1) == 1;
-        boolean east = ((flag >> 16) & 1) == 1;
-        boolean south = ((flag >> 15) & 1) == 1;
-        boolean west = ((flag >> 14) & 1) == 1;
-        return new BoundaryRequiredInfo(north, east, south, west);
-    }
-
 
     /**
      * @param flag to be decoded

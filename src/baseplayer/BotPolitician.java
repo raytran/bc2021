@@ -3,8 +3,6 @@ package baseplayer;
 import baseplayer.flags.*;
 import battlecode.common.*;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 public class BotPolitician extends BotController {
@@ -56,8 +54,8 @@ public class BotPolitician extends BotController {
                     switch (parentFlagType){
                         case ENEMY_SPOTTED:
                             if (!enemyLocation.isPresent()){
-                                EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(parentFlag);
-                                enemyLocation = Optional.of(parentLoc.translate(enemySpottedInfo.delta.x, enemySpottedInfo.delta.y));
+                                EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(rc.getLocation(), parentFlag);
+                                enemyLocation = Optional.of(enemySpottedInfo.location);
                             }
                             break;
                         default:
@@ -73,6 +71,12 @@ public class BotPolitician extends BotController {
                 Direction random = Utilities.randomDirection();
                 nav.fuzzyMove(random);
             }
+        }
+
+        // Search for boundary if we can
+        if (Clock.getBytecodesLeft() > 1000){
+            searchForNearbyBoundaries();
+            flagBoundaries();
         }
         return this;
     }

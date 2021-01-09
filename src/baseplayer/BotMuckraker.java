@@ -26,8 +26,7 @@ public class BotMuckraker extends BotController {
         for (RobotInfo robot : rc.senseNearbyRobots()) {
             if (robot.team.equals(enemy)){
                 MapLocation robotLoc = robot.getLocation();
-                MapLocation delta = new MapLocation(robotLoc.x - parentLoc.x, robotLoc.y - parentLoc.y);
-                rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.PARENT_ENLIGHTENMENT_CENTER, delta, robot.getType()));
+                rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.PARENT_ENLIGHTENMENT_CENTER, robotLoc, robot.getType()));
 
                 if (robot.type == RobotType.POLITICIAN
                         && robot.influence - 10 > robot.getConviction()
@@ -52,21 +51,10 @@ public class BotMuckraker extends BotController {
         if (Flags.addressedForCurrentBot(rc, parentFlag, false)) {
             FlagType parentFlagType = Flags.decodeFlagType(parentFlag);
             switch (parentFlagType){
-                case BOUNDARY_REQUIRED:
-                    BoundaryRequiredInfo info = Flags.decodeBoundaryRequired(parentFlag);
-                    List<BoundaryType> boundaryDirectionsToSearch = new ArrayList<>();
-                    if (!info.northFound) boundaryDirectionsToSearch.add(BoundaryType.NORTH);
-                    if (!info.eastFound) boundaryDirectionsToSearch.add(BoundaryType.EAST);
-                    if (!info.southFound) boundaryDirectionsToSearch.add(BoundaryType.SOUTH);
-                    if (!info.westFound) boundaryDirectionsToSearch.add(BoundaryType.WEST);
-
-                    for (BoundaryType searchBoundaryDirection : boundaryDirectionsToSearch)
-                        signalForBoundary(searchBoundaryDirection);
-                    break;
                 case ENEMY_SPOTTED:
                     if (!enemyLocation.isPresent()){
-                        EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(parentFlag);
-                        enemyLocation = Optional.of(parentLoc.translate(enemySpottedInfo.delta.x, enemySpottedInfo.delta.y));
+                        EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(rc.getLocation(), parentFlag);
+                        enemyLocation = Optional.of(enemySpottedInfo.location);
                     }
                     break;
             }
@@ -79,6 +67,13 @@ public class BotMuckraker extends BotController {
             nav.fuzzyMove(scoutingDirection);
         }
 
+        // Search for boundary if we can
+        if (Clock.getBytecodesLeft() > 1000){
+            searchForNearbyBoundaries();
+            if (!enemyFound) {
+                flagBoundaries();
+            }
+        }
         return this;
     }
 }

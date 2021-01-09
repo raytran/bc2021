@@ -1,9 +1,6 @@
 package baseplayer;
 
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.RobotController;
-import battlecode.common.RobotType;
+import battlecode.common.*;
 
 public class BotSlanderer extends BotController {
     public BotSlanderer(RobotController rc) throws GameActionException {
@@ -17,6 +14,12 @@ public class BotSlanderer extends BotController {
         if (rc.getType() == RobotType.POLITICIAN){
             // Just converted; return a politician controller instead
             return BotPolitician.fromSlanderer(this);
+        }
+
+        // Search for boundary if we can
+        if (Clock.getBytecodesLeft() > 1000) {
+            searchForNearbyBoundaries();
+            flagBoundaries();
         }
         return this;
     }

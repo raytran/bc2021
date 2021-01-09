@@ -45,11 +45,12 @@ public class FlagController implements ECController {
                 if (Flags.addressedForCurrentBot(rc, flag,true)) {
                     switch (Flags.decodeFlagType(flag)){
                         case ENEMY_SPOTTED:
-                            ec.reportEnemy(Flags.decodeEnemySpotted(flag));
+                            ec.reportEnemy(Flags.decodeEnemySpotted(rc.getLocation(), flag));
                             //System.out.println("Enemy spotted received");
                             break;
                         case BOUNDARY_SPOTTED:
                             BoundarySpottedInfo info2 = Flags.decodeBoundarySpotted(flag);
+                            //System.out.println("BOUNDARY REPORT" + info2.boundaryType + " AT " + info2.exactBoundaryLocation);
                             switch (info2.boundaryType) {
                                 case NORTH:
                                     ec.reportNorthBoundary(info2.exactBoundaryLocation);
@@ -85,16 +86,7 @@ public class FlagController implements ECController {
         Optional<EnemySpottedInfo> enemyReport = ec.getLatestReportedEnemyLocation();
         if (enemyReport.isPresent() && (ec.areAllBoundariesFound() || rc.getRoundNum() % 2 == 0)) {
             //System.out.println("EC Flagging enemy");
-            rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.ANY, enemyReport.get().delta, enemyReport.get().enemyType));
-        } else {
-            //System.out.println("EC Flagging boundary");
-            rc.setFlag(Flags.encodeBoundaryRequired(
-                    FlagAddress.ANY,
-                    ec.isNorthBoundaryFound(),
-                    ec.isEastBoundaryFound(),
-                    ec.isSouthBoundaryFound(),
-                    ec.isWestBoundaryFound()
-            ));
+            rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.ANY, enemyReport.get().location, enemyReport.get().enemyType));
         }
     }
 
