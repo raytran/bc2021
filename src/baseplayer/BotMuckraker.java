@@ -19,44 +19,63 @@ public class BotMuckraker extends BotController {
 
     @Override
     public BotController run() throws GameActionException {
-        Team enemy = rc.getTeam().opponent();
-
+        MapLocation currentLoc = rc.getLocation();
         boolean enemyFound = false;
-        // Found a robot ?
-        for (RobotInfo robot : rc.senseNearbyRobots()) {
-            if (robot.team.equals(enemy)){
-                MapLocation robotLoc = robot.getLocation();
-                rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.ANY, robotLoc, robot.getType()));
+        boolean flagSet = false;
 
-                if (robot.type == RobotType.POLITICIAN
-                        && robot.influence - 10 > robot.getConviction()
-                        && robot.location.distanceSquaredTo(rc.getLocation()) < robot.type.actionRadiusSquared) {
-                    nav.fuzzyMove(robot.location.directionTo(rc.getLocation()));
-                    return this;
+        if (enemyLocation.isPresent() &&  currentLoc.equals(enemyLocation.get())){
+            enemyLocation = Optional.empty();
+        }
+        for (RobotInfo robotInfo : rc.senseNearbyRobots()) {
+            if (robotInfo.getTeam().equals(rc.getTeam())) {
+                //Nearby friendly
+                if (rc.canGetFlag(robotInfo.ID)) {
+                    int nearbyFlag = rc.getFlag(robotInfo.ID);
+                    if (Flags.addressedForCurrentBot(rc, nearbyFlag, false)) {
+                        if (Flags.decodeFlagType(nearbyFlag) == FlagType.ENEMY_SPOTTED) {
+                            //System.out.println("NEARBY FRIENDLY REPORTING ENEMY");
+                            EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(currentLoc, nearbyFlag);
+                            recordEnemy(enemySpottedInfo);
+                            setEnemyLocIfCloser(enemySpottedInfo.location);
+                        }
+                    }
                 }
-
-                if (rc.canExpose(robot.ID)) {
-                    rc.expose(robot.ID);
-                }
-
+            } else {
+                //Nearby enemy
                 enemyFound = true;
+                setEnemyLocIfCloser(robotInfo.location);
+                int actionRadius = rc.getType().actionRadiusSquared;
+                recordEnemy(new EnemySpottedInfo(robotInfo.location, robotInfo.getType()));
+
+                if (!flagSet) {
+                    rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.ANY, robotInfo.location, robotInfo.getType()));
+                    flagSet = true;
+                }
+                //TODO more advanced stuff later
+                if (robotInfo.type == RobotType.SLANDERER && robotInfo.location.distanceSquaredTo(currentLoc) < actionRadius
+                        && rc.canExpose(robotInfo.ID)) {
+                    rc.expose(robotInfo.ID);
+                }
             }
         }
 
-        if (!enemyFound && enemyLocation.isPresent() && enemyLocation.get().distanceSquaredTo(rc.getLocation()) < 5) {
-            enemyLocation = Optional.empty();
-        }
-
-        int parentFlag = rc.getFlag(parentID.get());
-        if (Flags.addressedForCurrentBot(rc, parentFlag, false)) {
-            FlagType parentFlagType = Flags.decodeFlagType(parentFlag);
-            switch (parentFlagType){
-                case ENEMY_SPOTTED:
-                    if (!enemyLocation.isPresent()){
+        if (parentID.isPresent()) {
+            if (!rc.canGetFlag(parentID.get())){
+                // Oh my god our parents died
+                parentID = Optional.empty();
+            }
+            int parentFlag = rc.getFlag(parentID.get());
+            if (Flags.addressedForCurrentBot(rc, parentFlag, false)) {
+                FlagType parentFlagType = Flags.decodeFlagType(parentFlag);
+                switch (parentFlagType){
+                    case ENEMY_SPOTTED:
                         EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(rc.getLocation(), parentFlag);
-                        enemyLocation = Optional.of(enemySpottedInfo.location);
-                    }
-                    break;
+                        recordEnemy(enemySpottedInfo);
+                        setEnemyLocIfCloser(enemySpottedInfo.location);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
@@ -68,12 +87,19 @@ public class BotMuckraker extends BotController {
         }
 
         // Search for boundary if we can
-        if (Clock.getBytecodesLeft() > 1000){
+        if (Clock.getBytecodesLeft() > 1000 && !enemyFound){
             searchForNearbyBoundaries();
-            if (!enemyFound) {
-                flagBoundaries();
-            }
+            flagBoundaries();
         }
         return this;
+    }
+
+    // sets enemy loc if !present or if enemy loc is closer
+    private void setEnemyLocIfCloser(MapLocation newLoc){
+        MapLocation currentLoc = rc.getLocation();
+        if (!enemyLocation.isPresent()
+                || newLoc.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(enemyLocation.get())){
+            enemyLocation = Optional.of(newLoc);
+        }
     }
 }
