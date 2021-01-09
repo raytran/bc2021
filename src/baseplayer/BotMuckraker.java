@@ -36,14 +36,14 @@ public class BotMuckraker extends BotController {
                             //System.out.println("NEARBY FRIENDLY REPORTING ENEMY");
                             EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(currentLoc, nearbyFlag);
                             recordEnemy(enemySpottedInfo);
-                            setEnemyLocIfCloser(enemySpottedInfo.location);
+                            setEnemyLocIfCloser(enemySpottedInfo.location, robotInfo.type);
                         }
                     }
                 }
             } else {
                 //Nearby enemy
                 enemyFound = true;
-                setEnemyLocIfCloser(robotInfo.location);
+                setEnemyLocIfCloser(robotInfo.location, robotInfo.type);
                 int actionRadius = rc.getType().actionRadiusSquared;
                 recordEnemy(new EnemySpottedInfo(robotInfo.location, robotInfo.getType()));
 
@@ -71,7 +71,7 @@ public class BotMuckraker extends BotController {
                     case ENEMY_SPOTTED:
                         EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(rc.getLocation(), parentFlag);
                         recordEnemy(enemySpottedInfo);
-                        setEnemyLocIfCloser(enemySpottedInfo.location);
+                        setEnemyLocIfCloser(enemySpottedInfo.location, enemySpottedInfo.enemyType);
                         break;
                     default:
                         break;
@@ -95,10 +95,11 @@ public class BotMuckraker extends BotController {
     }
 
     // sets enemy loc if !present or if enemy loc is closer
-    private void setEnemyLocIfCloser(MapLocation newLoc){
+    private void setEnemyLocIfCloser(MapLocation newLoc, RobotType rt){
         MapLocation currentLoc = rc.getLocation();
         if (!enemyLocation.isPresent()
-                || newLoc.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(enemyLocation.get())){
+                || (newLoc.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(enemyLocation.get())
+                    && rt == RobotType.SLANDERER)){
             enemyLocation = Optional.of(newLoc);
         }
     }
