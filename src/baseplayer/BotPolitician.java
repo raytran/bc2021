@@ -46,10 +46,10 @@ public class BotPolitician extends BotController {
                 enemyFound = true;
                 setEnemyLocIfCloser(robotInfo.location);
                 int actionRadius = rc.getType().actionRadiusSquared;
-                recordEnemy(new EnemySpottedInfo(robotInfo.location, robotInfo.getType()));
+                recordEnemy(new EnemySpottedInfo(robotInfo.location, robotInfo.getType(), false));
 
                 if (!flagSet) {
-                    rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.ANY, robotInfo.location, robotInfo.getType()));
+                    rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.ANY, robotInfo.location, robotInfo.getType(), false));
                     flagSet = true;
                 }
                 //TODO more advanced stuff later

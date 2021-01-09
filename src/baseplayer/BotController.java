@@ -191,42 +191,42 @@ public abstract class BotController {
     }
 
     /**
-     * @return true if north found
+     * @return north
      */
-    public boolean isNorthBoundaryFound() {
-        return northBoundary.isPresent();
+    public Optional<Integer> getNorthBoundary() {
+        return northBoundary;
     }
 
     /**
-     * @return true if south found
+     * @return south
      */
-    public boolean isSouthBoundaryFound() {
-        return southBoundary.isPresent();
+    public Optional<Integer> getSouthBoundary() {
+        return southBoundary;
     }
 
 
     /**
-     * @return true if east found
+     * @return east
      */
-    public boolean isEastBoundaryFound() {
-        return eastBoundary.isPresent();
+    public Optional<Integer> getEastBoundary() {
+        return eastBoundary;
     }
 
     /**
-     * @return true if west found
+     * @return west
      */
-    public boolean isWestBoundaryFound() {
-        return westBoundary.isPresent();
+    public Optional<Integer> getWestBoundary() {
+        return westBoundary;
     }
 
     /**
      * @return true if all boundaries are found
      */
     public boolean areAllBoundariesFound() {
-        return isNorthBoundaryFound()
-                || isSouthBoundaryFound()
-                || isWestBoundaryFound()
-                || isEastBoundaryFound();
+        return getNorthBoundary().isPresent()
+                && getSouthBoundary().isPresent()
+                && getEastBoundary().isPresent()
+                && getWestBoundary().isPresent();
     }
 
     /**

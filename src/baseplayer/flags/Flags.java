@@ -27,18 +27,19 @@ public class Flags {
 
     // ENEMY_SPOTTED
     // Deltas are stored in 7 bit twos-complement encoding
-    // [23:21]     [20:18]    [17:11]        [10:4]         [3:2]             [1:0]
-    // flagType    address    enemyX % 128   enemyY % 128   enemyRobotType    unused
+    // [23:21]     [20:18]    [17:11]        [10:4]         [3:2]             [1]        [0]
+    // flagType    address    enemyX % 128   enemyY % 128   enemyRobotType    isGuess    unused
 
     /**
      * @param location of the enemy
      * @return flag for enemy spotted at location
      */
-    public static int encodeEnemySpotted(FlagAddress address, MapLocation location, RobotType enemyType) {
+    public static int encodeEnemySpotted(FlagAddress address, MapLocation location, RobotType enemyType, boolean isGuess) {
         int flag = encodeFlagBase(FlagType.ENEMY_SPOTTED, address);
         flag ^= ((location.x % 128) & 0b1111111) << 11;
         flag ^= ((location.y % 128) & 0b1111111) << 4;
         flag ^= enemyType.ordinal() << 2;
+        flag ^= (isGuess ? 1 : 0) << 1;
         return flag;
     }
 
@@ -70,7 +71,7 @@ public class Flags {
             actualLocation = alternative;
         }
         RobotType enemyType = RobotType.values()[(flag >>> 2) & 0b11];
-        return new EnemySpottedInfo(actualLocation, enemyType);
+        return new EnemySpottedInfo(actualLocation, enemyType, ((flag >>> 1) & 1) == 1);
     }
 
     // BOUNDARY_SPOTTED

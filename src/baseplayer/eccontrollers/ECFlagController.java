@@ -6,6 +6,7 @@ import baseplayer.flags.EnemySpottedInfo;
 import baseplayer.flags.FlagAddress;
 import baseplayer.flags.Flags;
 import battlecode.common.GameActionException;
+import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotType;
 
@@ -84,10 +85,21 @@ public class ECFlagController implements ECController {
     private void setFlags() throws GameActionException {
         //TODO more sophisticated flagging
         Optional<EnemySpottedInfo> enemyReport = ec.getLatestRecordedEnemyLocation();
-        if (enemyReport.isPresent() && (ec.areAllBoundariesFound() || rc.getRoundNum() % 2 == 0)) {
+        if (enemyReport.isPresent()) {
             //System.out.println("EC Flagging enemy");
-            rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.ANY, enemyReport.get().location, enemyReport.get().enemyType));
+            rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.ANY, enemyReport.get().location, enemyReport.get().enemyType, false));
+        }else if (ec.getEastBoundary().isPresent() && ec.getWestBoundary().isPresent()
+                || ec.getNorthBoundary().isPresent() && ec.getSouthBoundary().isPresent()) {
+            System.out.println("TRYING REFLECTION");
+            if (ec.getEastBoundary().isPresent() && ec.getWestBoundary().isPresent()) {
+                int xDelta = rc.getLocation().x - ec.getWestBoundary().get();
+                int targetX = ec.getEastBoundary().get() - xDelta;
+                rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.ANY, new MapLocation(targetX, rc.getLocation().y), RobotType.ENLIGHTENMENT_CENTER, true));
+            } else {
+                int yDelta = rc.getLocation().y - ec.getSouthBoundary().get();
+                int targetY = ec.getNorthBoundary().get() - yDelta;
+                rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.ANY, new MapLocation(rc.getLocation().x, targetY), RobotType.ENLIGHTENMENT_CENTER, true));
+            }
         }
     }
-
 }
