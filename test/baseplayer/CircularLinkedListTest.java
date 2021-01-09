@@ -121,30 +121,14 @@ public class CircularLinkedListTest {
     @Test
     public void testSample(){
         CircularLinkedList<String> list = new CircularLinkedList<>();
-        boolean exceptionThrown1 = false;
-        try{
-            list.sampleWithMemory(500);
-        } catch (RuntimeException e) {
-            exceptionThrown1 = true;
-        }
-        assertTrue(exceptionThrown1);
+        assertEquals(new ArrayList<>(), list.sampleWithMemory(500));
+        assertEquals(new ArrayList<>(), list.sampleWithMemory(0));
+
 
         list.addToTail("a");
-
-
-        boolean exceptionThrown2 = false;
-        try{
-            list.sampleWithMemory(0);
-        } catch (IllegalArgumentException e) {
-            exceptionThrown2 = true;
-        }
-        assertTrue(exceptionThrown2);
-
-
         list.addToTail("b");
         list.addToTail("c");
         list.addToTail("d");
-
         assertEquals(Arrays.asList("a","b","c"), list.sampleWithMemory(3));
     }
 

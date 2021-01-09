@@ -2,6 +2,7 @@ package baseplayer;
 
 import baseplayer.ds.CircularLinkedList;
 import baseplayer.flags.BoundaryType;
+import baseplayer.flags.EnemySpottedInfo;
 import baseplayer.flags.FlagAddress;
 import baseplayer.flags.Flags;
 import baseplayer.nav.NavigationController;
@@ -10,8 +11,9 @@ import battlecode.common.*;
 import java.util.*;
 
 public abstract class BotController {
+    private final List<EnemySpottedInfo> reportedEnemies = new LinkedList<>();
     Optional<Integer> parentID = Optional.empty();
-    MapLocation parentLoc;
+    Optional<MapLocation> parentLoc = Optional.empty();
     Optional<Integer> northBoundary;
     Optional<Integer> eastBoundary;
     Optional<Integer> southBoundary;
@@ -36,7 +38,7 @@ public abstract class BotController {
                 if (rc.onTheMap(neighbor)){
                     RobotInfo robotHere = rc.senseRobotAtLocation(neighbor);
                     if (robotHere != null && robotHere.type.equals(RobotType.ENLIGHTENMENT_CENTER)) {
-                        parentLoc = neighbor;
+                        parentLoc = Optional.of(neighbor);
                         parentID = Optional.of(robotHere.ID);
                         break;
                     }
@@ -72,16 +74,16 @@ public abstract class BotController {
             if (boundary.isPresent()) {
                 switch (boundariesNeeded) {
                     case NORTH:
-                        reportNorthBoundary(boundary.get());
+                        recordNorthBoundary(boundary.get());
                         break;
                     case SOUTH:
-                        reportSouthBoundary(boundary.get());
+                        recordSouthBoundary(boundary.get());
                         break;
                     case EAST:
-                        reportEastBoundary(boundary.get());
+                        recordEastBoundary(boundary.get());
                         break;
                     case WEST:
-                        reportWestBoundary(boundary.get());
+                        recordWestBoundary(boundary.get());
                         break;
                 }
             }
@@ -145,10 +147,10 @@ public abstract class BotController {
     }
 
     /**
-     * Report the discovery of the north boundary
+     * Record the discovery of the north boundary
      * @param boundary exact location
      */
-    public void reportNorthBoundary(int boundary) {
+    public void recordNorthBoundary(int boundary) {
         if (!northBoundary.isPresent()){
             northBoundary = Optional.of(boundary);
             boundariesToFlag.addToTail(new AbstractMap.SimpleImmutableEntry<>(BoundaryType.NORTH, northBoundary.get()));
@@ -156,10 +158,10 @@ public abstract class BotController {
     }
 
     /**
-     * Report the discovery of the east boundary
+     * Record the discovery of the east boundary
      * @param boundary exact location
      */
-    public void reportEastBoundary(int boundary) {
+    public void recordEastBoundary(int boundary) {
         if (!eastBoundary.isPresent()){
             eastBoundary = Optional.of(boundary);
             boundariesToFlag.addToTail(new AbstractMap.SimpleImmutableEntry<>(BoundaryType.EAST, eastBoundary.get()));
@@ -170,7 +172,7 @@ public abstract class BotController {
      * Report the discovery of the south boundary
      * @param boundary exact location
      */
-    public void reportSouthBoundary(int boundary) {
+    public void recordSouthBoundary(int boundary) {
         if (!southBoundary.isPresent()){
             southBoundary = Optional.of(boundary);
             boundariesToFlag.addToTail(new AbstractMap.SimpleImmutableEntry<>(BoundaryType.SOUTH, southBoundary.get()));
@@ -181,7 +183,7 @@ public abstract class BotController {
      * Report the discovery of the west boundary
      * @param boundary exact location
      */
-    public void reportWestBoundary(int boundary) {
+    public void recordWestBoundary(int boundary) {
         if (!westBoundary.isPresent()){
             westBoundary = Optional.of(boundary);
             boundariesToFlag.addToTail(new AbstractMap.SimpleImmutableEntry<>(BoundaryType.WEST, westBoundary.get()));
@@ -225,5 +227,24 @@ public abstract class BotController {
                 || isSouthBoundaryFound()
                 || isWestBoundaryFound()
                 || isEastBoundaryFound();
+    }
+
+    /**
+     * Record the death of an enemy
+     * @param enemySpottedInfo the spotting info for the enemy
+     */
+    public void recordEnemy(EnemySpottedInfo enemySpottedInfo) {
+        reportedEnemies.add(enemySpottedInfo);
+    }
+
+    /**
+     * Get the latest recorded location of the enemy
+     */
+    public Optional<EnemySpottedInfo> getLatestRecordedEnemyLocation(){
+        if (reportedEnemies.size() > 0){
+            return Optional.of(reportedEnemies.get(reportedEnemies.size() - 1));
+        }else{
+            return Optional.empty();
+        }
     }
 }

@@ -83,19 +83,11 @@ public class CircularLinkedList<T> {
      * Samples n items from the list
      * if n <= list.size(), samples circularly from the last node that was sampled
      * if n > list.size(), returns all items
-     * @param n amount to sample, must be > 0
+     * @param n amount to sample
      * @return array of sampled elements
      */
     public List<T> sampleWithMemory(int n){
-        if (size == 0){
-            throw new RuntimeException("Circle array empty; cannot sample");
-        }
-
-        if (n <= 0){
-            throw new IllegalArgumentException("Requires n > 0");
-        }
-
-        if (n > size) {
+        if (n > size || size == 0) {
             return toList();
         } else {
             List<T> items = new LinkedList<>();

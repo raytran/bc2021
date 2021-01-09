@@ -13,7 +13,7 @@ public class BotMuckraker extends BotController {
     public BotMuckraker(RobotController rc) throws GameActionException {
         super(rc);
         enemyLocation = Optional.empty();
-        scoutingDirection = parentLoc.directionTo(rc.getLocation());
+        scoutingDirection = parentLoc.get().directionTo(rc.getLocation());
         assert scoutingDirection != null;
     }
 
@@ -26,7 +26,7 @@ public class BotMuckraker extends BotController {
         for (RobotInfo robot : rc.senseNearbyRobots()) {
             if (robot.team.equals(enemy)){
                 MapLocation robotLoc = robot.getLocation();
-                rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.PARENT_ENLIGHTENMENT_CENTER, robotLoc, robot.getType()));
+                rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.ANY, robotLoc, robot.getType()));
 
                 if (robot.type == RobotType.POLITICIAN
                         && robot.influence - 10 > robot.getConviction()

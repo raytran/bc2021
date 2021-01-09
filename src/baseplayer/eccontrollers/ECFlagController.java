@@ -17,12 +17,12 @@ import java.util.Optional;
  * This class decides for the EC how to respond to flags and what flags to send
  * A FlagController is created with the EC whenever the EC spawns.
  */
-public class FlagController implements ECController {
+public class ECFlagController implements ECController {
     private final RobotController rc;
     private final BotEnlightenment ec;
 
 
-    public FlagController(RobotController rc, BotEnlightenment ec) {
+    public ECFlagController(RobotController rc, BotEnlightenment ec) {
         this.rc = rc;
         this.ec = ec;
     }
@@ -45,7 +45,7 @@ public class FlagController implements ECController {
                 if (Flags.addressedForCurrentBot(rc, flag,true)) {
                     switch (Flags.decodeFlagType(flag)){
                         case ENEMY_SPOTTED:
-                            ec.reportEnemy(Flags.decodeEnemySpotted(rc.getLocation(), flag));
+                            ec.recordEnemy(Flags.decodeEnemySpotted(rc.getLocation(), flag));
                             //System.out.println("Enemy spotted received");
                             break;
                         case BOUNDARY_SPOTTED:
@@ -53,16 +53,16 @@ public class FlagController implements ECController {
                             //System.out.println("BOUNDARY REPORT" + info2.boundaryType + " AT " + info2.exactBoundaryLocation);
                             switch (info2.boundaryType) {
                                 case NORTH:
-                                    ec.reportNorthBoundary(info2.exactBoundaryLocation);
+                                    ec.recordNorthBoundary(info2.exactBoundaryLocation);
                                     break;
                                 case EAST:
-                                    ec.reportEastBoundary(info2.exactBoundaryLocation);
+                                    ec.recordEastBoundary(info2.exactBoundaryLocation);
                                     break;
                                 case SOUTH:
-                                    ec.reportSouthBoundary(info2.exactBoundaryLocation);
+                                    ec.recordSouthBoundary(info2.exactBoundaryLocation);
                                     break;
                                 case WEST:
-                                    ec.reportWestBoundary(info2.exactBoundaryLocation);
+                                    ec.recordWestBoundary(info2.exactBoundaryLocation);
                                     break;
                                 default:
                                     //TODO refactor boundary spotted flag?
@@ -76,14 +76,14 @@ public class FlagController implements ECController {
             } else {
                 //Can't get flag; must be dead!
                 System.out.println("Death report for " + id);
-                ec.reportDeath(id);
+                ec.recordDeath(id);
             }
         }
     }
 
     private void setFlags() throws GameActionException {
         //TODO more sophisticated flagging
-        Optional<EnemySpottedInfo> enemyReport = ec.getLatestReportedEnemyLocation();
+        Optional<EnemySpottedInfo> enemyReport = ec.getLatestRecordedEnemyLocation();
         if (enemyReport.isPresent() && (ec.areAllBoundariesFound() || rc.getRoundNum() % 2 == 0)) {
             //System.out.println("EC Flagging enemy");
             rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.ANY, enemyReport.get().location, enemyReport.get().enemyType));

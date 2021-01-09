@@ -3,14 +3,14 @@ import baseplayer.BotEnlightenment;
 import battlecode.common.*;
 import battlecode.common.GameActionException;
 
-public class SpawnController implements ECController{
+public class ECSpawnController implements ECController{
     private static final int POLITICIAN_RATE = 10;
     private static final int MUCKRAKER_RATE = 1;
     private static final int SLANDERER_RATE = 20;
     private final RobotController rc;
     private final BotEnlightenment ec;
     private Direction nextSpawnDirection = Direction.NORTH;
-    public SpawnController(RobotController rc, BotEnlightenment ec) {
+    public ECSpawnController(RobotController rc, BotEnlightenment ec) {
         this.rc = rc;
         this.ec = ec;
     }
@@ -24,7 +24,7 @@ public class SpawnController implements ECController{
             if (rc.canBuildRobot(toBuild, nextSpawnDirection, influence)) {
                 //Built the robot, add id to total
                 rc.buildRobot(toBuild, nextSpawnDirection, influence);
-                ec.reportSpawn(rc.senseRobotAtLocation(rc.getLocation().add(nextSpawnDirection)).ID, robotToSpawn());
+                ec.recordSpawn(rc.senseRobotAtLocation(rc.getLocation().add(nextSpawnDirection)).ID, robotToSpawn());
                 nextSpawnDirection = nextSpawnDirection.rotateRight();
                 break;
             }
