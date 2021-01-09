@@ -9,15 +9,18 @@ public class ECSpawnController implements ECController{
     private static final int SLANDERER_RATE = 20;
     private final RobotController rc;
     private final BotEnlightenment ec;
+    private final ECBudgetController bc;
     private Direction nextSpawnDirection = Direction.NORTH;
-    public ECSpawnController(RobotController rc, BotEnlightenment ec) {
+    public ECSpawnController(RobotController rc, BotEnlightenment ec, ECBudgetController bc) {
         this.rc = rc;
         this.ec = ec;
+        this.bc = bc;
     }
     @Override
     public void run() throws GameActionException {
         RobotType toBuild = robotToSpawn();
         MapLocation myLoc = rc.getLocation();
+        int budget = bc.getBotBudget();
         int influence = 200;
 
         for (int i=0; i<8;i++) {

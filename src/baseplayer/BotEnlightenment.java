@@ -2,6 +2,7 @@ package baseplayer;
 
 import baseplayer.ds.CircularLinkedList;
 import baseplayer.ds.LinkedListNode;
+import baseplayer.eccontrollers.ECBudgetController;
 import baseplayer.eccontrollers.ECFlagController;
 import baseplayer.eccontrollers.ECSpawnController;
 import baseplayer.eccontrollers.ECVoteController;
@@ -18,6 +19,7 @@ public class BotEnlightenment extends BotController {
     private int politicianCount = 0;
     private int slandererCount = 0;
 
+    private final ECBudgetController budgetController;
     private final ECVoteController voteController;
     private final ECFlagController flagController;
     private final ECSpawnController spawnController;
@@ -25,9 +27,10 @@ public class BotEnlightenment extends BotController {
 
     public BotEnlightenment(RobotController rc) throws GameActionException {
         super(rc);
-        voteController = new ECVoteController(rc, this);
+        budgetController = new ECBudgetController(rc, this);
+        voteController = new ECVoteController(rc, this, this.budgetController, 1, .1);
         flagController = new ECFlagController(rc, this);
-        spawnController = new ECSpawnController(rc,this);
+        spawnController = new ECSpawnController(rc,this, this.budgetController);
     }
     @Override
     public BotController run() throws GameActionException {
