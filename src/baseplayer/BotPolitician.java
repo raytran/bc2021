@@ -46,13 +46,13 @@ public class BotPolitician extends BotController {
             }
         }
         // Search for boundary if we can
-        if (Clock.getBytecodesLeft() > 1000 && !enemyFound){
+        if (Clock.getBytecodesLeft() > 1000 && !enemyFound && !flagSet){
             searchForNearbyBoundaries();
             flagBoundaries();
         }
 
-        enemyFound = true;
-        flagSet = true;
+        enemyFound = false;
+        flagSet = false;
         return this;
     }
 
@@ -117,6 +117,9 @@ public class BotPolitician extends BotController {
     }
 
     private void onNeutralNearby(RobotInfo robotInfo) throws GameActionException{
-
+        if (!flagSet) {
+            rc.setFlag(Flags.encodeNeutralEcSpotted(FlagAddress.ANY, robotInfo.location, robotInfo.conviction));
+            flagSet = true;
+        }
     }
 }

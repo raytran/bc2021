@@ -138,7 +138,7 @@ public class NavigationController {
         }
         Collections.reverse(path);
 
-        System.out.println("TOOK " + (initBytecode - Clock.getBytecodesLeft()) + " bytecode for " + path);
+        //System.out.println("TOOK " + (initBytecode - Clock.getBytecodesLeft()) + " bytecode for " + path);
 
         return new LinkedList<>(path);
     }

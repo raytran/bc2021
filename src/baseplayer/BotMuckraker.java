@@ -54,13 +54,13 @@ public class BotMuckraker extends BotController {
         }
 
         // Search for boundary if we can
-        if (Clock.getBytecodesLeft() > 1000 && !enemyFound){
+        if (Clock.getBytecodesLeft() > 1000 && !enemyFound && !flagSet){
             searchForNearbyBoundaries();
             flagBoundaries();
         }
 
-        enemyFound = true;
-        flagSet = true;
+        enemyFound = false;
+        flagSet = false;
         return this;
     }
 
@@ -107,7 +107,11 @@ public class BotMuckraker extends BotController {
     }
 
     private void onNeutralNearby(RobotInfo robotInfo) throws GameActionException{
-
+        if (!flagSet){
+            System.out.println("FLAGGING NEUTRAl");
+            rc.setFlag(Flags.encodeNeutralEcSpotted(FlagAddress.ANY, robotInfo.location, robotInfo.conviction));
+            flagSet = true;
+        }
     }
 
     private void talkToParent() throws GameActionException {

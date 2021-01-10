@@ -1,10 +1,7 @@
 package baseplayer.eccontrollers;
 
 import baseplayer.BotEnlightenment;
-import baseplayer.flags.BoundarySpottedInfo;
-import baseplayer.flags.EnemySpottedInfo;
-import baseplayer.flags.FlagAddress;
-import baseplayer.flags.Flags;
+import baseplayer.flags.*;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
@@ -47,11 +44,9 @@ public class ECFlagController implements ECController {
                     switch (Flags.decodeFlagType(flag)){
                         case ENEMY_SPOTTED:
                             ec.recordEnemy(Flags.decodeEnemySpotted(rc.getLocation(), flag));
-                            //System.out.println("Enemy spotted received");
                             break;
                         case BOUNDARY_SPOTTED:
                             BoundarySpottedInfo info2 = Flags.decodeBoundarySpotted(flag);
-                            //System.out.println("BOUNDARY REPORT" + info2.boundaryType + " AT " + info2.exactBoundaryLocation);
                             switch (info2.boundaryType) {
                                 case NORTH:
                                     ec.recordNorthBoundary(info2.exactBoundaryLocation);
@@ -69,6 +64,10 @@ public class ECFlagController implements ECController {
                                     //TODO refactor boundary spotted flag?
                                     throw new RuntimeException("Shouldn't be here...");
                             }
+                            break;
+                        case NEUTRAL_EC_SPOTTED:
+                            NeutralEcSpottedInfo neutralEcSpottedInfo = Flags.decodeNeutralEcSpotted(rc.getLocation(), flag);
+                            System.out.println("NEUTRAL EC FOUND " + neutralEcSpottedInfo.location + " WITH " + neutralEcSpottedInfo.conviction + " HP");
                             break;
                         default:
                             break;
