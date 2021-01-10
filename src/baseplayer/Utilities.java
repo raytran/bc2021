@@ -67,6 +67,23 @@ public class Utilities {
     }
 
     /**
+     * Returns neighbors of center that are +/- 2 turns from dir
+     * Not taking into account whether or not the neighbors are out of bounds
+     * @param center center loc
+     * @param dir direction to turn from
+     * @return array of possible directed neighbors
+     */
+    public static MapLocation[] getPossibleDirectedNeighbors(MapLocation center, Direction dir){
+        return new MapLocation[]{
+                center.add(dir),
+                center.add(dir.rotateRight()),
+                center.add(dir.rotateRight().rotateRight()),
+                center.add(dir.rotateLeft()),
+                center.add(dir.rotateLeft().rotateLeft())
+        };
+    }
+
+    /**
      * Offsets a given map location in a direction by variable # of units
      * @param dir direction to offset
      * @param units number of units to offset by

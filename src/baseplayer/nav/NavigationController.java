@@ -276,6 +276,44 @@ public class NavigationController {
 
     }
 
+
+    /**
+     * Tries to move to a location using heuristic
+     * Heuristic: min(distance + passability) of the tiles that are within +/- 2 turns
+     */
+    public void heuristicMoveTo(MapLocation target) throws GameActionException {
+        MapLocation currentLoc = rc.getLocation();
+        if (!currentLoc.equals(target)) {
+            List<MapLocation> candidates = new LinkedList<>();
+            double distanceMin = Double.MAX_VALUE;
+            double distanceMax = 0;
+            for (MapLocation possibleCandidate : Utilities.getPossibleDirectedNeighbors(currentLoc, currentLoc.directionTo(target))) {
+                if (rc.onTheMap(possibleCandidate) && !rc.isLocationOccupied(possibleCandidate)){
+                    int currentDist = possibleCandidate.distanceSquaredTo(target);
+                    distanceMax = Math.max(distanceMax, currentDist);
+                    distanceMin = Math.min(distanceMin, currentDist);
+                    candidates.add(possibleCandidate);
+                }
+            }
+            MapLocation heuristicTarget = null;
+            double minCost = Double.MAX_VALUE;
+            for (MapLocation candidate : candidates) {
+                int currentDist = candidate.distanceSquaredTo(currentLoc);
+                double currentDistNorm = (currentDist - distanceMin)/(distanceMax - distanceMin);
+                double cost = 5 * currentDistNorm + (1 - rc.sensePassability(candidate));
+                if (cost < minCost){
+                    minCost = cost;
+                    heuristicTarget = candidate;
+                }
+            }
+            if (heuristicTarget != null) {
+               if (rc.canMove(currentLoc.directionTo(heuristicTarget))){
+                   rc.move(currentLoc.directionTo(heuristicTarget));
+               }
+            }
+        }
+    }
+
     private double getMovementSlope(MapLocation target) {
         return Utilities.getSlope(target, rc.getLocation());
     }
@@ -285,4 +323,5 @@ public class NavigationController {
         MapLocation loc = rc.adjacentLocation(desiredDirection);
         return rc.onTheMap(loc) && !rc.isLocationOccupied(loc) && rc.sensePassability(loc) > 0.2;
     }
+
 }
