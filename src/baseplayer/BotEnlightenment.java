@@ -28,7 +28,7 @@ public class BotEnlightenment extends BotController {
 
     public BotEnlightenment(RobotController rc) throws GameActionException {
         super(rc);
-        budgetController = new ECBudgetController(rc, this, 100);
+        budgetController = new ECBudgetController(rc, this);
         voteController = new ECVoteController(rc, this, this.budgetController);
         flagController = new ECFlagController(rc, this);
         spawnController = new ECSpawnController(rc,this, this.budgetController);

@@ -8,23 +8,19 @@ import baseplayer.eccontrollers.ECController;
 public class ECBudgetController implements ECController {
     private final RobotController rc;
     private final BotEnlightenment ec;
-    private final int MAX_ROUNDS = 3000;
+    private final int MAX_ROUNDS = 2999;
+    private final int MEMORY_SIZE = 100;
     private int voteBudget;
     private int botBudget;
     private int hpBudget;
-    private int MEMORY_SIZE;
-    private double[] voteMemory;
-    private int[] botMemory;
-    private int[] hpMemory;
+    private double[] voteMemory = new double[MEMORY_SIZE];
+    private int[] botMemory = new int[MEMORY_SIZE];
+    private int[] hpMemory = new int[MEMORY_SIZE];
 
 
-    public ECBudgetController(RobotController rc, BotEnlightenment ec, int MEMORY_SIZE) {
+    public ECBudgetController(RobotController rc, BotEnlightenment ec) {
         this.rc = rc;
         this.ec = ec;
-        this.MEMORY_SIZE = MEMORY_SIZE;
-        voteMemory = new double[MEMORY_SIZE];
-        botMemory = new int[MEMORY_SIZE];
-        hpMemory = new int[MEMORY_SIZE];
     }
 
     @Override
@@ -42,7 +38,7 @@ public class ECBudgetController implements ECController {
             prevHp = hpMemory[currentIndex];
         } else {
             prevVote = voteMemory[0];
-            prevBot = botMemory[0];
+            prevBot = botMemory[currentIndex != 0 ? currentIndex - 1 : 0];
             prevHp = hpMemory[0];
         }
 
@@ -64,6 +60,12 @@ public class ECBudgetController implements ECController {
         // check if we have secured a vote win
         voteDelta = rc.getTeamVotes() > 1500 ? 0 : voteDelta;
 
+        // add alpha, beta scaling factor to adjust early voting and bot budgets
+        double alpha = Math.pow((double) rc.getRoundNum() / MAX_ROUNDS, 0.2);
+        double beta = 1 + (1 - alpha);
+        voteDelta *= alpha;
+        botDelta *= beta;
+
         // normalize to positive percentages
         double total = Math.abs(voteDelta) + Math.abs(botDelta) + Math.abs(hpDelta);
         voteDelta *= -1/total;
@@ -71,9 +73,8 @@ public class ECBudgetController implements ECController {
         hpDelta *= -1/total;
         System.out.println("voteDelta: " + voteDelta + "\nbotDelta: " + botDelta + "\nhpDelta: " + hpDelta);
 
-        double alpha = Math.pow((double) rc.getRoundNum()/MAX_ROUNDS, 0.5);
-        voteBudget = (int) Math.ceil(voteDelta * currentInfluence * alpha);
-        botBudget = (int) Math.ceil(botDelta * currentInfluence + (1-alpha) * voteBudget);
+        voteBudget = (int) Math.ceil(voteDelta * currentInfluence);
+        botBudget = (int) Math.ceil(botDelta * currentInfluence);
         hpBudget = currentInfluence - voteBudget - botBudget;
 
         // if there are nearby enemy politicians, make sure we have enough hp
