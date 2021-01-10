@@ -8,13 +8,21 @@ import java.util.List;
 import java.util.Optional;
 
 public class BotMuckraker extends BotController {
+    boolean isDefending;
+    int currentRadius = 3;
+    MapLocation circleTargetLoc;
+    List<MapLocation> circleLocs;
     Optional<MapLocation> enemyLocation;
     Direction scoutingDirection;
     boolean enemyLocIsGuess = true;
     public BotMuckraker(RobotController rc) throws GameActionException {
         super(rc);
+        isDefending = rc.getRoundNum() > 100 && Math.random() > Math.pow((double) rc.getRoundNum() / 3000, 0.5);
         enemyLocation = Optional.empty();
         scoutingDirection = parentLoc.get().directionTo(rc.getLocation());
+        if (isDefending) {
+            circleLocs = Utilities.getFilteredCircleLocs(1,parentLoc.get().x, parentLoc.get().y, parentLoc.get(), currentRadius);
+        }
         assert scoutingDirection != null;
     }
 
@@ -87,7 +95,9 @@ public class BotMuckraker extends BotController {
             }
         }
 
-        if (nearestPolitician != null && nearestPoliticianDist < RobotType.POLITICIAN.detectionRadiusSquared) {
+        if (isDefending){
+            runCircleDefense();
+        } else if (nearestPolitician != null && nearestPoliticianDist < RobotType.POLITICIAN.detectionRadiusSquared) {
             nav.fuzzyMove(nearestPolitician.location.directionTo(currentLoc));
         } else if (enemyLocation.isPresent()) {
             nav.bugTo(enemyLocation.get());
@@ -112,6 +122,40 @@ public class BotMuckraker extends BotController {
                     && rt == RobotType.SLANDERER)){
             enemyLocation = Optional.of(newLoc);
             enemyLocIsGuess = isGuess;
+        }
+    }
+
+    private void runCircleDefense() throws GameActionException {
+        if (circleLocs.size() == 0){
+            //System.out.println("CIRCLE DONE");
+            currentRadius = currentRadius +4;
+            circleLocs =
+                    Utilities.getFilteredCircleLocs(1, parentLoc.get().x, parentLoc.get().y, parentLoc.get(), currentRadius);
+        }
+        if (circleTargetLoc == null
+                || (rc.getLocation().distanceSquaredTo(circleTargetLoc) < rc.getType().sensorRadiusSquared
+                && (!rc.onTheMap(circleTargetLoc) || rc.isLocationOccupied(circleTargetLoc) && !rc.getLocation().equals(circleTargetLoc)))
+        ){
+            circleLocs.remove(circleTargetLoc);
+            int closest = Integer.MAX_VALUE;
+            for (MapLocation loc : circleLocs) {
+                if (loc.distanceSquaredTo(rc.getLocation()) < closest){
+                    closest = loc.distanceSquaredTo(rc.getLocation());
+                    circleTargetLoc = loc;
+                }
+            }
+        }else{
+            int closest = Integer.MAX_VALUE;
+            for (MapLocation loc : circleLocs) {
+                if (loc.distanceSquaredTo(rc.getLocation()) < closest){
+                    closest = loc.distanceSquaredTo(rc.getLocation());
+                    circleTargetLoc = loc;
+                }
+            }
+            //nav.bugTo(circleTargetLoc);
+            if (!nav.bugAndDijkstraTo(circleTargetLoc)){
+                circleTargetLoc = null;
+            }
         }
     }
 }

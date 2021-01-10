@@ -9,20 +9,15 @@ public class NavigationController {
     private final RobotController rc;
 
     //Bug
-    private NavMode currentMode;
+    private baseplayer.nav.NavMode currentMode;
     private Direction heading = Direction.NORTH;
-    private BugDirection bugDir = BugDirection.RIGHT;
+    private baseplayer.nav.BugDirection bugDir = baseplayer.nav.BugDirection.RIGHT;
     private int closestDistAtBugStart = 0;
-
-
-    // Local Dijkstra
-    private Queue<MapLocation> currentPath = new LinkedList<>();
-    private MapLocation lastTarget;
 
 
     public NavigationController(RobotController rc) {
         this.rc = rc;
-        currentMode = NavMode.DIRECT;
+        currentMode = baseplayer.nav.NavMode.DIRECT;
     }
 
     /**
@@ -47,13 +42,15 @@ public class NavigationController {
     /**
      * Bugs if far away, dijkstra if close enough
      * @param target target location
+     * @return true if possible to reach target, false otherwise
      * @throws GameActionException
      */
-    public void bugAndDijkstraTo(MapLocation target) throws GameActionException {
+    public boolean bugAndDijkstraTo(MapLocation target) throws GameActionException {
         if (rc.getLocation().distanceSquaredTo(target) > rc.getType().sensorRadiusSquared){
             bugTo(target);
+            return true;
         }else{
-            localDijkstraTo(target);
+            return localDijkstraTo(target);
         }
     }
 
@@ -61,28 +58,28 @@ public class NavigationController {
      * Dijkstra to a location
      * Only works within sensing range
      * @param target target location
+     * @return true if possible to go to location, false otherwise
      * @throws GameActionException
      */
-    public void localDijkstraTo(MapLocation target) throws GameActionException {
-        if (lastTarget == null || !lastTarget.equals(target)) {
-            lastTarget = target;
-            currentPath = localDijkstra(target);
-
-            if (currentPath != null) {
-                for (MapLocation loc : currentPath) {
-                    rc.setIndicatorDot(loc, 0, 255, 0);
+    public boolean localDijkstraTo(MapLocation target) throws GameActionException {
+        if (!rc.getLocation().equals(target)){
+            Queue<MapLocation> currentPath = localDijkstra(target);
+            if (currentPath.size() > 0) {
+                //for (MapLocation loc : currentPath) {
+                //    rc.setIndicatorDot(loc, 0, 255, 0);
+                //}
+                MapLocation nextLoc = currentPath.poll();
+                Direction targetDir = rc.getLocation().directionTo(nextLoc);
+                if (rc.canMove(targetDir)) {
+                    rc.move(targetDir);
                 }
+                return true;
+            } else {
+                // Impossible to reach target
+                return false;
             }
         }
-        if (currentPath != null && currentPath.size() > 0) {
-            MapLocation nextLoc = currentPath.peek();
-            Direction targetDir = rc.getLocation().directionTo(nextLoc);
-            if (rc.canMove(targetDir)) {
-                if (fuzzyMove(targetDir)){
-                   currentPath.poll();
-                }
-            }
-        }
+        return true;
     }
 
     /**
@@ -157,7 +154,7 @@ public class NavigationController {
         } else {
             // Switch to bugging
             closestDistAtBugStart = rc.getLocation().distanceSquaredTo(target);
-            currentMode = NavMode.BUGGING;
+            currentMode = baseplayer.nav.NavMode.BUGGING;
         }
     }
 
@@ -169,7 +166,7 @@ public class NavigationController {
 
         for (int i = 0; i < 8; i ++) {
             if (!canMoveInDir(heading)) {
-                if (bugDir == BugDirection.RIGHT)
+                if (bugDir == baseplayer.nav.BugDirection.RIGHT)
                     heading = heading.rotateRight();
                 else
                     heading = heading.rotateLeft();
@@ -179,7 +176,7 @@ public class NavigationController {
         }
 
         // Now we can move forward, but should we?
-        if (bugDir == BugDirection.RIGHT) {
+        if (bugDir == baseplayer.nav.BugDirection.RIGHT) {
             if (canMoveInDir(heading.rotateLeft())) {
                 heading = heading.rotateLeft();
             }
@@ -192,7 +189,7 @@ public class NavigationController {
         if (rc.canMove(heading)){
             rc.move(heading);
             if (rc.getLocation().distanceSquaredTo(target) < closestDistAtBugStart) {
-                currentMode = NavMode.DIRECT;
+                currentMode = baseplayer.nav.NavMode.DIRECT;
             }
         }
     }
@@ -200,7 +197,7 @@ public class NavigationController {
     private boolean bugTurnIntoEdge() throws GameActionException {
         if (canMoveInDir(heading)) return false;
         if (Utilities.isDiagonal(heading)) {
-            if (bugDir == BugDirection.LEFT) {
+            if (bugDir == baseplayer.nav.BugDirection.LEFT) {
                 return !canMoveInDir(heading.rotateLeft());
             } else {
                 return !canMoveInDir(heading.rotateRight());
@@ -211,10 +208,10 @@ public class NavigationController {
     }
 
     private void reverseBugDir() {
-        if (bugDir == BugDirection.LEFT)
-            bugDir = BugDirection.RIGHT;
+        if (bugDir == baseplayer.nav.BugDirection.LEFT)
+            bugDir = baseplayer.nav.BugDirection.RIGHT;
         else
-            bugDir = BugDirection.LEFT;
+            bugDir = baseplayer.nav.BugDirection.LEFT;
     }
 
 

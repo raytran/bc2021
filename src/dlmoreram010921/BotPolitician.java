@@ -1,9 +1,8 @@
-package baseplayer;
+package dlmoreram010921;
 
-import baseplayer.flags.*;
+import dlmoreram010921.flags.*;
 import battlecode.common.*;
 
-import java.util.List;
 import java.util.Optional;
 
 public class BotPolitician extends BotController {
@@ -87,7 +86,7 @@ public class BotPolitician extends BotController {
         }
 
         if (enemyLocation.isPresent()){
-            //System.out.println("GOING TO ENEMY");
+            ////System.out.println("GOING TO ENEMY");
             nav.bugTo(enemyLocation.get());
         } else {
             if (scoutingDirection != null){
@@ -116,5 +115,4 @@ public class BotPolitician extends BotController {
             enemyLocIsGuess = isGuess;
         }
     }
-
 }

@@ -1,5 +1,5 @@
-package baseplayer.eccontrollers;
-import baseplayer.BotEnlightenment;
+package dlmoreram010921.eccontrollers;
+import dlmoreram010921.BotEnlightenment;
 import battlecode.common.*;
 import battlecode.common.GameActionException;
 
@@ -21,9 +21,6 @@ public class ECSpawnController implements ECController{
         RobotType toBuild = robotToSpawn();
         MapLocation myLoc = rc.getLocation();
         int budget = bc.getBotBudget();
-
-        // if only given one influence to spend, spawn MUCKRAKER
-        toBuild = budget == 1 ? RobotType.MUCKRAKER : toBuild;
         int influence = toBuild.equals(RobotType.MUCKRAKER) ? 1 : budget ;
         if(budget > 20 || toBuild.equals(RobotType.MUCKRAKER)) {
             for (int i = 0; i < 8; i++) {
@@ -55,13 +52,13 @@ public class ECSpawnController implements ECController{
             SLANDERER_RATE = 0.0;
         }
         if (roundNum >= 18 / rc.sensePassability(rc.getLocation()) && roundNum <= 2700 ){
-            MUCKRAKER_RATE = 0.35;
-            POLITICIAN_RATE = 0.35;
+            MUCKRAKER_RATE = 0.5;
+            POLITICIAN_RATE = 0.2;
             SLANDERER_RATE = 0.3;
         }
        if(roundNum > 2700) {
-            MUCKRAKER_RATE = 0;
-            POLITICIAN_RATE = 1;
+            MUCKRAKER_RATE = 0.65;
+            POLITICIAN_RATE = 0.35;
             SLANDERER_RATE = 0.0;
         }
         //Special conditions

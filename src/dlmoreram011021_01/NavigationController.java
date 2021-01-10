@@ -1,6 +1,5 @@
-package baseplayer.nav;
+package dlmoreram011021_01;
 
-import baseplayer.Utilities;
 import battlecode.common.*;
 
 import java.util.*;
@@ -13,6 +12,11 @@ public class NavigationController {
     private Direction heading = Direction.NORTH;
     private BugDirection bugDir = BugDirection.RIGHT;
     private int closestDistAtBugStart = 0;
+
+
+    // Local Dijkstra
+    private Queue<MapLocation> currentPath = new LinkedList<>();
+    private MapLocation lastTarget;
 
 
     public NavigationController(RobotController rc) {
@@ -42,15 +46,13 @@ public class NavigationController {
     /**
      * Bugs if far away, dijkstra if close enough
      * @param target target location
-     * @return true if possible to reach target, false otherwise
      * @throws GameActionException
      */
-    public boolean bugAndDijkstraTo(MapLocation target) throws GameActionException {
+    public void bugAndDijkstraTo(MapLocation target) throws GameActionException {
         if (rc.getLocation().distanceSquaredTo(target) > rc.getType().sensorRadiusSquared){
             bugTo(target);
-            return true;
         }else{
-            return localDijkstraTo(target);
+            localDijkstraTo(target);
         }
     }
 
@@ -58,28 +60,28 @@ public class NavigationController {
      * Dijkstra to a location
      * Only works within sensing range
      * @param target target location
-     * @return true if possible to go to location, false otherwise
      * @throws GameActionException
      */
-    public boolean localDijkstraTo(MapLocation target) throws GameActionException {
-        if (!rc.getLocation().equals(target)){
-            Queue<MapLocation> currentPath = localDijkstra(target);
-            if (currentPath.size() > 0) {
+    public void localDijkstraTo(MapLocation target) throws GameActionException {
+        if (lastTarget == null || !lastTarget.equals(target)) {
+            lastTarget = target;
+            currentPath = localDijkstra(target);
+
+            if (currentPath != null) {
                 for (MapLocation loc : currentPath) {
                     rc.setIndicatorDot(loc, 0, 255, 0);
                 }
-                MapLocation nextLoc = currentPath.poll();
-                Direction targetDir = rc.getLocation().directionTo(nextLoc);
-                if (rc.canMove(targetDir)) {
-                    rc.move(targetDir);
-                }
-                return true;
-            } else {
-                // Impossible to reach target
-                return false;
             }
         }
-        return true;
+        if (currentPath != null && currentPath.size() > 0) {
+            MapLocation nextLoc = currentPath.peek();
+            Direction targetDir = rc.getLocation().directionTo(nextLoc);
+            if (rc.canMove(targetDir)) {
+                if (fuzzyMove(targetDir)){
+                   currentPath.poll();
+                }
+            }
+        }
     }
 
     /**
@@ -117,7 +119,7 @@ public class NavigationController {
             for (MapLocation neighborLoc :  Utilities.getPossibleNeighbors(current.getValue())) {
                 if (neighborLoc.isWithinDistanceSquared(startingLoc, senseRadius) && rc.onTheMap(neighborLoc)){
                     if (!passabilityMap.containsKey(neighborLoc)) {
-                        passabilityMap.put(neighborLoc, rc.isLocationOccupied(neighborLoc) ? 0 : rc.sensePassability(neighborLoc));
+                        passabilityMap.put(neighborLoc, rc.sensePassability(neighborLoc));
                     }
                     double newCost = currentCost + (1 - passabilityMap.get(neighborLoc));
                     if (!costMap.containsKey(neighborLoc) || newCost < costMap.get(neighborLoc)) {
@@ -138,7 +140,7 @@ public class NavigationController {
         }
         Collections.reverse(path);
 
-        System.out.println("TOOK " + (initBytecode - Clock.getBytecodesLeft()) + " bytecode for " + path);
+        ////System.out.println("TOOK " + (initBytecode - Clock.getBytecodesLeft()) + " bytecode for " + path);
 
         return new LinkedList<>(path);
     }
@@ -160,7 +162,7 @@ public class NavigationController {
 
     private void bugTurn(MapLocation target) throws GameActionException {
         if (bugTurnIntoEdge()){
-            //System.out.println("Bug dir into edge");
+            ////System.out.println("Bug dir into edge");
             reverseBugDir();
         }
 

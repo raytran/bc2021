@@ -1,4 +1,5 @@
 package circletest;
+import baseplayer.Utilities;
 import battlecode.common.*;
 import circletest.nav.NavigationController;
 
@@ -8,6 +9,8 @@ import java.util.Map;
 import java.util.Queue;
 
 public strictfp class RobotPlayer {
+    static MapLocation parentLoc;
+    static MapLocation circleTargetLoc;
     static List<MapLocation> circleLocs;
     static int currentRadius = 3;
     static RobotController rc;
@@ -48,7 +51,8 @@ public strictfp class RobotPlayer {
 
         turnCount = 0;
 
-        circleLocs = getFilteredCircleLocs(16389,22821, new MapLocation(16389, 22821), currentRadius);
+        parentLoc = new MapLocation(16389, 22821);
+        circleLocs = getFilteredCircleLocs(16389,22821, parentLoc , currentRadius);
         while (true) {
             turnCount += 1;
             // Try/catch blocks stop unhandled exceptions, which cause your robot to freeze
@@ -85,6 +89,7 @@ public strictfp class RobotPlayer {
     }
 
     static void runPolitician() throws GameActionException {
+
     }
 
     static boolean fuzzyMove(Direction dir) throws GameActionException {
@@ -118,18 +123,19 @@ public strictfp class RobotPlayer {
         if (circleLocs.size() == 0){
             //System.out.println("CIRCLE DONE");
             currentRadius = currentRadius +4;
-            circleLocs = getFilteredCircleLocs(16389, 22821, new MapLocation(16389, 22821), currentRadius);
+            circleLocs =
+                    Utilities.getFilteredCircleLocs(1, parentLoc.x, parentLoc.y, parentLoc, currentRadius);
         }
-        if (targetLoc == null
-                || (rc.getLocation().distanceSquaredTo(targetLoc) < rc.getType().sensorRadiusSquared
-                && (!rc.onTheMap(targetLoc) || rc.isLocationOccupied(targetLoc) && !rc.getLocation().equals(targetLoc)))
+        if (circleTargetLoc == null
+                || (rc.getLocation().distanceSquaredTo(circleTargetLoc) < rc.getType().sensorRadiusSquared
+                && (!rc.onTheMap(circleTargetLoc) || rc.isLocationOccupied(circleTargetLoc) && !rc.getLocation().equals(circleTargetLoc)))
         ){
-            circleLocs.remove(targetLoc);
+            circleLocs.remove(circleTargetLoc);
             int closest = Integer.MAX_VALUE;
             for (MapLocation loc : circleLocs) {
                 if (loc.distanceSquaredTo(rc.getLocation()) < closest){
                     closest = loc.distanceSquaredTo(rc.getLocation());
-                    targetLoc = loc;
+                    circleTargetLoc = loc;
                 }
             }
         }else{
@@ -137,11 +143,13 @@ public strictfp class RobotPlayer {
             for (MapLocation loc : circleLocs) {
                 if (loc.distanceSquaredTo(rc.getLocation()) < closest){
                     closest = loc.distanceSquaredTo(rc.getLocation());
-                    targetLoc = loc;
+                    circleTargetLoc = loc;
                 }
             }
-            nav.bugAndDijkstraTo(targetLoc);
-            //nav.bugTo(targetLoc);
+            //nav.bugTo(circleTargetLoc);
+            if (!nav.bugAndDijkstraTo(circleTargetLoc)){
+                circleTargetLoc = null;
+            };
         }
     }
 

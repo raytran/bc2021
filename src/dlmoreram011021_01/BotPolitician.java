@@ -1,21 +1,34 @@
-package baseplayer;
+package dlmoreram011021_01;
 
-import baseplayer.flags.*;
 import battlecode.common.*;
+import dlmoreram011021_01.flags.EnemySpottedInfo;
+import dlmoreram011021_01.flags.FlagAddress;
+import dlmoreram011021_01.flags.FlagType;
+import dlmoreram011021_01.flags.Flags;
 
 import java.util.List;
 import java.util.Optional;
 
 public class BotPolitician extends BotController {
+    List<MapLocation> circleLocs;
+    int currentRadius = 3;
     Optional<MapLocation> enemyLocation;
     Direction scoutingDirection;
+    MapLocation circleTargetLoc;
+    boolean isDefending;
     boolean enemyLocIsGuess = true;
     public BotPolitician(RobotController rc) throws GameActionException {
         super(rc);
         enemyLocation = Optional.empty();
+        isDefending = Math.random() > 0.45;
         if (parentLoc.isPresent()){
+            if (isDefending) {
+                circleLocs = Utilities.getFilteredCircleLocs(1,parentLoc.get().x, parentLoc.get().y, parentLoc.get(), currentRadius);
+            }
             scoutingDirection = parentLoc.get().directionTo(rc.getLocation());
             assert scoutingDirection != null;
+        }else{
+            isDefending = false;
         }
     }
 
@@ -86,15 +99,19 @@ public class BotPolitician extends BotController {
             }
         }
 
-        if (enemyLocation.isPresent()){
-            //System.out.println("GOING TO ENEMY");
-            nav.bugTo(enemyLocation.get());
+        if (isDefending){
+            runCircleDefense();
         } else {
-            if (scoutingDirection != null){
-                nav.spreadOut(scoutingDirection);
-            }else{
-                Direction random = Utilities.randomDirection();
-                nav.spreadOut(random);
+            if (enemyLocation.isPresent()){
+                ////System.out.println("GOING TO ENEMY");
+                nav.bugTo(enemyLocation.get());
+            } else {
+                if (scoutingDirection != null){
+                    nav.spreadOut(scoutingDirection);
+                }else{
+                    Direction random = Utilities.randomDirection();
+                    nav.spreadOut(random);
+                }
             }
         }
 
@@ -117,4 +134,35 @@ public class BotPolitician extends BotController {
         }
     }
 
+    private void runCircleDefense() throws GameActionException {
+        if (circleLocs.size() == 0){
+            ////System.out.println("CIRCLE DONE");
+            currentRadius = currentRadius +4;
+            circleLocs =
+                    Utilities.getFilteredCircleLocs(1, parentLoc.get().x, parentLoc.get().y, parentLoc.get(), currentRadius);
+        }
+        if (circleTargetLoc == null
+                || (rc.getLocation().distanceSquaredTo(circleTargetLoc) < rc.getType().sensorRadiusSquared
+                && (!rc.onTheMap(circleTargetLoc) || rc.isLocationOccupied(circleTargetLoc) && !rc.getLocation().equals(circleTargetLoc)))
+        ){
+            circleLocs.remove(circleTargetLoc);
+            int closest = Integer.MAX_VALUE;
+            for (MapLocation loc : circleLocs) {
+                if (loc.distanceSquaredTo(rc.getLocation()) < closest){
+                    closest = loc.distanceSquaredTo(rc.getLocation());
+                    circleTargetLoc = loc;
+                }
+            }
+        }else{
+            int closest = Integer.MAX_VALUE;
+            for (MapLocation loc : circleLocs) {
+                if (loc.distanceSquaredTo(rc.getLocation()) < closest){
+                    closest = loc.distanceSquaredTo(rc.getLocation());
+                    circleTargetLoc = loc;
+                }
+            }
+            //nav.bugTo(circleTargetLoc);
+            nav.bugAndDijkstraTo(circleTargetLoc);
+        }
+    }
 }
