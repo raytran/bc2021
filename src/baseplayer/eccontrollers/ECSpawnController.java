@@ -34,7 +34,6 @@ public class ECSpawnController implements ECController{
                 }
                 else{
                     nextSpawnDirection = nextSpawnDirection.rotateRight();
-
                     System.out.println("NOT SPAWNING BECAUSE WE CAN'T CURRENTLY BUILD A ROBOT");
                     System.out.println(toBuild + " " + influence + "" + nextSpawnDirection);
                 }
@@ -45,14 +44,14 @@ public class ECSpawnController implements ECController{
         }
     }
     //Round by round hard coding / changing the spawn rates over time
-    private RobotType robotToSpawn() {
+    private RobotType robotToSpawn() throws GameActionException{
         int roundNum = rc.getRoundNum();
-        if (roundNum < 9) {
+        if (roundNum < 18 / rc.sensePassability(rc.getLocation())) {
             MUCKRAKER_RATE = 1.0;
             POLITICIAN_RATE = 0.0;
             SLANDERER_RATE = 0.0;
         }
-        if (roundNum >= 9 && roundNum <= 2700 ){
+        if (roundNum >= 18 / rc.sensePassability(rc.getLocation()) && roundNum <= 2700 ){
             MUCKRAKER_RATE = 0.5;
             POLITICIAN_RATE = 0.2;
             SLANDERER_RATE = 0.3;
