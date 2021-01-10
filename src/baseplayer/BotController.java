@@ -247,4 +247,21 @@ public abstract class BotController {
             return Optional.empty();
         }
     }
+
+    /**
+     * Sense nearby robots
+     * Calls the callback functions
+     */
+    public void senseNearbyRobots(SenseCallback onEnemy, SenseCallback onFriendly, SenseCallback onNeutral) throws GameActionException {
+        Team enemy = rc.getTeam().opponent();
+        for (RobotInfo robotInfo : rc.senseNearbyRobots()){
+            if (robotInfo.team.equals(Team.NEUTRAL)){
+                onNeutral.run(robotInfo);
+            } else if (robotInfo.team.equals(enemy)){
+                onEnemy.run(robotInfo);
+            } else {
+                onFriendly.run(robotInfo);
+            }
+        }
+    }
 }
