@@ -105,6 +105,16 @@ public class BotEnlightenment extends BotController {
         checkRep();
     }
 
+    public int checkNearbyEnemies () {
+        Team enemy = rc.getTeam().opponent();
+        int sensorRadius = rc.getType().sensorRadiusSquared;
+        int totalInfluence = 0;
+        for (RobotInfo robot : rc.senseNearbyRobots(sensorRadius, enemy)) {
+            totalInfluence += robot.type.equals(RobotType.POLITICIAN) ? robot.getInfluence() : 0;
+        }
+        return totalInfluence;
+    }
+
     /**
      * @return known muckraker count
      */

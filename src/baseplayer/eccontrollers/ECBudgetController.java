@@ -60,6 +60,9 @@ public class ECBudgetController implements ECController {
         botDelta -= maxDelta != 0 ? 2 * maxDelta : 1;
         hpDelta -= maxDelta != 0 ? 2 * maxDelta : 1;
 
+        // check if we have secured a vote win
+        voteDelta = rc.getTeamVotes() > 1500 ? 0 : voteDelta;
+
         // normalize to positive percentages
         double total = Math.abs(voteDelta) + Math.abs(botDelta) + Math.abs(hpDelta);
         voteDelta *= -1/total;
@@ -70,6 +73,21 @@ public class ECBudgetController implements ECController {
         voteBudget = (int) (voteDelta * currentInfluence);
         botBudget = (int) (botDelta * currentInfluence);
         hpBudget = currentInfluence - voteBudget - botBudget;
+
+        // if there are nearby enemy politicians, make sure we have enough hp
+        int enemyInfluence = ec.checkNearbyEnemies();
+        if (hpBudget <= enemyInfluence && currentInfluence > enemyInfluence) {
+            hpBudget = enemyInfluence;
+            int remainingInfluence = currentInfluence - enemyInfluence;
+            double newTotal = voteDelta + botDelta;
+            voteBudget = (int) (voteDelta / newTotal * remainingInfluence);
+            botBudget = remainingInfluence - voteBudget;
+        } else {
+            hpBudget = currentInfluence;
+            voteBudget = 0;
+            botBudget = 0;
+        }
+
         System.out.println("Total influence: " + currentInfluence + "\nVoting Budget: "
                 + voteBudget + "\nBot Budget: " + botBudget + "\nSaving: " + hpBudget);
     }
