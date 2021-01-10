@@ -79,4 +79,14 @@ public class FlagEncodeDecodeTest {
         assertEquals(BoundaryType.NORTH, info4.boundaryType);
         assertEquals(2910, info4.exactBoundaryLocation);
     }
+
+    @Test
+    public void testEncodeDecodeNeutralEC(){
+        int flag = Flags.encodeNeutralEcSpotted(FlagAddress.ANY, new MapLocation(29, 23), 480);
+        assertEquals(FlagType.NEUTRAL_EC_SPOTTED, Flags.decodeFlagType(flag));
+        NeutralEcSpottedInfo info = Flags.decodeNeutralEcSpotted(new MapLocation(0, 0), flag);
+        assertEquals(FlagAddress.ANY, Flags.decodeFlagAddress(flag));
+        assertEquals(480, info.conviction);
+        assertEquals(info.location, new MapLocation(29, 23));
+    }
 }

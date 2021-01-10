@@ -25,8 +25,44 @@ public class Flags {
     private static final int FLAGTYPE_SHIFT = 21;
     private static final int FLAGADDR_SHIFT = 18;
 
+    // NEUTRAL_EC_SPOTTED
+    // [23:21]     [20:18]    [17:11]          [10:4]            [3:0]
+    // flagType    address    neutralX % 128   neutralY % 128    floor(neutralConviction/32)
+    public static int encodeNeutralEcSpotted(FlagAddress address, MapLocation location, int convictionLeft){
+        int flag = encodeFlagBase(FlagType.NEUTRAL_EC_SPOTTED, address);
+        flag ^= ((location.x % 128) & 0b1111111) << 11;
+        flag ^= ((location.y % 128) & 0b1111111) << 4;
+        flag ^= (convictionLeft / 32) & 0b1111;
+        return flag;
+    }
+
+    public static NeutralEcSpottedInfo decodeNeutralEcSpotted(MapLocation currentLoc, int flag) {
+        int xMod128 = (flag >>> 11) & 0b1111111;
+        int yMod128 = (flag >>> 4) & 0b1111111;
+        int xOffset = (currentLoc.x / 128) * 128;
+        int yOffset = (currentLoc.y / 128) * 128;
+
+        MapLocation actualLocation = new MapLocation(xMod128 + xOffset, yMod128 + yOffset);
+        MapLocation alternative = actualLocation.translate(-128, 0);
+        if (alternative.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(actualLocation)){
+            actualLocation = alternative;
+        }
+        alternative = actualLocation.translate(128, 0);
+        if (alternative.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(actualLocation)){
+            actualLocation = alternative;
+        }
+        alternative = actualLocation.translate(0, -128);
+        if (alternative.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(actualLocation)){
+            actualLocation = alternative;
+        }
+        alternative = actualLocation.translate(0, 128);
+        if (alternative.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(actualLocation)){
+            actualLocation = alternative;
+        }
+        return new NeutralEcSpottedInfo(actualLocation, (flag & 0b1111) * 32);
+    }
+
     // ENEMY_SPOTTED
-    // Deltas are stored in 7 bit twos-complement encoding
     // [23:21]     [20:18]    [17:11]        [10:4]         [3:2]             [1]        [0]
     // flagType    address    enemyX % 128   enemyY % 128   enemyRobotType    isGuess    unused
 
