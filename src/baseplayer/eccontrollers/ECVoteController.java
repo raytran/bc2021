@@ -107,8 +107,6 @@ public class ECVoteController implements ECController {
                 }
             }
         }
-
-
         this.prevVotes = currentVotes;
 
         boolean updateFlat = this.voteFlat < MAX_VOTE_FLAT;
@@ -134,13 +132,13 @@ public class ECVoteController implements ECController {
 
         int bidAmount = (updateFlat ? (int) (this.votePercent * (double) (currentBudget-activeValue)/100 + activeValue)
                 : (int) (activeValue * (double) (currentBudget-this.voteFlat)/100) +this.voteFlat);
-        if (rc.canBid(bidAmount)){
+        if (rc.canBid(bidAmount) && bidAmount <= currentBudget){
             System.out.println(rc.getTeam() + " bid " + bidAmount);
             rc.bid(bidAmount);
             this.prevVoted = true;
             this.prevFlat = (updateFlat ? activeValue : this.prevFlat);
             this.prevPercent = (updateFlat ? this.prevPercent : activeValue);
-        } else if (bidAmount > currentBudget) {
+        } else {
             System.out.println("Could not cast bid of: " + bidAmount);
             this.prevVoted = false;
         }
@@ -154,11 +152,12 @@ public class ECVoteController implements ECController {
         int remaining = MAX_ROUNDS - rc.getRoundNum();
         double estimatedWinProb = 0.0;
         int a = (prevValue != 0 ? (prevValue - this.delta) : 0);
-        while (currentVotes + remaining*estimatedWinProb < VOTE_WIN_COUNT) {
+        while (currentVotes + remaining * estimatedWinProb < VOTE_WIN_COUNT) {
             if (a <= MAX_VOTE) {
                 int setSize = activeCounts[a] + setSizes[a];
                 if (setSize > 0) {
                     estimatedWinProb = (double) activeWins[a] / setSize;
+                    ec.setVoteWinRate(estimatedWinProb);
                     System.out.println(currentVotes + remaining * estimatedWinProb);
                     a++;
                 } else {
@@ -169,7 +168,7 @@ public class ECVoteController implements ECController {
             }
         }
         System.out.println(rc.getTeam() + " set their " + active + " amount to " + a);
-        this.voteFlat = updateFlat ? a : this.voteFlat;
+        this.voteFlat = updateFlat ? (a > 0 ? a : 1) : this.voteFlat;
         this.votePercent = updateFlat ? this.votePercent : a;
     }
 }

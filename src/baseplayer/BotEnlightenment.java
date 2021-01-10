@@ -18,6 +18,7 @@ public class BotEnlightenment extends BotController {
     private int muckrakerCount = 0;
     private int politicianCount = 0;
     private int slandererCount = 0;
+    private double voteWinRate = 0;
 
     private final ECBudgetController budgetController;
     private final ECVoteController voteController;
@@ -27,7 +28,7 @@ public class BotEnlightenment extends BotController {
 
     public BotEnlightenment(RobotController rc) throws GameActionException {
         super(rc);
-        budgetController = new ECBudgetController(rc, this);
+        budgetController = new ECBudgetController(rc, this, 100);
         voteController = new ECVoteController(rc, this, this.budgetController, 1, .1);
         flagController = new ECFlagController(rc, this);
         spawnController = new ECSpawnController(rc,this, this.budgetController);
@@ -142,4 +143,19 @@ public class BotEnlightenment extends BotController {
         return spawnedRobots.sampleWithMemory(n);
     }
 
+
+    /**
+     * Update the estimated vote win ratio
+     * @param voteWinRate from ECVoteController
+     */
+    public void setVoteWinRate(double voteWinRate) {
+        this.voteWinRate = voteWinRate;
+    }
+
+    /**
+     * @return current voting win ratio
+     */
+    public double getVoteWinRate() {
+        return voteWinRate;
+    }
 }
