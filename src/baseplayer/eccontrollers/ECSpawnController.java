@@ -21,6 +21,9 @@ public class ECSpawnController implements ECController{
         RobotType toBuild = robotToSpawn();
         MapLocation myLoc = rc.getLocation();
         int budget = bc.getBotBudget();
+
+        // if only given one influence to spend, spawn MUCKRAKER
+        toBuild = budget == 1 ? RobotType.MUCKRAKER : toBuild;
         int influence = toBuild.equals(RobotType.MUCKRAKER) ? 1 : budget ;
         if(budget > 20 || toBuild.equals(RobotType.MUCKRAKER)) {
             for (int i = 0; i < 8; i++) {
@@ -53,8 +56,8 @@ public class ECSpawnController implements ECController{
         }
         if (roundNum >= 18 / rc.sensePassability(rc.getLocation()) && roundNum <= 2700 ){
             MUCKRAKER_RATE = 0.1;
-            POLITICIAN_RATE = 0.8;
-            SLANDERER_RATE = 0.1;
+            POLITICIAN_RATE = 0.6;
+            SLANDERER_RATE = 0.3;
         }
        if(roundNum > 2700) {
             MUCKRAKER_RATE = 0;

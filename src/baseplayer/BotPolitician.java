@@ -17,7 +17,7 @@ public class BotPolitician extends BotController {
     public BotPolitician(RobotController rc) throws GameActionException {
         super(rc);
         enemyLocation = Optional.empty();
-        isDefending = Math.random() > 0.45;
+        isDefending = rc.getRoundNum() > 100 && Math.random() > Math.pow((double) rc.getRoundNum() / 3000, 0.5);
         if (parentLoc.isPresent()){
             if (isDefending) {
                 circleLocs = Utilities.getFilteredCircleLocs(1,parentLoc.get().x, parentLoc.get().y, parentLoc.get(), currentRadius);

@@ -8,6 +8,7 @@ import baseplayer.eccontrollers.ECController;
 public class ECBudgetController implements ECController {
     private final RobotController rc;
     private final BotEnlightenment ec;
+    private final int MAX_ROUNDS = 3000;
     private int voteBudget;
     private int botBudget;
     private int hpBudget;
@@ -51,7 +52,7 @@ public class ECBudgetController implements ECController {
 
         // calculate deltas
         double voteDelta = (voteMemory[currentIndex] - prevVote) / MEMORY_SIZE;
-        double botDelta = (double) (botMemory[currentIndex] - prevBot) / MEMORY_SIZE;
+        double botDelta = rc.getRoundNum() > MEMORY_SIZE ? (double) (botMemory[currentIndex] - prevBot) / MEMORY_SIZE : 0;
         double hpDelta = (double) (hpMemory[currentIndex] - prevHp) / MEMORY_SIZE;
 
         // offset deltas
@@ -70,8 +71,9 @@ public class ECBudgetController implements ECController {
         hpDelta *= -1/total;
         System.out.println("voteDelta: " + voteDelta + "\nbotDelta: " + botDelta + "\nhpDelta: " + hpDelta);
 
-        voteBudget = (int) (voteDelta * currentInfluence);
-        botBudget = (int) (botDelta * currentInfluence);
+        double alpha = Math.pow((double) rc.getRoundNum()/MAX_ROUNDS, 0.5);
+        voteBudget = (int) Math.ceil(voteDelta * currentInfluence * alpha);
+        botBudget = (int) Math.ceil(botDelta * currentInfluence + (1-alpha) * voteBudget);
         hpBudget = currentInfluence - voteBudget - botBudget;
 
         // if there are nearby enemy politicians, make sure we have enough hp
@@ -84,9 +86,9 @@ public class ECBudgetController implements ECController {
                 voteBudget = (int) (voteDelta / newTotal * remainingInfluence);
                 botBudget = remainingInfluence - voteBudget;
             } else {
-                hpBudget = currentInfluence;
+                hpBudget = currentInfluence - 1;
                 voteBudget = 0;
-                botBudget = 0;
+                botBudget = 1;
             }
         }
 
