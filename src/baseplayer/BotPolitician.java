@@ -6,15 +6,16 @@ import battlecode.common.*;
 import java.util.Optional;
 
 public class BotPolitician extends BotController {
-    Optional<MapLocation> enemyLocation;
+    Optional<MapLocation> targetLocation;
     Direction scoutingDirection;
-    boolean enemyLocIsGuess = true;
+    double bestTargetScore = 0;
+    boolean targetLocIsGuess = true;
 
     boolean enemyFound = false;
     boolean flagSet = false;
     public BotPolitician(RobotController rc) throws GameActionException {
         super(rc);
-        enemyLocation = Optional.empty();
+        targetLocation = Optional.empty();
         if (parentLoc.isPresent()){
             scoutingDirection = parentLoc.get().directionTo(rc.getLocation());
             assert scoutingDirection != null;
@@ -30,13 +31,17 @@ public class BotPolitician extends BotController {
 
     @Override
     public BotController run() throws GameActionException {
-        if (enemyLocation.isPresent() && rc.getLocation().equals(enemyLocation.get())) {
-            enemyLocation = Optional.empty();
+        if (targetLocation.isPresent() && rc.getLocation().equals(targetLocation.get())) {
+            targetLocation = Optional.empty();
+            bestTargetScore = 0;
         }
         senseNearbyRobots(this::onEnemyNearby, this::onFriendlyNearby, this::onNeutralNearby);
+
+
+
         if (parentID.isPresent()) talkToParent();
-        if (enemyLocation.isPresent()){
-            nav.bugTo(enemyLocation.get());
+        if (targetLocation.isPresent()){
+            nav.bugTo(targetLocation.get());
         } else {
             if (scoutingDirection != null) {
                 nav.spreadOut(scoutingDirection);
@@ -57,14 +62,34 @@ public class BotPolitician extends BotController {
     }
 
     // sets enemy loc if !present or if enemy loc is closer
-    private void setEnemyLocIfCloser(MapLocation newLoc, boolean isGuess){
-        MapLocation currentLoc = rc.getLocation();
-        if (!enemyLocation.isPresent()
-                || enemyLocIsGuess
-                || newLoc.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(enemyLocation.get())){
-            enemyLocation = Optional.of(newLoc);
-            enemyLocIsGuess = isGuess;
+    private void setTargetLocIfBetter(Team targetTeam, MapLocation newLoc, RobotType type,  boolean isGuess){
+        if (!targetLocation.isPresent()
+                || targetLocIsGuess
+                || scoreTarget(targetTeam, newLoc, type) > bestTargetScore) {
+            targetLocation = Optional.of(newLoc);
+            targetLocIsGuess = isGuess;
+            bestTargetScore = scoreTarget(targetTeam, newLoc, type);
         }
+    }
+
+    private double scoreTarget(Team targetTeam, MapLocation location, RobotType type) {
+        double distNorm = ((double) rc.getLocation().distanceSquaredTo(location) / (double) (64 * 64));
+        double typeMulti = 0;
+        switch (type){
+            case POLITICIAN:
+                typeMulti = 0.55;
+                break;
+            case MUCKRAKER:
+                typeMulti = 0.5;
+                break;
+            case ENLIGHTENMENT_CENTER:
+                typeMulti = 0.7;
+                break;
+            case SLANDERER:
+                typeMulti = 0.4;
+                break;
+        }
+        return (1 - distNorm) * typeMulti + (targetTeam.equals(Team.NEUTRAL) ? 0.3 : 0);
     }
 
     private void talkToParent() throws GameActionException {
@@ -79,7 +104,7 @@ public class BotPolitician extends BotController {
                 case ENEMY_SPOTTED:
                     EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(rc.getLocation(), parentFlag);
                     recordEnemy(enemySpottedInfo);
-                    setEnemyLocIfCloser(enemySpottedInfo.location, enemySpottedInfo.isGuess);
+                    setTargetLocIfBetter(rc.getTeam().opponent(), enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
                     break;
                 default:
                     break;
@@ -88,14 +113,15 @@ public class BotPolitician extends BotController {
     }
 
     private void onEnemyNearby(RobotInfo robotInfo) throws GameActionException {
-        setEnemyLocIfCloser(robotInfo.location, false);
-        int actionRadius = rc.getType().actionRadiusSquared;
+        setTargetLocIfBetter(robotInfo.team, robotInfo.location, robotInfo.type, false);
         recordEnemy(new EnemySpottedInfo(robotInfo.location, robotInfo.getType(), false));
 
         if (!flagSet) {
             rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.ANY, robotInfo.location, robotInfo.getType(), false));
             flagSet = true;
         }
+
+        int actionRadius = rc.getType().actionRadiusSquared;
         if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < actionRadius
                 && rc.canEmpower(actionRadius)) {
             rc.empower(actionRadius);
@@ -110,16 +136,23 @@ public class BotPolitician extends BotController {
                 if (Flags.decodeFlagType(nearbyFlag) == FlagType.ENEMY_SPOTTED) {
                     EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(currentLoc, nearbyFlag);
                     recordEnemy(enemySpottedInfo);
-                    setEnemyLocIfCloser(enemySpottedInfo.location, enemySpottedInfo.isGuess);
+                    setTargetLocIfBetter(rc.getTeam().opponent(), enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
                 }
             }
         }
     }
 
-    private void onNeutralNearby(RobotInfo robotInfo) throws GameActionException{
+    private void onNeutralNearby(RobotInfo robotInfo) throws GameActionException {
         if (!flagSet) {
             rc.setFlag(Flags.encodeNeutralEcSpotted(FlagAddress.ANY, robotInfo.location, robotInfo.conviction));
             flagSet = true;
+        }
+        setTargetLocIfBetter(Team.NEUTRAL, robotInfo.location, robotInfo.type, false);
+
+        int actionRadius = rc.getType().actionRadiusSquared;
+        if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < actionRadius
+                && rc.canEmpower(actionRadius)) {
+            rc.empower(actionRadius);
         }
     }
 }
