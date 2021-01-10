@@ -1,8 +1,8 @@
-package baseplayer.eccontrollers;
+package votemultiply.eccontrollers;
 
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
-import baseplayer.BotEnlightenment;
+import votemultiply.BotEnlightenment;
 
 /**
  * This class decides for the EC how many votes to bid at this point in the game.

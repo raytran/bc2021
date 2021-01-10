@@ -1,11 +1,11 @@
-package baseplayer;
+package votemultiply;
 
-import baseplayer.ds.CircularLinkedList;
-import baseplayer.ds.LinkedListNode;
-import baseplayer.eccontrollers.ECBudgetController;
-import baseplayer.eccontrollers.ECFlagController;
-import baseplayer.eccontrollers.ECSpawnController;
-import baseplayer.eccontrollers.ECVoteController;
+import votemultiply.ds.CircularLinkedList;
+import votemultiply.ds.LinkedListNode;
+import votemultiply.eccontrollers.ECBudgetController;
+import votemultiply.eccontrollers.ECFlagController;
+import votemultiply.eccontrollers.ECSpawnController;
+import votemultiply.eccontrollers.ECVoteController;
 import battlecode.common.*;
 
 import java.util.*;
@@ -38,9 +38,9 @@ public class BotEnlightenment extends BotController {
         //Run budget controller
         budgetController.run();
         //Run spawn controller
-        spawnController.run();
+        //spawnController.run();
         // Read and update flags
-        flagController.run();
+        //flagController.run();
         // Bid for votes
         voteController.run();
 
