@@ -76,16 +76,18 @@ public class ECBudgetController implements ECController {
 
         // if there are nearby enemy politicians, make sure we have enough hp
         int enemyInfluence = ec.checkNearbyEnemies();
-        if (hpBudget <= enemyInfluence && currentInfluence > enemyInfluence) {
-            hpBudget = enemyInfluence;
-            int remainingInfluence = currentInfluence - enemyInfluence;
-            double newTotal = voteDelta + botDelta;
-            voteBudget = (int) (voteDelta / newTotal * remainingInfluence);
-            botBudget = remainingInfluence - voteBudget;
-        } else {
-            hpBudget = currentInfluence;
-            voteBudget = 0;
-            botBudget = 0;
+        if (hpBudget <= enemyInfluence) {
+            if (currentInfluence > enemyInfluence + 1) {
+                hpBudget = enemyInfluence + 1;
+                int remainingInfluence = currentInfluence - hpBudget;
+                double newTotal = voteDelta + botDelta;
+                voteBudget = (int) (voteDelta / newTotal * remainingInfluence);
+                botBudget = remainingInfluence - voteBudget;
+            } else {
+                hpBudget = currentInfluence;
+                voteBudget = 0;
+                botBudget = 0;
+            }
         }
 
         System.out.println("Total influence: " + currentInfluence + "\nVoting Budget: "
