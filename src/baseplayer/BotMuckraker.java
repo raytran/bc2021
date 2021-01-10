@@ -24,10 +24,18 @@ public class BotMuckraker extends BotController {
         boolean enemyFound = false;
         boolean flagSet = false;
 
+
         if (enemyLocation.isPresent() &&  currentLoc.equals(enemyLocation.get())){
             enemyLocation = Optional.empty();
         }
+        RobotInfo nearestPolitician = null;
+        int nearestPoliticianDist = Integer.MAX_VALUE;
         for (RobotInfo robotInfo : rc.senseNearbyRobots()) {
+            if (robotInfo.type == RobotType.POLITICIAN
+                    && (nearestPolitician == null || nearestPoliticianDist < currentLoc.distanceSquaredTo(robotInfo.location)) ) {
+                nearestPolitician = robotInfo;
+                nearestPoliticianDist = currentLoc.distanceSquaredTo(robotInfo.location);
+            }
             if (robotInfo.getTeam().equals(rc.getTeam())) {
                 //Nearby friendly
                 if (rc.canGetFlag(robotInfo.ID)) {
@@ -79,7 +87,9 @@ public class BotMuckraker extends BotController {
             }
         }
 
-        if (enemyLocation.isPresent()){
+        if (nearestPolitician != null && nearestPoliticianDist < RobotType.POLITICIAN.detectionRadiusSquared) {
+            nav.fuzzyMove(nearestPolitician.location.directionTo(currentLoc));
+        } else if (enemyLocation.isPresent()) {
             nav.bugTo(enemyLocation.get());
         } else {
             nav.spreadOut(scoutingDirection);
