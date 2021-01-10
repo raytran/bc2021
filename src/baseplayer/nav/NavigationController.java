@@ -222,7 +222,7 @@ public class NavigationController {
 
     /**
      * Attempts to move in a given direction.
-     * If not possible, tries to move in similar direction (+/- 1 cardinal)
+     * If not possible, tries to move in similar direction (+/- 2 cardinal)
      *
      * @param dir The intended direction of movement
      * @return true if a move was performed
@@ -241,8 +241,42 @@ public class NavigationController {
                 rc.move(dir.rotateRight());
                 return true;
             }
+            if (rc.canMove(dir.rotateLeft().rotateLeft())){
+                rc.move(dir.rotateLeft().rotateLeft());
+                return true;
+            }
+            if (rc.canMove(dir.rotateRight().rotateRight())){
+                rc.move(dir.rotateRight().rotateRight());
+                return true;
+            }
         }
         return false;
+    }
+
+    /**
+     * Try to move away from any nearby robots.
+     * If there are no nearby robots, move in defaultDir
+     * @param defaultDir direction to move in if there are no nearby bots
+     * @throws GameActionException
+     */
+    public void spreadOut(Direction defaultDir) throws GameActionException {
+        RobotInfo closestBot = null;
+        MapLocation currentLoc = rc.getLocation();
+        int closestFriendlyDist = Integer.MAX_VALUE;
+        for (RobotInfo ri : rc.senseNearbyRobots()) {
+            int currentDist = ri.location.distanceSquaredTo(currentLoc);
+            if (closestBot == null ||  currentDist < closestFriendlyDist) {
+                closestFriendlyDist = currentDist;
+                closestBot = ri;
+            }
+        }
+
+        if (closestBot != null) {
+            fuzzyMove(closestBot.location.directionTo(currentLoc));
+        } else {
+            fuzzyMove(defaultDir);
+        }
+
     }
 
     private double getMovementSlope(MapLocation target) {

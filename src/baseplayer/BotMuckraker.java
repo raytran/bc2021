@@ -10,6 +10,7 @@ import java.util.Optional;
 public class BotMuckraker extends BotController {
     Optional<MapLocation> enemyLocation;
     Direction scoutingDirection;
+    boolean enemyLocIsGuess = true;
     public BotMuckraker(RobotController rc) throws GameActionException {
         super(rc);
         enemyLocation = Optional.empty();
@@ -33,17 +34,16 @@ public class BotMuckraker extends BotController {
                     int nearbyFlag = rc.getFlag(robotInfo.ID);
                     if (Flags.addressedForCurrentBot(rc, nearbyFlag, false)) {
                         if (Flags.decodeFlagType(nearbyFlag) == FlagType.ENEMY_SPOTTED) {
-                            //System.out.println("NEARBY FRIENDLY REPORTING ENEMY");
                             EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(currentLoc, nearbyFlag);
                             recordEnemy(enemySpottedInfo);
-                            setEnemyLocIfCloser(enemySpottedInfo.location, robotInfo.type);
+                            setEnemyLocIfCloser(enemySpottedInfo.location, robotInfo.type, enemySpottedInfo.isGuess);
                         }
                     }
                 }
             } else {
                 //Nearby enemy
                 enemyFound = true;
-                setEnemyLocIfCloser(robotInfo.location, robotInfo.type);
+                setEnemyLocIfCloser(robotInfo.location, robotInfo.type, false);
                 int actionRadius = rc.getType().actionRadiusSquared;
                 recordEnemy(new EnemySpottedInfo(robotInfo.location, robotInfo.getType(), false));
 
@@ -71,7 +71,7 @@ public class BotMuckraker extends BotController {
                     case ENEMY_SPOTTED:
                         EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(rc.getLocation(), parentFlag);
                         recordEnemy(enemySpottedInfo);
-                        setEnemyLocIfCloser(enemySpottedInfo.location, enemySpottedInfo.enemyType);
+                        setEnemyLocIfCloser(enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
                         break;
                     default:
                         break;
@@ -80,10 +80,9 @@ public class BotMuckraker extends BotController {
         }
 
         if (enemyLocation.isPresent()){
-            //System.out.println("GOING TO ENEMY");
             nav.bugTo(enemyLocation.get());
         } else {
-            nav.fuzzyMove(scoutingDirection);
+            nav.spreadOut(scoutingDirection);
         }
 
         // Search for boundary if we can
@@ -95,12 +94,14 @@ public class BotMuckraker extends BotController {
     }
 
     // sets enemy loc if !present or if enemy loc is closer
-    private void setEnemyLocIfCloser(MapLocation newLoc, RobotType rt){
+    private void setEnemyLocIfCloser(MapLocation newLoc, RobotType rt, boolean isGuess){
         MapLocation currentLoc = rc.getLocation();
         if (!enemyLocation.isPresent()
+                || enemyLocIsGuess
                 || (newLoc.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(enemyLocation.get())
                     && rt == RobotType.SLANDERER)){
             enemyLocation = Optional.of(newLoc);
+            enemyLocIsGuess = isGuess;
         }
     }
 }

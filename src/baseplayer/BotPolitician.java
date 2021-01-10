@@ -7,10 +7,15 @@ import java.util.Optional;
 
 public class BotPolitician extends BotController {
     Optional<MapLocation> enemyLocation;
-
+    Direction scoutingDirection;
+    boolean enemyLocIsGuess = true;
     public BotPolitician(RobotController rc) throws GameActionException {
         super(rc);
         enemyLocation = Optional.empty();
+        if (parentLoc.isPresent()){
+            scoutingDirection = parentLoc.get().directionTo(rc.getLocation());
+            assert scoutingDirection != null;
+        }
     }
 
     public static BotPolitician fromSlanderer(BotSlanderer slanderer) throws GameActionException {
@@ -37,14 +42,14 @@ public class BotPolitician extends BotController {
                         if (Flags.decodeFlagType(nearbyFlag) == FlagType.ENEMY_SPOTTED) {
                             EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(currentLoc, nearbyFlag);
                             recordEnemy(enemySpottedInfo);
-                            setEnemyLocIfCloser(enemySpottedInfo.location);
+                            setEnemyLocIfCloser(enemySpottedInfo.location, enemySpottedInfo.isGuess);
                         }
                     }
                 }
             } else {
                 //Nearby enemy
                 enemyFound = true;
-                setEnemyLocIfCloser(robotInfo.location);
+                setEnemyLocIfCloser(robotInfo.location, false);
                 int actionRadius = rc.getType().actionRadiusSquared;
                 recordEnemy(new EnemySpottedInfo(robotInfo.location, robotInfo.getType(), false));
 
@@ -72,7 +77,7 @@ public class BotPolitician extends BotController {
                     case ENEMY_SPOTTED:
                         EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(rc.getLocation(), parentFlag);
                         recordEnemy(enemySpottedInfo);
-                        setEnemyLocIfCloser(enemySpottedInfo.location);
+                        setEnemyLocIfCloser(enemySpottedInfo.location, enemySpottedInfo.isGuess);
                         break;
                     default:
                         break;
@@ -84,8 +89,12 @@ public class BotPolitician extends BotController {
             //System.out.println("GOING TO ENEMY");
             nav.bugTo(enemyLocation.get());
         } else {
-            Direction random = Utilities.randomDirection();
-            nav.fuzzyMove(random);
+            if (scoutingDirection != null){
+                nav.spreadOut(scoutingDirection);
+            }else{
+                Direction random = Utilities.randomDirection();
+                nav.spreadOut(random);
+            }
         }
 
         // Search for boundary if we can
@@ -97,11 +106,13 @@ public class BotPolitician extends BotController {
     }
 
     // sets enemy loc if !present or if enemy loc is closer
-    private void setEnemyLocIfCloser(MapLocation newLoc){
+    private void setEnemyLocIfCloser(MapLocation newLoc, boolean isGuess){
         MapLocation currentLoc = rc.getLocation();
         if (!enemyLocation.isPresent()
+                || enemyLocIsGuess
                 || newLoc.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(enemyLocation.get())){
             enemyLocation = Optional.of(newLoc);
+            enemyLocIsGuess = isGuess;
         }
     }
 }
