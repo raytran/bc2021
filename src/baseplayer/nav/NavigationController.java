@@ -120,7 +120,7 @@ public class NavigationController {
             for (MapLocation neighborLoc :  Utilities.getPossibleNeighbors(current.getValue())) {
                 if (neighborLoc.isWithinDistanceSquared(startingLoc, senseRadius) && rc.onTheMap(neighborLoc)){
                     if (!passabilityMap.containsKey(neighborLoc)) {
-                        passabilityMap.put(neighborLoc, rc.isLocationOccupied(neighborLoc) ? 0 : rc.sensePassability(neighborLoc));
+                        passabilityMap.put(neighborLoc, rc.sensePassability(neighborLoc));
                     }
                     double newCost = currentCost + (1 - passabilityMap.get(neighborLoc));
                     if (!costMap.containsKey(neighborLoc) || newCost < costMap.get(neighborLoc)) {
@@ -141,7 +141,7 @@ public class NavigationController {
         }
         Collections.reverse(path);
 
-        System.out.println("TOOK " + (initBytecode - Clock.getBytecodesLeft()) + " bytecode for " + path);
+        //System.out.println("TOOK " + (initBytecode - Clock.getBytecodesLeft()) + " bytecode for " + path);
 
         return new LinkedList<>(path);
     }

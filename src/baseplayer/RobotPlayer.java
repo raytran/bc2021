@@ -36,7 +36,7 @@ public strictfp class RobotPlayer {
                 controller.incrementAge();
                 Clock.yield();
             } catch (Exception e) {
-                System.out.println(rc.getType() + " Exception");
+                //System.out.println(rc.getType() + " Exception");
                 e.printStackTrace();
             }
         }

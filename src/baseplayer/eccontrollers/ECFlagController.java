@@ -76,7 +76,7 @@ public class ECFlagController implements ECController {
                 }
             } else {
                 //Can't get flag; must be dead!
-                System.out.println("Death report for " + id);
+               // System.out.println("Death report for " + id);
                 ec.recordDeath(id);
             }
         }

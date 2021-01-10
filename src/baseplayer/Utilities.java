@@ -5,6 +5,7 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotType;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -116,5 +117,58 @@ public class Utilities {
                 || dir == Direction.NORTHWEST
                 || dir == Direction.SOUTHEAST
                 || dir == Direction.SOUTHWEST);
+    }
+
+
+    /**
+     * Returns map locations that form a circle around center and radius
+     * except where loc abs(circleX - restrictedX) > threshold (same for Y)
+     * @param restrictedX x loc restricted
+     * @param restrictedY y loc restricted
+     * @param center of the circle
+     * @param radius of the circle
+     * @return filtered map locations of circle
+     */
+    public static List<MapLocation> getFilteredCircleLocs(int threshold, int restrictedX, int restrictedY, MapLocation center, int radius) {
+        List<MapLocation> circleLocs = getAllCircleLocs(center, radius);
+        for (int i = circleLocs.size() - 1; i >= 0; i--) {
+            if (Math.abs(circleLocs.get(i).x - restrictedX) <= threshold
+                    || Math.abs(circleLocs.get(i).y - restrictedY) <= threshold) {
+                circleLocs.remove(i);
+            }
+        }
+        return circleLocs;
+    }
+    /**
+     * Returns all maplocations in that form a circle of radius around center
+     * @param center center of circle
+     * @param radius radius of the circle
+     * @return map locs of circle
+     */
+    // See https://rosettacode.org/wiki/Bitmap/Midpoint_circle_algorithm#Java
+    public static List<MapLocation> getAllCircleLocs(MapLocation center, int radius) {
+        List<MapLocation> circleLocs = new LinkedList<>();
+        int d = (5 - radius * 4)/4;
+        int x = 0;
+        int y = radius;
+
+        do {
+            circleLocs.add(new MapLocation(center.x + x, center.y + y));
+            circleLocs.add(new MapLocation(center.x + x, center.y - y));
+            circleLocs.add(new MapLocation(center.x - x, center.y + y));
+            circleLocs.add(new MapLocation(center.x - x, center.y - y));
+            circleLocs.add(new MapLocation(center.x + y, center.y + x));
+            circleLocs.add(new MapLocation(center.x + y, center.y - x));
+            circleLocs.add(new MapLocation(center.x - y, center.y + x));
+            circleLocs.add(new MapLocation(center.x - y, center.y - x));
+            if (d < 0) {
+                d += 2 * x + 1;
+            } else {
+                d += 2 * (x - y) + 1;
+                y--;
+            }
+            x++;
+        } while (x <= y);
+        return circleLocs;
     }
 }
