@@ -147,7 +147,7 @@ public strictfp class RobotPlayer {
                 }
             }
             //nav.bugTo(circleTargetLoc);
-            if (!nav.bugAndBFSto(circleTargetLoc)){
+            if (!nav.bugAndHeuristicTo(circleTargetLoc)){
                 circleTargetLoc = null;
             };
         }

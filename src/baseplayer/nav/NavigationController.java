@@ -43,6 +43,20 @@ public class NavigationController {
         }
     }
 
+    /**
+     * Bugs towards a target location, then uses heuristics to reach
+     * @param target
+     * @return true if target isn't takent, false otherwise
+     */
+    public boolean bugAndHeuristicTo(MapLocation target) throws GameActionException {
+        if (rc.getLocation().distanceSquaredTo(target) > rc.getType().sensorRadiusSquared){
+            bugTo(target);
+            return true;
+        }else{
+            return heuristicMoveTo(target);
+        }
+    }
+
 
     /**
      * Bugs if far away, BFS if close enough
@@ -350,9 +364,15 @@ public class NavigationController {
     /**
      * Tries to move to a location using heuristic
      * Heuristic: min(distance + passability) of the tiles that are within +/- 2 turns
+     * @return true if possible to move (not taken) false otherwise
      */
-    public void heuristicMoveTo(MapLocation target) throws GameActionException {
+    public boolean heuristicMoveTo(MapLocation target) throws GameActionException {
         MapLocation currentLoc = rc.getLocation();
+        if (currentLoc.isWithinDistanceSquared(target, rc.getType().sensorRadiusSquared)) {
+           if (rc.isLocationOccupied(target)){
+               return false;
+           }
+        }
         if (!currentLoc.equals(target)) {
             List<MapLocation> candidates = new LinkedList<>();
             double distanceMin = Double.MAX_VALUE;
@@ -382,6 +402,7 @@ public class NavigationController {
                }
             }
         }
+        return true;
     }
 
     private double getMovementSlope(MapLocation target) {

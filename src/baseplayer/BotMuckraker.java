@@ -175,7 +175,7 @@ public class BotMuckraker extends BotController {
             }
             //nav.bugTo(circleTargetLoc);
 
-            if (!nav.bugAndBFSto(circleTargetLoc)){
+            if (!nav.bugAndHeuristicTo(circleTargetLoc)){
                 circleTargetLoc = null;
             }
             //if (!nav.bugAndDijkstraTo(circleTargetLoc)){
