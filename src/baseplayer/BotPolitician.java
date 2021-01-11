@@ -96,6 +96,7 @@ public class BotPolitician extends BotController {
         if (!rc.canGetFlag(parentID.get())){
             // Oh my god our parents died
             parentID = Optional.empty();
+            return;
         }
         int parentFlag = rc.getFlag(parentID.get());
         if (Flags.addressedForCurrentBot(rc, parentFlag, false)) {
