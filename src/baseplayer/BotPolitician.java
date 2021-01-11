@@ -9,6 +9,7 @@ public class BotPolitician extends BotController {
     Optional<MapLocation> targetLocation;
     Direction scoutingDirection;
     double bestTargetScore = 0;
+    int totalNearbyEnemyConviction = 0;
     boolean targetLocIsGuess = true;
 
     boolean enemyFound = false;
@@ -56,6 +57,7 @@ public class BotPolitician extends BotController {
             flagBoundaries();
         }
 
+        totalNearbyEnemyConviction = 0;
         enemyFound = false;
         flagSet = false;
         return this;
@@ -123,9 +125,11 @@ public class BotPolitician extends BotController {
         }
 
         int actionRadius = rc.getType().actionRadiusSquared;
-        if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < actionRadius
-                && rc.canEmpower(actionRadius)) {
-            rc.empower(actionRadius);
+        if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < actionRadius){
+            totalNearbyEnemyConviction += robotInfo.conviction;
+            if (rc.canEmpower(actionRadius) && totalNearbyEnemyConviction > 3) {
+                rc.empower(actionRadius);
+            }
         }
     }
 
