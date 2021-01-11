@@ -129,6 +129,7 @@ public class BotMuckraker extends BotController {
         if (!rc.canGetFlag(parentID.get())){
             // Oh my god our parents died
             parentID = Optional.empty();
+            return;
         }
         int parentFlag = rc.getFlag(parentID.get());
         if (Flags.addressedForCurrentBot(rc, parentFlag, false)) {
@@ -173,9 +174,13 @@ public class BotMuckraker extends BotController {
                 }
             }
             //nav.bugTo(circleTargetLoc);
-            if (!nav.bugAndDijkstraTo(circleTargetLoc)){
+
+            if (!nav.bugAndBFSto(circleTargetLoc)){
                 circleTargetLoc = null;
             }
+            //if (!nav.bugAndDijkstraTo(circleTargetLoc)){
+            //    circleTargetLoc = null;
+            //}
         }
     }
 }

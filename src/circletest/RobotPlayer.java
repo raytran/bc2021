@@ -1,7 +1,7 @@
 package circletest;
 import baseplayer.Utilities;
+import baseplayer.nav.NavigationController;
 import battlecode.common.*;
-import circletest.nav.NavigationController;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -147,7 +147,7 @@ public strictfp class RobotPlayer {
                 }
             }
             //nav.bugTo(circleTargetLoc);
-            if (!nav.bugAndDijkstraTo(circleTargetLoc)){
+            if (!nav.bugAndBFSto(circleTargetLoc)){
                 circleTargetLoc = null;
             };
         }

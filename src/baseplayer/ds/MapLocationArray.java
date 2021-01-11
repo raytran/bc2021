@@ -17,8 +17,8 @@ public class MapLocationArray<T> {
         int radius = (int) Math.ceil(Math.sqrt(radiusSquared));
         xMin = Math.max(0, center.x - radius);
         yMin = Math.max(0, center.y - radius);
-        System.out.println(xMin);
-        System.out.println(yMin);
+        //System.out.println(xMin);
+        //System.out.println(yMin);
         items = (T[][]) new Object[2 * radius + 1][2 * radius + 1];
     }
 

@@ -1,13 +1,16 @@
 package baseplayer.nav;
 
+import baseplayer.MapLocPair;
 import baseplayer.Utilities;
 import baseplayer.ds.MapLocationArray;
+import baseplayer.ds.MinHeap;
 import battlecode.common.*;
 
 import java.util.*;
 
 public class NavigationController {
     private final RobotController rc;
+    private Queue<MapLocation> currentPath;
 
     //Bug
     private NavMode currentMode;
@@ -40,6 +43,22 @@ public class NavigationController {
         }
     }
 
+
+    /**
+     * Bugs if far away, BFS if close enough
+     * @param target target location
+     * @return true if possible to reach target, false otherwise
+     * @throws GameActionException
+     */
+    public boolean bugAndBFSto(MapLocation target) throws GameActionException {
+        if (rc.getLocation().distanceSquaredTo(target) > rc.getType().sensorRadiusSquared){
+            bugTo(target);
+            return true;
+        }else{
+            return localPathTo(target, false);
+        }
+    }
+
     /**
      * Bugs if far away, dijkstra if close enough
      * @param target target location
@@ -51,7 +70,7 @@ public class NavigationController {
             bugTo(target);
             return true;
         }else{
-            return localDijkstraTo(target);
+            return localPathTo(target, true);
         }
     }
 
@@ -59,12 +78,18 @@ public class NavigationController {
      * Dijkstra to a location
      * Only works within sensing range
      * @param target target location
+     * @param isDijkstra uses dijkstra if true, bfs otherwise
      * @return true if possible to go to location, false otherwise
      * @throws GameActionException
      */
-    public boolean localDijkstraTo(MapLocation target) throws GameActionException {
+    public boolean localPathTo(MapLocation target, boolean isDijkstra) throws GameActionException {
         if (!rc.getLocation().equals(target)){
-            Queue<MapLocation> currentPath = localDijkstra(target);
+            if (currentPath == null) {
+                if (isDijkstra)
+                    currentPath = localDijkstra(target);
+                else
+                    currentPath = localBFS(target);
+            }
             if (currentPath.size() > 0) {
                 for (MapLocation loc : currentPath) {
                     rc.setIndicatorDot(loc, 0, 255, 0);
@@ -73,6 +98,8 @@ public class NavigationController {
                 Direction targetDir = rc.getLocation().directionTo(nextLoc);
                 if (rc.canMove(targetDir)) {
                     rc.move(targetDir);
+                }else{
+                    currentPath = null;
                 }
                 return true;
             } else {
@@ -90,40 +117,48 @@ public class NavigationController {
      * @throws GameActionException
      */
     public Queue<MapLocation> localDijkstra(MapLocation target) throws GameActionException {
-        int initBytecode = Clock.getBytecodesLeft();
         int senseRadius = rc.getType().sensorRadiusSquared;
         if (rc.getLocation().distanceSquaredTo(target) > senseRadius) {
             throw new RuntimeException("Tried to pathfind outside of sense radius");
         }
 
         MapLocation startingLoc = rc.getLocation();
+
         MapLocationArray<Double> passabilityMap = new MapLocationArray<>(startingLoc, senseRadius);
         MapLocationArray<Double> costMap = new MapLocationArray<>(startingLoc, senseRadius);
         MapLocationArray<MapLocation> parentPointers = new MapLocationArray<>(startingLoc, senseRadius);
+        MapLocationArray<Boolean> onTheMap = new MapLocationArray<>(startingLoc, senseRadius);
 
-        PriorityQueue<Map.Entry<Double, MapLocation>> queue = new PriorityQueue<>(Comparator.comparingDouble(Map.Entry::getKey));
+        MinHeap<MapLocPair> queue = new MinHeap<>(150);
 
         costMap.put(startingLoc, 0.0);
-        queue.add(new AbstractMap.SimpleImmutableEntry<>(0.0, startingLoc));
+        queue.add(new MapLocPair(startingLoc, 0.0));
 
         while (queue.size() > 0) {
-            Map.Entry<Double, MapLocation> current = queue.poll();
-            MapLocation currentLoc = current.getValue();
-
+            MapLocPair current = queue.poll();
+            MapLocation currentLoc = current.location;
             if (currentLoc.equals(target)) {
                 break;
             }
 
-            double currentCost = current.getKey();
-            for (MapLocation neighborLoc :  Utilities.getPossibleNeighbors(current.getValue())) {
-                if (neighborLoc.isWithinDistanceSquared(startingLoc, senseRadius) && rc.onTheMap(neighborLoc)){
+            double currentCost = current.value;
+            for (MapLocation neighborLoc :  Utilities.getPossibleNeighbors(current.location)) {
+                if (!onTheMap.containsKey(neighborLoc)) {
+                    if (neighborLoc.isWithinDistanceSquared(startingLoc, senseRadius)){
+                        onTheMap.put(neighborLoc, rc.onTheMap(neighborLoc));
+                    } else {
+                        onTheMap.put(neighborLoc, false);
+                    }
+                }
+                if (onTheMap.get(neighborLoc)){
                     if (!passabilityMap.containsKey(neighborLoc)) {
                         passabilityMap.put(neighborLoc, rc.isLocationOccupied(neighborLoc) ? 0 : rc.sensePassability(neighborLoc));
                     }
+
                     double newCost = currentCost + (1 - passabilityMap.get(neighborLoc));
                     if (!costMap.containsKey(neighborLoc) || newCost < costMap.get(neighborLoc)) {
                         costMap.put(neighborLoc, newCost);
-                        queue.add(new AbstractMap.SimpleImmutableEntry<>(newCost, neighborLoc));
+                        queue.add(new MapLocPair(neighborLoc, newCost));
                         parentPointers.put(neighborLoc, currentLoc);
                     }
                 }
@@ -138,9 +173,43 @@ public class NavigationController {
             current = parentPointers.get(current);
         }
         Collections.reverse(path);
+        return new LinkedList<>(path);
+    }
 
-        //System.out.println("TOOK " + (initBytecode - Clock.getBytecodesLeft()) + " bytecode for " + path);
+    public Queue<MapLocation> localBFS(MapLocation target) throws GameActionException {
+        MapLocation startingLoc = rc.getLocation();
+        Queue<MapLocation> queue = new LinkedList<>();
+        int senseRadius = rc.getType().sensorRadiusSquared;
+        MapLocationArray<Boolean> visited = new MapLocationArray<>(startingLoc, senseRadius);
+        MapLocationArray<MapLocation> parentPointers = new MapLocationArray<>(startingLoc, senseRadius);
+        queue.add(startingLoc);
 
+        while (queue.size() > 0) {
+            MapLocation current = queue.poll();
+
+            rc.setIndicatorDot(current, 255, 0, 0);
+            if (current.equals(target)) {
+                break;
+            }
+            for (MapLocation neighbor : Utilities.getPossibleNeighbors(current)) {
+                if (neighbor.isWithinDistanceSquared(startingLoc, senseRadius)) {
+                    if (rc.onTheMap(neighbor) && !rc.isLocationOccupied(neighbor) && !visited.containsKey(neighbor)) {
+                        queue.add(neighbor);
+                        parentPointers.put(neighbor, current);
+                        visited.put(neighbor, true);
+                    }
+                }
+            }
+        }
+
+        List<MapLocation> path = new LinkedList<>();
+        MapLocation current = target;
+        while (parentPointers.containsKey(current)) {
+            path.add(current);
+            current = parentPointers.get(current);
+        }
+
+        Collections.reverse(path);
         return new LinkedList<>(path);
     }
 
