@@ -19,6 +19,7 @@ public class BotEnlightenment extends BotController {
     private int politicianCount = 0;
     private int slandererCount = 0;
     private double voteWinRate = 0;
+    private int lastEnemySeen = 0;
 
     private final ECBudgetController budgetController;
     private final ECVoteController voteController;
@@ -112,8 +113,11 @@ public class BotEnlightenment extends BotController {
         for (RobotInfo robot : rc.senseNearbyRobots(sensorRadius, enemy)) {
             totalInfluence += robot.type.equals(RobotType.POLITICIAN) ? robot.getInfluence() : 0;
         }
+        lastEnemySeen = totalInfluence != 0 ? rc.getRoundNum() : lastEnemySeen;
         return totalInfluence;
     }
+
+    public int getLastEnemySeen () { return lastEnemySeen; }
 
     /**
      * @return known muckraker count

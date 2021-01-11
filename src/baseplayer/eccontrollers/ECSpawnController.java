@@ -7,10 +7,12 @@ public class ECSpawnController implements ECController{
     private static double POLITICIAN_RATE = 0.2;
     private static double MUCKRAKER_RATE = 0.5;
     private static double SLANDERER_RATE = 0.3;
+    private final int[] SLANDERER_VALUES = {21, 42, 63, 85, 107, 130, 154, 178, 203, 228, 255, 282, 310, 339, 368, 399, 431, 463, 497};
     private final RobotController rc;
     private final BotEnlightenment ec;
     private final ECBudgetController bc;
     private Direction nextSpawnDirection = Direction.NORTH;
+    private int prevBudget = 0;
     public ECSpawnController(RobotController rc, BotEnlightenment ec, ECBudgetController bc) {
         this.rc = rc;
         this.ec = ec;
@@ -21,16 +23,30 @@ public class ECSpawnController implements ECController{
         RobotType toBuild = robotToSpawn();
         MapLocation myLoc = rc.getLocation();
         int budget = bc.getBotBudget();
+        int roundNum = rc.getRoundNum();
+        boolean givenOne = budget - prevBudget == 1;
+        prevBudget = budget;
 
         // if only given one influence to spend, spawn MUCKRAKER
-        toBuild = budget == 1 ? RobotType.MUCKRAKER : toBuild;
-        int influence = toBuild.equals(RobotType.MUCKRAKER) ? 1 : budget ;
-        if(budget > 20 || toBuild.equals(RobotType.MUCKRAKER)) {
+        toBuild = givenOne ? RobotType.MUCKRAKER : toBuild;
+        int buildAmount = toBuild.equals(RobotType.MUCKRAKER) ? 1 : budget;
+        int minAmount = roundNum - ec.getLastEnemySeen() > 500 ? 500 * roundNum/3000 : 20;
+
+        if (toBuild.equals(RobotType.SLANDERER)){
+            int i = 0;
+            while (minAmount > SLANDERER_VALUES[i] && i < 18){
+                i++;
+            }
+            buildAmount = SLANDERER_VALUES[i];
+        }
+
+        if(buildAmount > minAmount || toBuild.equals(RobotType.MUCKRAKER)) {
             for (int i = 0; i < 8; i++) {
                 //TODO This line is causing us not to spawn every turn we are not spawning even if it costs 1
-                if (rc.canBuildRobot(toBuild, nextSpawnDirection, influence)) {
+                if (rc.canBuildRobot(toBuild, nextSpawnDirection, buildAmount)) {
                     //Built the robot, add id to total
-                    rc.buildRobot(toBuild, nextSpawnDirection, influence);
+                    rc.buildRobot(toBuild, nextSpawnDirection, buildAmount);
+                    bc.withdrawBudget(this, buildAmount);
                     ec.recordSpawn(rc.senseRobotAtLocation(rc.getLocation().add(nextSpawnDirection)).ID, robotToSpawn());
                     //System.out.println("SPAWNING " + toBuild);
                     break;

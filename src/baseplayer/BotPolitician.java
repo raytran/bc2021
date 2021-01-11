@@ -10,6 +10,7 @@ public class BotPolitician extends BotController {
     Direction scoutingDirection;
     double bestTargetScore = 0;
     int totalNearbyEnemyConviction = 0;
+    int totalNearbyFriendlyConviction = 0;
     boolean targetLocIsGuess = true;
 
     boolean enemyFound = false;
@@ -36,6 +37,7 @@ public class BotPolitician extends BotController {
             targetLocation = Optional.empty();
             bestTargetScore = 0;
         }
+        totalNearbyFriendlyConviction = rc.getConviction();
         senseNearbyRobots(this::onEnemyNearby, this::onFriendlyNearby, this::onNeutralNearby);
 
 
@@ -127,7 +129,7 @@ public class BotPolitician extends BotController {
         int actionRadius = rc.getType().actionRadiusSquared;
         if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < actionRadius){
             totalNearbyEnemyConviction += robotInfo.conviction;
-            if (rc.canEmpower(actionRadius) && totalNearbyEnemyConviction > 3) {
+            if (rc.canEmpower(actionRadius) && (totalNearbyEnemyConviction > 3 || (double) rc.getConviction()/totalNearbyFriendlyConviction < 0.25)) {
                 rc.empower(actionRadius);
             }
         }
@@ -135,6 +137,7 @@ public class BotPolitician extends BotController {
 
     private void onFriendlyNearby(RobotInfo robotInfo) throws GameActionException {
         MapLocation currentLoc = rc.getLocation();
+        totalNearbyFriendlyConviction += robotInfo.conviction;
         if (rc.canGetFlag(robotInfo.ID)) {
             int nearbyFlag = rc.getFlag(robotInfo.ID);
             if (Flags.addressedForCurrentBot(rc, nearbyFlag, false)) {
