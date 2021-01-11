@@ -1,6 +1,7 @@
 package baseplayer.nav;
 
 import baseplayer.Utilities;
+import baseplayer.ds.MapLocationArray;
 import battlecode.common.*;
 
 import java.util.*;
@@ -95,11 +96,11 @@ public class NavigationController {
             throw new RuntimeException("Tried to pathfind outside of sense radius");
         }
 
-        Map<MapLocation, Double> passabilityMap = new HashMap<>();
-        Map<MapLocation, Double> costMap = new HashMap<>();
-        Map<MapLocation, MapLocation> parentPointers = new HashMap<>();
-
         MapLocation startingLoc = rc.getLocation();
+        MapLocationArray<Double> passabilityMap = new MapLocationArray<>(startingLoc, senseRadius);
+        MapLocationArray<Double> costMap = new MapLocationArray<>(startingLoc, senseRadius);
+        MapLocationArray<MapLocation> parentPointers = new MapLocationArray<>(startingLoc, senseRadius);
+
         PriorityQueue<Map.Entry<Double, MapLocation>> queue = new PriorityQueue<>(Comparator.comparingDouble(Map.Entry::getKey));
 
         costMap.put(startingLoc, 0.0);
