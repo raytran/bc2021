@@ -42,7 +42,18 @@ public class BotMuckraker extends BotController {
             runCircleDefense();
         } else {
             if (enemyLocation.isPresent()){
-                nav.spreadOut(rc.getLocation().directionTo(enemyLocation.get()));
+                boolean canBug = false;
+                if (rc.getLocation().distanceSquaredTo(enemyLocation.get()) < RobotType.MUCKRAKER.sensorRadiusSquared) {
+                    for (RobotInfo ri : rc.senseNearbyRobots()) {
+                       if (ri.type == RobotType.SLANDERER && !ri.team.equals(rc.getTeam().opponent())) {
+                           canBug = true;
+                       }
+                    }
+                }
+                if (!canBug)
+                    nav.spreadOut(rc.getLocation().directionTo(enemyLocation.get()));
+                else
+                    nav.bugTo(enemyLocation.get());
             } else {
                 if (scoutingDirection != null) {
                     nav.spreadOut(scoutingDirection);

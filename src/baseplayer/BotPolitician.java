@@ -89,7 +89,7 @@ public class BotPolitician extends BotController {
                 typeMulti = 0.4;
                 break;
         }
-        return (1 - distNorm) * typeMulti + (targetTeam.equals(Team.NEUTRAL) ? 0.3 : 0);
+        return (1 - distNorm) * typeMulti + (targetTeam.equals(Team.NEUTRAL) ? 0.4 : 0);
     }
 
     private void talkToParent() throws GameActionException {

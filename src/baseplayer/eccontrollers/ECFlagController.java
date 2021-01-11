@@ -18,6 +18,7 @@ import java.util.Optional;
 public class ECFlagController implements ECController {
     private final RobotController rc;
     private final BotEnlightenment ec;
+    Optional<NeutralEcSpottedInfo> thisRoundNeutralEcSpottedInfo = Optional.empty();
 
 
     public ECFlagController(RobotController rc, BotEnlightenment ec) {
@@ -32,6 +33,7 @@ public class ECFlagController implements ECController {
     public void run() throws GameActionException {
         readFlags();
         setFlags();
+        thisRoundNeutralEcSpottedInfo = Optional.empty();
     }
 
     private void readFlags() throws GameActionException{
@@ -66,8 +68,8 @@ public class ECFlagController implements ECController {
                             }
                             break;
                         case NEUTRAL_EC_SPOTTED:
-                            NeutralEcSpottedInfo neutralEcSpottedInfo = Flags.decodeNeutralEcSpotted(rc.getLocation(), flag);
-                            System.out.println("NEUTRAL EC FOUND " + neutralEcSpottedInfo.location + " WITH " + neutralEcSpottedInfo.conviction + " HP");
+                            thisRoundNeutralEcSpottedInfo = Optional.of(Flags.decodeNeutralEcSpotted(rc.getLocation(), flag));
+                            //System.out.println("NEUTRAL EC FOUND " + .location + " WITH " + neutralEcSpottedInfo.conviction + " HP");
                             break;
                         default:
                             break;
@@ -84,7 +86,9 @@ public class ECFlagController implements ECController {
     private void setFlags() throws GameActionException {
         //TODO more sophisticated flagging
         Optional<EnemySpottedInfo> enemyReport = ec.getLatestRecordedEnemyLocation();
-        if (enemyReport.isPresent()) {
+        if (thisRoundNeutralEcSpottedInfo.isPresent()){
+            rc.setFlag(Flags.encodeNeutralEcSpotted(FlagAddress.ANY, this.thisRoundNeutralEcSpottedInfo.get().location, this.thisRoundNeutralEcSpottedInfo.get().conviction));
+        }else if (enemyReport.isPresent()) {
             //System.out.println("EC Flagging enemy");
             rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.ANY, enemyReport.get().location, enemyReport.get().enemyType, false));
         }else if (ec.getEastBoundary().isPresent() && ec.getWestBoundary().isPresent()
