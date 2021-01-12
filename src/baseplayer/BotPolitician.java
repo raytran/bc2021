@@ -122,6 +122,9 @@ public class BotPolitician extends BotController {
                 recordEnemy(enemySpottedInfo);
                 setTargetLocIfBetter(rc.getTeam().opponent(), enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
                 break;
+            case NEUTRAL_EC_SPOTTED:
+                NeutralEcSpottedInfo neutralEcSpottedInfo = Flags.decodeNeutralEcSpotted(rc.getLocation(), parentFlag);
+                setTargetLocIfBetter(Team.NEUTRAL, neutralEcSpottedInfo.location, RobotType.ENLIGHTENMENT_CENTER, false);
             default:
                 break;
         }
