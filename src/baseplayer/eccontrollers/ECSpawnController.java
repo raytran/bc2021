@@ -13,6 +13,8 @@ public class ECSpawnController implements ECController{
     private final ECBudgetController bc;
     private Direction nextSpawnDirection = Direction.NORTH;
     private int prevBudget = 0;
+    private boolean opPoliticianNeeded = false;
+    private int opAmount = 0;
     public ECSpawnController(RobotController rc, BotEnlightenment ec, ECBudgetController bc) {
         this.rc = rc;
         this.ec = ec;
@@ -39,11 +41,23 @@ public class ECSpawnController implements ECController{
             }
             buildAmount = SLANDERER_VALUES[i];
         }
-
+        if(toBuild.equals(RobotType.POLITICIAN) && ec.getThisRoundNeutralEcSpottedInfo().isPresent()){
+            rc.setIndicatorDot(rc.getLocation(),255,0,0);
+            opPoliticianNeeded = true;
+            opAmount = (int) (11 + ec.getThisRoundNeutralEcSpottedInfo().get().conviction);
+            buildAmount = opAmount;
+            System.out.println("Trying to spawn the super politicians with " + buildAmount + " Influence");
+        }
+        if(opPoliticianNeeded){
+            buildAmount = opAmount;
+        }
         if(buildAmount > minAmount || toBuild.equals(RobotType.MUCKRAKER)) {
             for (int i = 0; i < 8; i++) {
-                //TODO This line is causing us not to spawn every turn we are not spawning even if it costs 1
                 if (rc.canBuildRobot(toBuild, nextSpawnDirection, buildAmount)) {
+                    if(opPoliticianNeeded) {
+                        System.out.println("Spawned an OP Politician");
+                        opPoliticianNeeded = false;
+                    }
                     //Built the robot, add id to total
                     rc.buildRobot(toBuild, nextSpawnDirection, buildAmount);
                     bc.withdrawBudget(this, buildAmount);
@@ -89,6 +103,9 @@ public class ECSpawnController implements ECController{
                 POLITICIAN_RATE = 0.75;
                 SLANDERER_RATE = 0.0;
             }
+        }
+        if(ec.getThisRoundNeutralEcSpottedInfo().isPresent()){
+            return RobotType.POLITICIAN;
         }
         if((double)ec.getMuckrakerCount() /  ec.getLocalRobotCount()  < MUCKRAKER_RATE){
             return RobotType.MUCKRAKER;

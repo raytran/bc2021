@@ -2,6 +2,7 @@ package baseplayer;
 
 import baseplayer.flags.*;
 import battlecode.common.*;
+import com.sun.tools.doclint.Checker;
 
 import java.util.Optional;
 
@@ -41,7 +42,6 @@ public class BotPolitician extends BotController {
         senseNearbyRobots(this::onEnemyNearby, this::onFriendlyNearby, this::onNeutralNearby);
 
 
-
         if (parentID.isPresent()) talkToParent();
         if (targetLocation.isPresent()){
             nav.bugTo(targetLocation.get());
@@ -66,7 +66,7 @@ public class BotPolitician extends BotController {
     }
 
     // sets enemy loc if !present or if enemy loc is closer
-    private void setTargetLocIfBetter(Team targetTeam, MapLocation newLoc, RobotType type,  boolean isGuess){
+    private void setTargetLocIfBetter(Team targetTeam, MapLocation newLoc, RobotType type,  boolean isGuess, int enemyConviciton){
         if (!targetLocation.isPresent()
                 || targetLocIsGuess
                 || scoreTarget(targetTeam, newLoc, type) > bestTargetScore) {
@@ -76,7 +76,15 @@ public class BotPolitician extends BotController {
         }
     }
 
-    private double scoreTarget(Team targetTeam, MapLocation location, RobotType type) {
+    private double scoreTarget(Team targetTeam, MapLocation newLoc, RobotType type) {
+            return scoreTarget(targetTeam,newLoc,type,0);
+    }
+
+    //Underloaded constructor
+    private void setTargetLocIfBetter(Team opponent, MapLocation location, RobotType enemyType, boolean isGuess) {
+        setTargetLocIfBetter(opponent,location,enemyType,isGuess,0);
+    }
+    private double scoreTarget(Team targetTeam, MapLocation location, RobotType type,int enemyConviction) {
         double distNorm = ((double) rc.getLocation().distanceSquaredTo(location) / (double) (64 * 64));
         double typeMulti = 0;
         switch (type){
@@ -93,7 +101,8 @@ public class BotPolitician extends BotController {
                 typeMulti = 0.4;
                 break;
         }
-        return (1 - distNorm) * typeMulti + (targetTeam.equals(Team.NEUTRAL) ? 0.4 : 0);
+        //return (1 - distNorm) * typeMulti + ((rc.getConviction() >= enemyConviction || targetTeam.equals(Team.NEUTRAL)) ? 0.4 : 0);
+        return (1 - distNorm) * typeMulti + (targetTeam.equals(Team.NEUTRAL) ? 0.7 : 0);
     }
 
     private void talkToParent() throws GameActionException {
@@ -111,11 +120,22 @@ public class BotPolitician extends BotController {
                     recordEnemy(enemySpottedInfo);
                     setTargetLocIfBetter(rc.getTeam().opponent(), enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
                     break;
-                default:
+                case NEUTRAL_EC_SPOTTED:
+                    System.out.println("Looks like our parents are reporting a neutral EC");
+                    NeutralEcSpottedInfo neutralEcSpottedInfo = Flags.decodeNeutralEcSpotted(rc.getLocation(),parentFlag);
+                    //if(rc.getConviction() >= neutralEcSpottedInfo.conviction ) {
+                        //Change the exact location to the location of the EC perhaps
+                        rc.setFlag(Flags.encodeGoingToNeutralEC(FlagAddress.ANY, 0));
+                        setTargetLocIfBetter(Team.NEUTRAL, neutralEcSpottedInfo.location, RobotType.ENLIGHTENMENT_CENTER, false, neutralEcSpottedInfo.conviction);
+                        flagSet = true;
+                    //}
+                    break;
+                    default:
                     break;
             }
         }
     }
+
 
     private void onEnemyNearby(RobotInfo robotInfo) throws GameActionException {
         setTargetLocIfBetter(robotInfo.team, robotInfo.location, robotInfo.type, false);
@@ -127,7 +147,7 @@ public class BotPolitician extends BotController {
         }
 
         int actionRadius = rc.getType().actionRadiusSquared;
-        if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < actionRadius){
+        if (!Flags.decodeFlagType(rc.getFlag(rc.getID())).equals(FlagType.GOING_TO_NEUTRAL_EC) && robotInfo.location.distanceSquaredTo(rc.getLocation()) < actionRadius){
             totalNearbyEnemyConviction += robotInfo.conviction;
             if (rc.canEmpower(actionRadius) && (totalNearbyEnemyConviction > 3 || (double) rc.getConviction()/totalNearbyFriendlyConviction < 0.25)) {
                 rc.empower(actionRadius);
@@ -156,7 +176,14 @@ public class BotPolitician extends BotController {
             flagSet = true;
         }
         setTargetLocIfBetter(Team.NEUTRAL, robotInfo.location, robotInfo.type, false);
-
+        int sumOfConviction = 0;
+        int numPoliticians = 0;
+        for(RobotInfo r : rc.senseNearbyRobots()){
+            if(robotInfo.getTeam().equals(rc.getTeam()) && r.getType() == RobotType.POLITICIAN){
+                sumOfConviction+= r.getConviction();
+                numPoliticians++;
+            }
+        }
         int actionRadius = rc.getType().actionRadiusSquared;
         if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < actionRadius
                 && rc.canEmpower(actionRadius)) {

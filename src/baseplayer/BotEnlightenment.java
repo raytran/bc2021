@@ -6,6 +6,7 @@ import baseplayer.eccontrollers.ECBudgetController;
 import baseplayer.eccontrollers.ECFlagController;
 import baseplayer.eccontrollers.ECSpawnController;
 import baseplayer.eccontrollers.ECVoteController;
+import baseplayer.flags.NeutralEcSpottedInfo;
 import battlecode.common.*;
 
 import java.util.*;
@@ -25,7 +26,7 @@ public class BotEnlightenment extends BotController {
     private final ECVoteController voteController;
     private final ECFlagController flagController;
     private final ECSpawnController spawnController;
-
+    private Optional<NeutralEcSpottedInfo> thisRoundNeutralEcSpottedInfo = Optional.empty();
 
     public BotEnlightenment(RobotController rc) throws GameActionException {
         super(rc);
@@ -38,13 +39,13 @@ public class BotEnlightenment extends BotController {
     public BotController run() throws GameActionException {
         //Run budget controller
         budgetController.run();
-        //Run spawn controller
-        spawnController.run();
         // Read and update flags
         flagController.run();
+        //Run spawn controller
+        spawnController.run();
         // Bid for votes
         voteController.run();
-
+        setThisRoundNeutralEcSpottedInfo(Optional.empty());
         // Search for boundary if we can
         if (Clock.getBytecodesLeft() > 1000){
             searchForNearbyBoundaries();
@@ -171,5 +172,9 @@ public class BotEnlightenment extends BotController {
      */
     public double getVoteWinRate() {
         return voteWinRate;
+    }
+    public Optional<NeutralEcSpottedInfo> getThisRoundNeutralEcSpottedInfo(){ return this.thisRoundNeutralEcSpottedInfo; }
+    public void setThisRoundNeutralEcSpottedInfo(Optional<NeutralEcSpottedInfo> info){
+        this.thisRoundNeutralEcSpottedInfo = info;
     }
 }

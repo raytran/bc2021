@@ -126,6 +126,18 @@ public class Flags {
     }
 
     /**
+     *
+     * @param address
+     * @param exactECLocation
+     * @return flag for neutral ec you are going to
+     */
+    public static int encodeGoingToNeutralEC(FlagAddress address, int exactECLocation) {
+        int flag = encodeFlagBase(FlagType.GOING_TO_NEUTRAL_EC, address);
+        flag ^= exactECLocation << 3;
+        return flag;
+    }
+
+    /**
      * @param flag to be decoded
      * @return information for boundary spotted
      */
@@ -185,4 +197,5 @@ public class Flags {
         // Shift bits to the front, then shift back with signed right shift
         return (num << (32 - bitWidth)) >> (32 - bitWidth);
     }
+
 }

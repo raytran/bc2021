@@ -90,8 +90,8 @@ public class ECBudgetController implements ECController {
             voteBudget += voteAllocation;
             botBudget += botAllocation;
         }
-        System.out.println("Total influence: " + currentInfluence + "\nVoting Budget: "
-                + voteBudget + "\nBot Budget: " + botBudget + "\nSaving: " + hpBudget);
+        //System.out.println("Total influence: " + currentInfluence + "\nVoting Budget: "
+          //      + voteBudget + "\nBot Budget: " + botBudget + "\nSaving: " + hpBudget);
     }
 
     /**
