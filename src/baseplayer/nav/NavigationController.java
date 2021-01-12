@@ -373,33 +373,51 @@ public class NavigationController {
                return false;
            }
         }
-        if (!currentLoc.equals(target)) {
-            List<MapLocation> candidates = new LinkedList<>();
-            double distanceMin = Double.MAX_VALUE;
-            double distanceMax = 0;
-            for (MapLocation possibleCandidate : Utilities.getPossibleDirectedNeighbors(currentLoc, currentLoc.directionTo(target))) {
-                if (rc.onTheMap(possibleCandidate) && !rc.isLocationOccupied(possibleCandidate)){
-                    int currentDist = possibleCandidate.distanceSquaredTo(target);
-                    distanceMax = Math.max(distanceMax, currentDist);
-                    distanceMin = Math.min(distanceMin, currentDist);
-                    candidates.add(possibleCandidate);
+        int xMin = currentLoc.x - 1;
+        int yMin = currentLoc.y - 1;
+
+        int[] scores = new int[8];
+        for (int i = 0; i < scores.length; i++) {
+            int x = i % 3 + xMin;
+            int y = i / 3 + yMin;
+            MapLocation current = new MapLocation(x, y);
+            if (rc.onTheMap(current) && !rc.isLocationOccupied(current)){
+                int score = current.distanceSquaredTo(target) + (int) ((1 - rc.sensePassability(current)) * 100);
+                int minNeighbor = Integer.MAX_VALUE;
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dy =-1; dy <= 1; dy++) {
+                        if (!(dx == 0 && dy == 0)) {
+                            int neighborX = x + dx;
+                            int neighborY = y + dy;
+                            MapLocation neighbor = new MapLocation(neighborX, neighborY);
+                            if (rc.onTheMap(neighbor) && !rc.isLocationOccupied(neighbor)) {
+                                minNeighbor = Math.min(minNeighbor,
+                                        neighbor.distanceSquaredTo(target) + (int) ((1 - rc.sensePassability(neighbor)) * 100));
+                            }
+                        }
+                    }
                 }
+                scores[i] = score + (minNeighbor == Integer.MAX_VALUE ? 0 : minNeighbor);
+            } else {
+                scores[i] = Integer.MAX_VALUE;
             }
-            MapLocation heuristicTarget = null;
-            double minCost = Double.MAX_VALUE;
-            for (MapLocation candidate : candidates) {
-                int currentDist = candidate.distanceSquaredTo(currentLoc);
-                double currentDistNorm = (currentDist - distanceMin)/(distanceMax - distanceMin);
-                double cost = 5 * currentDistNorm + (1 - rc.sensePassability(candidate));
-                if (cost < minCost){
-                    minCost = cost;
-                    heuristicTarget = candidate;
-                }
+        }
+
+        MapLocation bestTile = null;
+        int bestNearbyScore = Integer.MAX_VALUE;
+        for (int i = 0; i < scores.length; i++) {
+            int x = i % 3 + xMin;
+            int y = i / 3 + yMin;
+
+            if (scores[i] < bestNearbyScore) {
+                bestNearbyScore = scores[i];
+                bestTile = new MapLocation(x, y);
             }
-            if (heuristicTarget != null) {
-               if (rc.canMove(currentLoc.directionTo(heuristicTarget))){
-                   rc.move(currentLoc.directionTo(heuristicTarget));
-               }
+        }
+        if (bestTile != null){
+            Direction bestDir = currentLoc.directionTo(bestTile);
+            if (rc.canMove(bestDir)){
+                rc.move(bestDir);
             }
         }
         return true;
