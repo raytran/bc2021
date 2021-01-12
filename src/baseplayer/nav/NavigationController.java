@@ -423,6 +423,66 @@ public class NavigationController {
         return true;
     }
 
+
+    /**
+     * Extremely simple heuristic: find squares that get you closer and choose the one with the best passability
+     * @param target location
+     * @throws GameActionException
+     */
+    public void easyNav(MapLocation target) throws GameActionException {
+        int[][] deltas = {{0, 1},{1, 1},{1, 0},{1, -1},{0, -1},{-1, -1},{-1, 0},{-1, 1}};
+        MapLocation currentLoc = rc.getLocation();
+        int initDist = currentLoc.distanceSquaredTo(target);
+
+        MapLocation oneStepTarget = null;
+        MapLocation fallback = null;
+        double maxPassability = 0;
+        for (int[] delta : deltas) {
+            MapLocation candidate = currentLoc.translate(delta[0], delta[1]);
+            if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate)) {
+                double candidatePassability = rc.sensePassability(candidate);
+                double candidateDist = candidate.distanceSquaredTo(target);
+                if (candidateDist < initDist && candidatePassability > maxPassability){
+                    maxPassability = candidatePassability;
+                    oneStepTarget = candidate;
+                }
+            }
+        }
+
+        if (oneStepTarget != null){
+            currentMode = NavMode.DIRECT;
+            if (rc.canMove(currentLoc.directionTo(oneStepTarget))){
+                rc.move(currentLoc.directionTo(oneStepTarget));
+            }
+        }else{
+            bugTo(target);
+        }
+    }
+
+
+    /**
+     * Moves in a vortex around a given center
+     * @throws GameActionException
+     */
+    public void vortexMove(MapLocation center) throws GameActionException {
+        if (rc.getLocation().distanceSquaredTo(center) < 5) {
+            if (rc.canMove(center.directionTo(rc.getLocation()))){
+                rc.move(center.directionTo(rc.getLocation()));
+            }
+        } else {
+            Direction perpendicular = center.directionTo(rc.getLocation());
+            MapLocation newLoc = rc.getLocation().add(perpendicular.rotateRight().rotateRight());
+            /*
+            if (newLoc.distanceSquaredTo(parentLoc) > 25){
+                newLoc = newLoc.add(newLoc.directionTo(parentLoc));
+            }
+
+             */
+            fuzzyMove(rc.getLocation().directionTo(newLoc));
+        }
+
+    }
+
     private double getMovementSlope(MapLocation target) {
         return Utilities.getSlope(target, rc.getLocation());
     }
