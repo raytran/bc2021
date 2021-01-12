@@ -1,6 +1,5 @@
 package baseplayer;
 
-import baseplayer.flags.FlagAddress;
 import baseplayer.flags.Flags;
 import battlecode.common.*;
 
@@ -38,7 +37,7 @@ public class BotSlanderer extends BotController {
             closest = rc.getLocation().distanceSquaredTo(robotInfo.location);
         }
         if (!flagSet) {
-            rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.ANY, robotInfo.location, robotInfo.getType(), false));
+            rc.setFlag(Flags.encodeEnemySpotted(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
             flagSet = true;
         }
     }
@@ -49,7 +48,7 @@ public class BotSlanderer extends BotController {
 
     private void onNearbyNeutral(RobotInfo robotInfo) throws GameActionException {
         if (!flagSet) {
-            rc.setFlag(Flags.encodeNeutralEcSpotted(FlagAddress.ANY, robotInfo.location, robotInfo.conviction));
+            rc.setFlag(Flags.encodeNeutralEcSpotted(rc.getRoundNum(), robotInfo.location, robotInfo.conviction));
             flagSet = true;
         }
     }

@@ -3,7 +3,6 @@ package baseplayer;
 import baseplayer.ds.CircularLinkedList;
 import baseplayer.flags.BoundaryType;
 import baseplayer.flags.EnemySpottedInfo;
-import baseplayer.flags.FlagAddress;
 import baseplayer.flags.Flags;
 import baseplayer.nav.NavigationController;
 import battlecode.common.*;
@@ -93,7 +92,7 @@ public abstract class BotController {
     void flagBoundaries() throws GameActionException {
         if (boundariesToFlag.getSize() > 0) {
             Map.Entry<BoundaryType, Integer> boundary = boundariesToFlag.sampleWithMemory(1).get(0);
-            int mapFlag = Flags.encodeBoundarySpotted(FlagAddress.ANY, boundary.getValue(), boundary.getKey());
+            int mapFlag = Flags.encodeBoundarySpotted(rc.getRoundNum(), boundary.getValue(), boundary.getKey());
             if (rc.canSetFlag(mapFlag)) {
                 rc.setFlag(mapFlag);
             }

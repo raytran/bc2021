@@ -6,11 +6,18 @@ import battlecode.common.*;
 import java.util.Optional;
 
 public class BotPolitician extends BotController {
+
+
     Optional<MapLocation> targetLocation;
     Direction scoutingDirection;
     double bestTargetScore = 0;
     int totalNearbyEnemyConviction = 0;
     int totalNearbyFriendlyConviction = 0;
+
+
+    int mostRecentEnemyReportRebroadcastTimestamp = 0;
+    int mostRecentEnemyReportRebroadcast = 0;
+
     boolean targetLocIsGuess = true;
 
     boolean enemyFound = false;
@@ -59,6 +66,11 @@ public class BotPolitician extends BotController {
             flagBoundaries();
         }
 
+        if (!flagSet){
+            //System.out.println("REBROADCAST");
+            rc.setFlag(mostRecentEnemyReportRebroadcast);
+        }
+
         totalNearbyEnemyConviction = 0;
         enemyFound = false;
         flagSet = false;
@@ -103,26 +115,24 @@ public class BotPolitician extends BotController {
             return;
         }
         int parentFlag = rc.getFlag(parentID.get());
-        if (Flags.addressedForCurrentBot(rc, parentFlag, false)) {
-            FlagType parentFlagType = Flags.decodeFlagType(parentFlag);
-            switch (parentFlagType) {
-                case ENEMY_SPOTTED:
-                    EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(rc.getLocation(), parentFlag);
-                    recordEnemy(enemySpottedInfo);
-                    setTargetLocIfBetter(rc.getTeam().opponent(), enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
-                    break;
-                default:
-                    break;
-            }
+        FlagType parentFlagType = Flags.decodeFlagType(parentFlag);
+        switch (parentFlagType) {
+            case ENEMY_SPOTTED:
+                EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(rc.getLocation(), parentFlag);
+                recordEnemy(enemySpottedInfo);
+                setTargetLocIfBetter(rc.getTeam().opponent(), enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
+                break;
+            default:
+                break;
         }
     }
 
     private void onEnemyNearby(RobotInfo robotInfo) throws GameActionException {
         setTargetLocIfBetter(robotInfo.team, robotInfo.location, robotInfo.type, false);
-        recordEnemy(new EnemySpottedInfo(robotInfo.location, robotInfo.getType(), false));
+        recordEnemy(new EnemySpottedInfo(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
 
         if (!flagSet) {
-            rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.ANY, robotInfo.location, robotInfo.getType(), false));
+            rc.setFlag(Flags.encodeEnemySpotted(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
             flagSet = true;
         }
 
@@ -140,19 +150,27 @@ public class BotPolitician extends BotController {
         totalNearbyFriendlyConviction += robotInfo.conviction;
         if (rc.canGetFlag(robotInfo.ID)) {
             int nearbyFlag = rc.getFlag(robotInfo.ID);
-            if (Flags.addressedForCurrentBot(rc, nearbyFlag, false)) {
-                if (Flags.decodeFlagType(nearbyFlag) == FlagType.ENEMY_SPOTTED) {
-                    EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(currentLoc, nearbyFlag);
-                    recordEnemy(enemySpottedInfo);
-                    setTargetLocIfBetter(rc.getTeam().opponent(), enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
+            if (Flags.decodeFlagType(nearbyFlag) == FlagType.ENEMY_SPOTTED) {
+                EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(currentLoc, nearbyFlag);
+                if (mostRecentEnemyReportRebroadcastTimestamp <= enemySpottedInfo.timestamp){
+                    mostRecentEnemyReportRebroadcastTimestamp = enemySpottedInfo.timestamp;
+                    mostRecentEnemyReportRebroadcast = nearbyFlag;
+                }else{
+                    // Check if this is too old to consider
+                    if (targetLocation.isPresent() && mostRecentEnemyReportRebroadcastTimestamp - enemySpottedInfo.timestamp > Flags.REBROADCAST_ROUND_LIMIT) {
+                        //System.out.println("TOO OLD!");
+                        return;
+                    }
                 }
+                recordEnemy(enemySpottedInfo);
+                setTargetLocIfBetter(rc.getTeam().opponent(), enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
             }
         }
     }
 
     private void onNeutralNearby(RobotInfo robotInfo) throws GameActionException {
         if (!flagSet) {
-            rc.setFlag(Flags.encodeNeutralEcSpotted(FlagAddress.ANY, robotInfo.location, robotInfo.conviction));
+            rc.setFlag(Flags.encodeNeutralEcSpotted(rc.getRoundNum(), robotInfo.location, robotInfo.conviction));
             flagSet = true;
         }
         setTargetLocIfBetter(Team.NEUTRAL, robotInfo.location, robotInfo.type, false);

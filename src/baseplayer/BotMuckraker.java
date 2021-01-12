@@ -14,6 +14,9 @@ public class BotMuckraker extends BotController {
     List<MapLocation> circleLocs;
     boolean isDefending;
 
+    int mostRecentEnemyReportRebroadcastTimestamp = 0;
+    int mostRecentEnemyReportRebroadcast = 0;
+
     Optional<MapLocation> enemyLocation;
     Direction scoutingDirection;
     boolean enemyFound = false;
@@ -59,6 +62,12 @@ public class BotMuckraker extends BotController {
             flagBoundaries();
         }
 
+
+        if (!flagSet){
+            //System.out.println("REBROADCAST");
+            rc.setFlag(mostRecentEnemyReportRebroadcast);
+        }
+
         enemyFound = false;
         flagSet = false;
         return this;
@@ -80,10 +89,10 @@ public class BotMuckraker extends BotController {
     private void onEnemyNearby(RobotInfo robotInfo) throws GameActionException {
         setEnemyLocIfCloser(robotInfo.location, robotInfo.getType(), false);
         int actionRadius = rc.getType().actionRadiusSquared;
-        recordEnemy(new EnemySpottedInfo(robotInfo.location, robotInfo.getType(), false));
+        recordEnemy(new EnemySpottedInfo(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
 
         if (!flagSet) {
-            rc.setFlag(Flags.encodeEnemySpotted(FlagAddress.ANY, robotInfo.location, robotInfo.getType(), false));
+            rc.setFlag(Flags.encodeEnemySpotted(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
             flagSet = true;
         }
         if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < actionRadius
@@ -96,12 +105,20 @@ public class BotMuckraker extends BotController {
         MapLocation currentLoc = rc.getLocation();
         if (rc.canGetFlag(robotInfo.ID)) {
             int nearbyFlag = rc.getFlag(robotInfo.ID);
-            if (Flags.addressedForCurrentBot(rc, nearbyFlag, false)) {
-                if (Flags.decodeFlagType(nearbyFlag) == FlagType.ENEMY_SPOTTED) {
-                    EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(currentLoc, nearbyFlag);
-                    recordEnemy(enemySpottedInfo);
-                    setEnemyLocIfCloser(enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
+            if (Flags.decodeFlagType(nearbyFlag) == FlagType.ENEMY_SPOTTED) {
+                EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(currentLoc, nearbyFlag);
+                if (mostRecentEnemyReportRebroadcastTimestamp <= enemySpottedInfo.timestamp){
+                    mostRecentEnemyReportRebroadcastTimestamp = enemySpottedInfo.timestamp;
+                    mostRecentEnemyReportRebroadcast = nearbyFlag;
+                }else{
+                    // Check if this is too old to consider
+                    if (mostRecentEnemyReportRebroadcastTimestamp - enemySpottedInfo.timestamp > Flags.REBROADCAST_ROUND_LIMIT) {
+                        //System.out.println("TOO OLD!");
+                        return;
+                    }
                 }
+                recordEnemy(enemySpottedInfo);
+                setEnemyLocIfCloser(enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
             }
         }
     }
@@ -109,7 +126,7 @@ public class BotMuckraker extends BotController {
     private void onNeutralNearby(RobotInfo robotInfo) throws GameActionException{
         if (!flagSet){
             System.out.println("FLAGGING NEUTRAl");
-            rc.setFlag(Flags.encodeNeutralEcSpotted(FlagAddress.ANY, robotInfo.location, robotInfo.conviction));
+            rc.setFlag(Flags.encodeNeutralEcSpotted(rc.getRoundNum(), robotInfo.location, robotInfo.conviction));
             flagSet = true;
         }
     }
@@ -121,17 +138,15 @@ public class BotMuckraker extends BotController {
             return;
         }
         int parentFlag = rc.getFlag(parentID.get());
-        if (Flags.addressedForCurrentBot(rc, parentFlag, false)) {
-            FlagType parentFlagType = Flags.decodeFlagType(parentFlag);
-            switch (parentFlagType) {
-                case ENEMY_SPOTTED:
-                    EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(rc.getLocation(), parentFlag);
-                    recordEnemy(enemySpottedInfo);
-                    setEnemyLocIfCloser(enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
-                    break;
-                default:
-                    break;
-            }
+        FlagType parentFlagType = Flags.decodeFlagType(parentFlag);
+        switch (parentFlagType) {
+            case ENEMY_SPOTTED:
+                EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(rc.getLocation(), parentFlag);
+                recordEnemy(enemySpottedInfo);
+                setEnemyLocIfCloser(enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
+                break;
+            default:
+                break;
         }
     }
 
