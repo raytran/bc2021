@@ -1,7 +1,10 @@
-package baseplayer;
+package dlmoreram011121_02;
 
-import baseplayer.flags.*;
 import battlecode.common.*;
+import dlmoreram011121_02.flags.EnemySpottedInfo;
+import dlmoreram011121_02.flags.FlagAddress;
+import dlmoreram011121_02.flags.FlagType;
+import dlmoreram011121_02.flags.Flags;
 
 import java.util.Optional;
 

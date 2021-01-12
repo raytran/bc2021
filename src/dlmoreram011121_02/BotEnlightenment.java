@@ -1,14 +1,17 @@
-package baseplayer;
+package dlmoreram011121_02;
 
-import baseplayer.ds.CircularLinkedList;
-import baseplayer.ds.LinkedListNode;
-import baseplayer.eccontrollers.ECBudgetController;
-import baseplayer.eccontrollers.ECFlagController;
-import baseplayer.eccontrollers.ECSpawnController;
-import baseplayer.eccontrollers.ECVoteController;
 import battlecode.common.*;
+import dlmoreram011121_02.ds.CircularLinkedList;
+import dlmoreram011121_02.ds.LinkedListNode;
+import dlmoreram011121_02.eccontrollers.ECBudgetController;
+import dlmoreram011121_02.eccontrollers.ECFlagController;
+import dlmoreram011121_02.eccontrollers.ECSpawnController;
+import dlmoreram011121_02.eccontrollers.ECVoteController;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class BotEnlightenment extends BotController {
     private final CircularLinkedList<Map.Entry<Integer,RobotType>> spawnedRobots = new CircularLinkedList<>();
@@ -45,6 +48,7 @@ public class BotEnlightenment extends BotController {
         // Bid for votes
         voteController.run();
 
+        System.out.println("Version: 011121_02");
         // Search for boundary if we can
         if (Clock.getBytecodesLeft() > 1000){
             searchForNearbyBoundaries();

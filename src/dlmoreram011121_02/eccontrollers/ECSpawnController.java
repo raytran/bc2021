@@ -1,9 +1,9 @@
-package baseplayer.eccontrollers;
-import baseplayer.BotEnlightenment;
-import battlecode.common.*;
-import battlecode.common.GameActionException;
+package dlmoreram011121_02.eccontrollers;
 
-public class ECSpawnController implements ECController{
+import battlecode.common.*;
+import dlmoreram011121_02.BotEnlightenment;
+
+public class ECSpawnController implements ECController {
     private static double POLITICIAN_RATE = 0.2;
     private static double MUCKRAKER_RATE = 0.5;
     private static double SLANDERER_RATE = 0.3;

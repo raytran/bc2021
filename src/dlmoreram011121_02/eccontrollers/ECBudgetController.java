@@ -1,9 +1,8 @@
-package baseplayer.eccontrollers;
+package dlmoreram011121_02.eccontrollers;
 
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
-import baseplayer.BotEnlightenment;
-import baseplayer.eccontrollers.ECController;
+import dlmoreram011121_02.BotEnlightenment;
 
 public class ECBudgetController implements ECController {
     private final RobotController rc;
@@ -90,8 +89,8 @@ public class ECBudgetController implements ECController {
             voteBudget += voteAllocation;
             botBudget += botAllocation;
         }
-        System.out.println("Total influence: " + currentInfluence + "\nVoting Budget: "
-                + voteBudget + "\nBot Budget: " + botBudget + "\nSaving: " + hpBudget);
+        //System.out.println("Total influence: " + currentInfluence + "\nVoting Budget: "
+                //+ voteBudget + "\nBot Budget: " + botBudget + "\nSaving: " + hpBudget);
     }
 
     /**
