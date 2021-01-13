@@ -8,6 +8,8 @@ public class ECSpawnController implements ECController{
     private static double MUCKRAKER_RATE = 0.5;
     private static double SLANDERER_RATE = 0.3;
     private final int[] SLANDERER_VALUES = {21, 42, 63, 85, 107, 130, 154, 178, 203, 228, 255, 282, 310, 339, 368, 399, 431, 463, 497};
+    private final int MAX_BUILD_AMOUNT = 500;
+    private final int MIN_BUILD_AMOUNT = 20;
     private final RobotController rc;
     private final BotEnlightenment ec;
     private final ECBudgetController bc;
@@ -30,7 +32,7 @@ public class ECSpawnController implements ECController{
         // if only given one influence to spend, spawn MUCKRAKER
         toBuild = givenOne ? RobotType.MUCKRAKER : toBuild;
         int buildAmount = toBuild.equals(RobotType.MUCKRAKER) ? 1 : budget;
-        int minAmount = roundNum - ec.getLastEnemySeen() > 500 ? 500 * roundNum/3000 : 20;
+        int minAmount = roundNum - ec.getLastEnemySeen() > 250 ? (int) (MAX_BUILD_AMOUNT * Math.pow(roundNum/2999., 2) + MIN_BUILD_AMOUNT) : MIN_BUILD_AMOUNT;
 
         if (toBuild.equals(RobotType.SLANDERER)){
             int i = 0;

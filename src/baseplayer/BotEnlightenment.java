@@ -20,6 +20,7 @@ public class BotEnlightenment extends BotController {
     private int slandererCount = 0;
     private double voteWinRate = 0;
     private int lastEnemySeen = 0;
+    private int lastBotSpawn = 0;
 
     private final ECBudgetController budgetController;
     private final ECVoteController voteController;
@@ -67,6 +68,7 @@ public class BotEnlightenment extends BotController {
         LinkedListNode<Map.Entry<Integer, RobotType>> newLLN
                 = spawnedRobots.addToTail(new AbstractMap.SimpleImmutableEntry<>(id, robotType));
         robotIdToLLN.put(id, newLLN);
+        lastBotSpawn = rc.getRoundNum();
 
         switch(robotType){
             case MUCKRAKER:
@@ -142,6 +144,8 @@ public class BotEnlightenment extends BotController {
         assert slandererCount >= 0;
         return slandererCount;
     }
+
+    public int getLastBotSpawn() { return lastBotSpawn; }
 
     public int getLocalRobotCount(){
         return slandererCount + politicianCount + muckrakerCount;

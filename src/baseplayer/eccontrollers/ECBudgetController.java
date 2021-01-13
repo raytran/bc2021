@@ -86,6 +86,9 @@ public class ECBudgetController implements ECController {
         if (rc.getTeamVotes() > 1500) {
             botBudget += voteAllocation + botAllocation + voteBudget;
             voteBudget = 0;
+        } else if (rc.getRoundNum() - ec.getLastBotSpawn() > 150) {
+            voteBudget = voteAllocation + botAllocation + botBudget;
+            botBudget = 0;
         } else {
             voteBudget += voteAllocation;
             botBudget += botAllocation;
