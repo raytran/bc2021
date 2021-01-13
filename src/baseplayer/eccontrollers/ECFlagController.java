@@ -18,7 +18,6 @@ import java.util.Optional;
 public class ECFlagController implements ECController {
     private final RobotController rc;
     private final BotEnlightenment ec;
-    Optional<NeutralEcSpottedInfo> thisRoundNeutralEcSpottedInfo = Optional.empty();
     int mostRecentEnemyReportTimestamp = 0;
 
 
@@ -34,7 +33,6 @@ public class ECFlagController implements ECController {
     public void run() throws GameActionException {
         readFlags();
         setFlags();
-        thisRoundNeutralEcSpottedInfo = Optional.empty();
     }
 
     private void readFlags() throws GameActionException{
@@ -74,7 +72,7 @@ public class ECFlagController implements ECController {
                             }
                             break;
                         case NEUTRAL_EC_SPOTTED:
-                            thisRoundNeutralEcSpottedInfo = Optional.of(Flags.decodeNeutralEcSpotted(rc.getLocation(), flag));
+                            ec.setThisRoundNeutralEcSpottedInfo(Optional.of(Flags.decodeNeutralEcSpotted(rc.getLocation(), flag)));
                             //System.out.println("NEUTRAL EC FOUND " + .location + " WITH " + neutralEcSpottedInfo.conviction + " HP");
                             break;
                         default:
@@ -91,8 +89,8 @@ public class ECFlagController implements ECController {
     private void setFlags() throws GameActionException {
         //TODO more sophisticated flagging
         Optional<EnemySpottedInfo> enemyReport = ec.getLatestRecordedEnemyLocation();
-        if (thisRoundNeutralEcSpottedInfo.isPresent()){
-            rc.setFlag(Flags.encodeNeutralEcSpotted(this.thisRoundNeutralEcSpottedInfo.get().timestamp, this.thisRoundNeutralEcSpottedInfo.get().location, this.thisRoundNeutralEcSpottedInfo.get().conviction));
+        if (ec.getThisRoundNeutralEcSpottedInfo().isPresent()){
+            rc.setFlag(Flags.encodeNeutralEcSpotted(ec.getThisRoundNeutralEcSpottedInfo().get().timestamp, ec.getThisRoundNeutralEcSpottedInfo().get().location, ec.getThisRoundNeutralEcSpottedInfo().get().conviction));
         }else if (enemyReport.isPresent()) {
             //System.out.println("EC Flagging enemy");
             rc.setFlag(Flags.encodeEnemySpotted(enemyReport.get().timestamp, enemyReport.get().location, enemyReport.get().enemyType, false));
