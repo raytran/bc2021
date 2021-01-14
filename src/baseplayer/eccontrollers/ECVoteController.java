@@ -3,6 +3,7 @@ package baseplayer.eccontrollers;
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 import baseplayer.BotEnlightenment;
+import baseplayer.Utilities;
 
 /**
  * This class decides for the EC how many votes to bid at this point in the game.
@@ -19,8 +20,8 @@ public class ECVoteController implements ECController {
     private boolean prevVoted = false;
     private boolean prevAdjustMultiplier = false;
     private final static int MAX_VOTE = 20;
-    private final static int VOTE_WIN_COUNT = 1501;
-    private final static int MAX_ROUNDS = 2999;
+    private final static int VOTE_WIN_COUNT = Utilities.VOTE_WIN;
+    private final static int MAX_ROUND = Utilities.MAX_ROUND;
     private final int offset = 1 - initialAmount;
     private int[] counts = new int[MAX_VOTE + offset];
     private int[] wins = new int[MAX_VOTE + offset];
@@ -77,7 +78,7 @@ public class ECVoteController implements ECController {
                 setSizes[i - initialAmount] = sum;
                 sum += counts[i - initialAmount] - wins[i - initialAmount];
             }
-            int remaining = MAX_ROUNDS - rc.getRoundNum();
+            int remaining = MAX_ROUND - rc.getRoundNum();
             double estimatedWinProb = 0.0;
             amount = amount != 1 ? amount - 1 : amount;
             while (currentVotes + remaining * estimatedWinProb < VOTE_WIN_COUNT) {
@@ -102,9 +103,12 @@ public class ECVoteController implements ECController {
             int bidAmount = amount * multiplier;
             if (rc.canBid(bidAmount) && bidAmount <= currentBudget) {
                 rc.bid(bidAmount);
+                //System.out.println("bid: " + bidAmount);
                 bc.withdrawBudget(this, bidAmount);
                 prevVoted = true;
             } else {
+                rc.bid(1);
+                bc.withdrawBudget(this, 1);
                 prevVoted = false;
             }
         }

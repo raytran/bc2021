@@ -12,6 +12,8 @@ import java.util.List;
  * Static utility methods
  */
 public class Utilities {
+    public static final int MAX_ROUND = 1500;
+    public static final int VOTE_WIN = 751;
     public static final double EPSILON = 0.001;
     public static final RobotType[] spawnableRobot = {
             RobotType.POLITICIAN,
