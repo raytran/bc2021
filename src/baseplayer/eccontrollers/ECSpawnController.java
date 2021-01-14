@@ -15,6 +15,8 @@ public class ECSpawnController implements ECController{
     private final ECBudgetController bc;
     private Direction nextSpawnDirection = Direction.NORTH;
     private int prevBudget = 0;
+    private boolean opPoliticianNeeded = false;
+    private int opAmount = 0;
     public ECSpawnController(RobotController rc, BotEnlightenment ec, ECBudgetController bc) {
         this.rc = rc;
         this.ec = ec;
@@ -41,7 +43,16 @@ public class ECSpawnController implements ECController{
             }
             buildAmount = SLANDERER_VALUES[i];
         }
-
+        if(rc.getRoundNum() > 400 && toBuild.equals(RobotType.POLITICIAN) && ec.getThisRoundNeutralEcSpottedInfo().isPresent()){
+          //  rc.setIndicatorDot(rc.getLocation(),255,0,0);
+            opPoliticianNeeded = true;
+            opAmount = (int) (ec.getThisRoundNeutralEcSpottedInfo().get().conviction / 5);
+          //  buildAmount = opAmount;
+            System.out.println("Trying to spawn the super politicians with " + buildAmount + " Influence");
+        }
+        if(opPoliticianNeeded){
+         //   buildAmount = opAmount;
+        }
         if(buildAmount > minAmount || toBuild.equals(RobotType.MUCKRAKER)) {
             for (int i = 0; i < 8; i++) {
                 //TODO This line is causing us not to spawn every turn we are not spawning even if it costs 1
@@ -91,6 +102,9 @@ public class ECSpawnController implements ECController{
                 POLITICIAN_RATE = 0.75;
                 SLANDERER_RATE = 0.0;
             }
+        }
+        if(ec.getThisRoundNeutralEcSpottedInfo().isPresent()){
+            return RobotType.POLITICIAN;
         }
         if((double)ec.getMuckrakerCount() /  ec.getLocalRobotCount()  < MUCKRAKER_RATE){
             return RobotType.MUCKRAKER;
