@@ -86,7 +86,7 @@ public class ECBudgetController implements ECController {
         double voteDValue = voteDelta.getValue();
         double botDValue = botDelta.getValue();
         double hpDValue = hpDelta.getValue();
-        System.out.println("Deltas:\\nVote: " + voteDValue + "\\nBot: " + botDValue + "\\nHP: " + hpDValue);
+        //System.out.println("Deltas:\\nVote: " + voteDValue + "\\nBot: " + botDValue + "\\nHP: " + hpDValue);
         if (voteDValue < 0 || botDValue < 0 || hpDValue < 0 ) {
             double min = Math.min(voteDValue, Math.min(botDValue, hpDValue));
             voteDValue -= min;
@@ -96,7 +96,7 @@ public class ECBudgetController implements ECController {
         double total = voteDValue + botDValue + hpDValue;
         voteDValue *= total > 0 ? 1. / total : 1;
         botDValue *= total > 0 ? 1. / total : 0;
-        System.out.println("Normalized Deltas:\\n" + "Vote: " + voteDValue + "\\nBot: " + botDValue);
+        //System.out.println("Normalized Deltas:\\n" + "Vote: " + voteDValue + "\\nBot: " + botDValue);
 
         int voteAllocation;
         int botAllocation;
@@ -105,11 +105,11 @@ public class ECBudgetController implements ECController {
             voteAllocation = (int) Math.round(voteDValue * income);
             botAllocation = (int) Math.round(botDValue * income);
             hpAllocation = income - voteAllocation - botAllocation;
-            System.out.println("initial allocations: " + voteAllocation + ' ' + botAllocation + ' ' + hpAllocation);
+            //System.out.println("initial allocations: " + voteAllocation + ' ' + botAllocation + ' ' + hpAllocation);
             //assert income <= voteAllocation + botAllocation + hpAllocation;
             assert voteAllocation >= 0 && botAllocation >= 0 && hpAllocation >= 0;
         } catch (AssertionError e){
-            System.out.println("assertion error");
+            //System.out.println("assertion error");
             voteAllocation = (int) Math.floor(voteDValue * income);
             botAllocation = (int) Math.floor(botDValue * income);
             hpAllocation = income - voteAllocation - botAllocation;
@@ -147,8 +147,8 @@ public class ECBudgetController implements ECController {
         botBudget += botAllocation;
         hpBudget += hpAllocation;
 
-        System.out.println("Total influence: " + currentInfluence + "\\nVoting Budget: "
-                + voteBudget + "\\nBot Budget: " + botBudget + "\\nSaving: " + hpBudget);
+        //System.out.println("Total influence: " + currentInfluence + "\\nVoting Budget: "
+                //+ voteBudget + "\\nBot Budget: " + botBudget + "\\nSaving: " + hpBudget);
     }
 
     /**
@@ -372,14 +372,15 @@ def get_game_output(blue, red):
     new_blue = modify_parameters(blue)
     new_red = modify_parameters(red)
 
-    blue_file = open('..\\bc2021\\src\\baseplayer2\\eccontrollers\\ECBudgetController.java', 'w')
-    red_file = open('..\\bc2021\\src\\baseplayer3\\eccontrollers\\ECBudgetController.java', 'w')
+    os.chdir(home)
+    blue_file = open('../../src/baseplayer2/eccontrollers/ECBudgetController.java', 'w')
+    red_file = open('../../src/baseplayer3/eccontrollers/ECBudgetController.java', 'w')
     blue_file.write(new_blue)
     red_file.write(new_red)
     blue_file.close()
     red_file.close()
 
-    os.chdir(os.getcwd() + '\\..\\bc2021\\')
+    os.chdir('../../')
     output = subprocess.run('gradle run', capture_output=True, shell=True, encoding='UTF-8')
     out = output.stdout.split('[server]')[-3]
     return out.strip()
