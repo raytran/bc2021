@@ -57,12 +57,7 @@ public class BotMuckraker extends BotController {
             runCircleDefense();
         } else {
             if (enemyLocation.isPresent()){
-
-                if (Clock.getBytecodesLeft() < 7000){
-                    nav.bugTo(enemyLocation.get());
-                }else{
-                    nav.bellmanFordTo(enemyLocation.get());
-                }
+                nav.moveTo(enemyLocation.get());
                 //nav.bugTo(enemyLocation.get());
             } else {
                 if (scoutingDirection != null) {
@@ -214,9 +209,10 @@ public class BotMuckraker extends BotController {
             }
             //nav.bugTo(circleTargetLoc);
 
-            if (!nav.bugAndHeuristicTo(circleTargetLoc)){
-                circleTargetLoc = null;
-            }
+            nav.moveTo(circleTargetLoc);
+            //if (!nav.moveTo(circleTargetLoc)){
+            //    circleTargetLoc = null;
+            //}
             //if (!nav.bugAndDijkstraTo(circleTargetLoc)){
             //    circleTargetLoc = null;
             //}

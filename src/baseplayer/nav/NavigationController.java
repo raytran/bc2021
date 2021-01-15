@@ -14,6 +14,8 @@ public class NavigationController {
     private Queue<MapLocation> currentPath;
 
     //Bug
+    static int MAX_BUG_TURNS = 100;
+    int bugTurns = 0;
     private NavMode currentMode;
     private Direction heading = Direction.NORTH;
     private BugDirection bugDir = BugDirection.RIGHT;
@@ -28,6 +30,20 @@ public class NavigationController {
 
     public void bellmanFordTo(MapLocation target) throws GameActionException {
         Pather.pathTo(target);
+    }
+
+    /**
+     * Bellman ford if enough bytecode, bug otherwise
+     * @param target
+     * @throws GameActionException
+     */
+    public void moveTo(MapLocation target) throws GameActionException {
+        if (Clock.getBytecodesLeft() > 6700){
+            Pather.pathTo(target);
+        }else{
+            bugTurn(target);
+        }
+
     }
 
     /**
@@ -249,6 +265,7 @@ public class NavigationController {
     }
 
     private void bugTurn(MapLocation target) throws GameActionException {
+        bugTurns += 1;
         if (bugTurnIntoEdge()){
             //System.out.println("Bug dir into edge");
             reverseBugDir();
@@ -278,8 +295,9 @@ public class NavigationController {
 
         if (rc.canMove(heading)){
             rc.move(heading);
-            if (rc.getLocation().distanceSquaredTo(target) < closestDistAtBugStart) {
+            if (rc.getLocation().distanceSquaredTo(target) < closestDistAtBugStart || bugTurns > MAX_BUG_TURNS) {
                 currentMode = NavMode.DIRECT;
+                bugTurns = 0;
             }
         }
     }

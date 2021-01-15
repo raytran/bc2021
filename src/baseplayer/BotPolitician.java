@@ -56,12 +56,7 @@ public class BotPolitician extends BotController {
             }
         }
         if (targetLocation.isPresent()){
-
-            if (Clock.getBytecodesLeft() < 7000){
-                nav.bugTo(targetLocation.get());
-            }else{
-                nav.bellmanFordTo(targetLocation.get());
-            }
+            nav.moveTo(targetLocation.get());
         } else {
             if (scoutingDirection != null) {
                 nav.spreadOut(scoutingDirection);
