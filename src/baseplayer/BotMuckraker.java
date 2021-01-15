@@ -45,7 +45,12 @@ public class BotMuckraker extends BotController {
             runCircleDefense();
         } else {
             if (enemyLocation.isPresent()){
-                nav.bellmanFordTo(enemyLocation.get());
+
+                if (Clock.getBytecodesLeft() < 7000){
+                    nav.bugTo(enemyLocation.get());
+                }else{
+                    nav.bellmanFordTo(enemyLocation.get());
+                }
                 //nav.bugTo(enemyLocation.get());
             } else {
                 if (scoutingDirection != null) {
