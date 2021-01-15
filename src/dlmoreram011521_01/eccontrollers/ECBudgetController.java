@@ -1,16 +1,15 @@
-package baseplayer.eccontrollers;
+package dlmoreram011521_01.eccontrollers;
 
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
-import baseplayer.BotEnlightenment;
+import dlmoreram011521_01.BotEnlightenment;
 
 public class ECBudgetController implements ECController {
     private final RobotController rc;
     private final BotEnlightenment ec;
-    private final PIDDelta voteDelta = new PIDDelta(12.759624481201172, 1.302085518836975 , 21.483863830566406);
-    private final PIDDelta botDelta = new PIDDelta(6.498876571655273, 6.483767509460449, 28.79730796813965);
-    private final PIDDelta hpDelta = new PIDDelta( 5.50677490234375, 11.705179214477539, 1.2709863185882568);
-
+    private final PIDDelta voteDelta = new PIDDelta(50, .1, .5);
+    private final PIDDelta botDelta = new PIDDelta(2, .001, .1);
+    private final PIDDelta hpDelta = new PIDDelta(.1, .001, 1);
     private int voteBudget;
     private int botBudget;
     private int hpBudget;
@@ -51,7 +50,7 @@ public class ECBudgetController implements ECController {
         double voteDValue = voteDelta.getValue();
         double botDValue = botDelta.getValue();
         double hpDValue = hpDelta.getValue();
-        System.out.println("Deltas:\nVote: " + voteDValue + "\nBot: " + botDValue + "\nHP: " + hpDValue);
+        //System.out.println("Deltas:\nVote: " + voteDValue + "\nBot: " + botDValue + "\nHP: " + hpDValue);
         if (voteDValue < 0 || botDValue < 0 || hpDValue < 0 ) {
             double min = Math.min(voteDValue, Math.min(botDValue, hpDValue));
             voteDValue -= min;
@@ -61,7 +60,7 @@ public class ECBudgetController implements ECController {
         double total = voteDValue + botDValue + hpDValue;
         voteDValue *= total > 0 ? 1. / total : 1;
         botDValue *= total > 0 ? 1. / total : 0;
-        System.out.println("Normalized Deltas:\n" + "Vote: " + voteDValue + "\nBot: " + botDValue);
+        //System.out.println("Normalized Deltas:\n" + "Vote: " + voteDValue + "\nBot: " + botDValue);
 
         int voteAllocation;
         int botAllocation;
@@ -70,11 +69,11 @@ public class ECBudgetController implements ECController {
             voteAllocation = (int) Math.round(voteDValue * income);
             botAllocation = (int) Math.round(botDValue * income);
             hpAllocation = income - voteAllocation - botAllocation;
-            System.out.println("initial allocations: " + voteAllocation + ' ' + botAllocation + ' ' + hpAllocation);
+            //System.out.println("initial allocations: " + voteAllocation + ' ' + botAllocation + ' ' + hpAllocation);
             //assert income <= voteAllocation + botAllocation + hpAllocation;
             assert voteAllocation >= 0 && botAllocation >= 0 && hpAllocation >= 0;
         } catch (AssertionError e){
-            System.out.println("assertion error");
+            //System.out.println("assertion error");
             voteAllocation = (int) Math.floor(voteDValue * income);
             botAllocation = (int) Math.floor(botDValue * income);
             hpAllocation = income - voteAllocation - botAllocation;
@@ -112,8 +111,8 @@ public class ECBudgetController implements ECController {
         botBudget += botAllocation;
         hpBudget += hpAllocation;
 
-        System.out.println("Total influence: " + currentInfluence + "\nVoting Budget: "
-                + voteBudget + "\nBot Budget: " + botBudget + "\nSaving: " + hpBudget);
+        //System.out.println("Total influence: " + currentInfluence + "\nVoting Budget: "
+                //+ voteBudget + "\nBot Budget: " + botBudget + "\nSaving: " + hpBudget);
     }
 
     /**

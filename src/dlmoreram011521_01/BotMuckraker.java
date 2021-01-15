@@ -1,9 +1,11 @@
-package baseplayer;
+package dlmoreram011521_01;
 
-import baseplayer.flags.*;
 import battlecode.common.*;
+import dlmoreram011521_01.flags.AreaClearInfo;
+import dlmoreram011521_01.flags.EnemySpottedInfo;
+import dlmoreram011521_01.flags.FlagType;
+import dlmoreram011521_01.flags.Flags;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,13 +63,7 @@ public class BotMuckraker extends BotController {
                 //nav.bugTo(enemyLocation.get());
             } else {
                 if (scoutingDirection != null) {
-                    if (!rc.onTheMap(rc.getLocation().add(scoutingDirection))
-                        || rc.isLocationOccupied(rc.getLocation().add(scoutingDirection))){
-                        scoutingDirection = Utilities.randomDirection();
-                    }
-                    if (rc.canMove(scoutingDirection)){
-                        rc.move(scoutingDirection);
-                    }
+                    nav.spreadOut(scoutingDirection);
                 } else {
                     Direction random = Utilities.randomDirection();
                     nav.spreadOut(random);
@@ -83,7 +79,7 @@ public class BotMuckraker extends BotController {
 
 
         if (!flagSet){
-            //System.out.println("REBROADCAST");
+            ////System.out.println("REBROADCAST");
             rc.setFlag(mostRecentEnemyReportRebroadcast);
         }
 
@@ -139,7 +135,7 @@ public class BotMuckraker extends BotController {
                     }else{
                         // Check if this is too old to consider
                         if (mostRecentEnemyReportRebroadcastTimestamp - enemySpottedInfo.timestamp > Flags.REBROADCAST_ROUND_LIMIT) {
-                            //System.out.println("TOO OLD!");
+                            ////System.out.println("TOO OLD!");
                             return;
                         }
                     }
@@ -151,7 +147,7 @@ public class BotMuckraker extends BotController {
                         AreaClearInfo areaClearInfo = Flags.decodeAreaClear(currentLoc, nearbyFlag);
                         if (areaClearInfo.location.distanceSquaredTo(enemyLocation.get()) < 5) {
                             enemyLocation = Optional.empty();
-                            System.out.println("CLEARING TARGET");
+                            //System.out.println("CLEARING TARGET");
                         }
                     }
                     break;
@@ -162,7 +158,7 @@ public class BotMuckraker extends BotController {
     private void onNeutralNearby(RobotInfo robotInfo) throws GameActionException{
         thisRoundNearbyNeutralCount += 1;
         if (!flagSet){
-            System.out.println("FLAGGING NEUTRAl");
+            //System.out.println("FLAGGING NEUTRAl");
             rc.setFlag(Flags.encodeNeutralEcSpotted(rc.getRoundNum(), robotInfo.location, robotInfo.conviction));
             flagSet = true;
         }
@@ -189,7 +185,7 @@ public class BotMuckraker extends BotController {
 
     private void runCircleDefense() throws GameActionException {
         if (circleLocs.size() == 0){
-            //System.out.println("CIRCLE DONE");
+            ////System.out.println("CIRCLE DONE");
             currentRadius = currentRadius +3;
             circleLocs =
                     Utilities.getFilteredCircleLocs(1, parentLoc.get().x, parentLoc.get().y, parentLoc.get(), currentRadius);
