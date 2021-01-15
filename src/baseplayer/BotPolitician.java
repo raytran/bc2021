@@ -176,7 +176,7 @@ public class BotPolitician extends BotController {
                         mostRecentEnemyReportRebroadcast = nearbyFlag;
                     }else{
                         // Check if this is too old to consider
-                        if (targetLocation.isPresent() && mostRecentEnemyReportRebroadcastTimestamp - enemySpottedInfo.timestamp > Flags.REBROADCAST_ROUND_LIMIT) {
+                        if (mostRecentEnemyReportRebroadcastTimestamp - enemySpottedInfo.timestamp > Flags.REBROADCAST_ROUND_LIMIT) {
                             //System.out.println("TOO OLD!");
                             return;
                         }
@@ -195,6 +195,7 @@ public class BotPolitician extends BotController {
                     break;
             }
         }
+
     }
 
     private void onNeutralNearby(RobotInfo robotInfo) throws GameActionException {

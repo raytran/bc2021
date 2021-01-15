@@ -22,6 +22,10 @@ public class BotMuckraker extends BotController {
     boolean enemyFound = false;
     boolean flagSet = false;
     boolean enemyLocIsGuess = true;
+
+    int thisRoundNearbyEnemyCount = 0;
+    int thisRoundNearbyNeutralCount = 0;
+    int thisRoundNearbyFriendlyCount =0;
     public BotMuckraker(RobotController rc) throws GameActionException {
         super(rc);
         isDefending = rc.getRoundNum() > 100 && Math.random() > Math.pow((double) rc.getRoundNum() / 3000, 0.5);
@@ -41,6 +45,14 @@ public class BotMuckraker extends BotController {
         senseNearbyRobots(this::onEnemyNearby, this::onFriendlyNearby, this::onNeutralNearby);
         if (parentID.isPresent()) talkToParent();
 
+
+        if (enemyLocation.isPresent() && rc.getLocation().distanceSquaredTo(enemyLocation.get()) < rc.getType().actionRadiusSquared) {
+            if (thisRoundNearbyEnemyCount == 0 && thisRoundNearbyNeutralCount == 0) {
+                rc.setFlag(Flags.encodeAreaClear(rc.getRoundNum(), enemyLocation.get()));
+                flagSet = true;
+                enemyLocation = Optional.empty();
+            }
+        }
         if (isDefending){
             runCircleDefense();
         } else {
@@ -76,6 +88,9 @@ public class BotMuckraker extends BotController {
 
         enemyFound = false;
         flagSet = false;
+        thisRoundNearbyEnemyCount = 0;
+        thisRoundNearbyNeutralCount = 0;
+        thisRoundNearbyFriendlyCount =0;
         return this;
     }
 
@@ -93,6 +108,7 @@ public class BotMuckraker extends BotController {
 
 
     private void onEnemyNearby(RobotInfo robotInfo) throws GameActionException {
+        thisRoundNearbyEnemyCount += 1;
         setEnemyLocIfCloser(robotInfo.location, robotInfo.getType(), false);
         int actionRadius = rc.getType().actionRadiusSquared;
         //recordEnemy(new EnemySpottedInfo(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
@@ -108,28 +124,41 @@ public class BotMuckraker extends BotController {
     }
 
     private void onFriendlyNearby(RobotInfo robotInfo) throws GameActionException {
+        thisRoundNearbyFriendlyCount += 1;
         MapLocation currentLoc = rc.getLocation();
         if (rc.canGetFlag(robotInfo.ID)) {
             int nearbyFlag = rc.getFlag(robotInfo.ID);
-            if (Flags.decodeFlagType(nearbyFlag) == FlagType.ENEMY_SPOTTED) {
-                EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(currentLoc, nearbyFlag);
-                if (mostRecentEnemyReportRebroadcastTimestamp <= enemySpottedInfo.timestamp){
-                    mostRecentEnemyReportRebroadcastTimestamp = enemySpottedInfo.timestamp;
-                    mostRecentEnemyReportRebroadcast = nearbyFlag;
-                }else{
-                    // Check if this is too old to consider
-                    if (mostRecentEnemyReportRebroadcastTimestamp - enemySpottedInfo.timestamp > Flags.REBROADCAST_ROUND_LIMIT) {
-                        //System.out.println("TOO OLD!");
-                        return;
+            switch (Flags.decodeFlagType(nearbyFlag)){
+                case ENEMY_SPOTTED:
+                    EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(currentLoc, nearbyFlag);
+                    if (mostRecentEnemyReportRebroadcastTimestamp <= enemySpottedInfo.timestamp){
+                        mostRecentEnemyReportRebroadcastTimestamp = enemySpottedInfo.timestamp;
+                        mostRecentEnemyReportRebroadcast = nearbyFlag;
+                    }else{
+                        // Check if this is too old to consider
+                        if (mostRecentEnemyReportRebroadcastTimestamp - enemySpottedInfo.timestamp > Flags.REBROADCAST_ROUND_LIMIT) {
+                            //System.out.println("TOO OLD!");
+                            return;
+                        }
                     }
-                }
-                //recordEnemy(enemySpottedInfo);
-                setEnemyLocIfCloser(enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
+                    //recordEnemy(enemySpottedInfo);
+                    setEnemyLocIfCloser(enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
+                    break;
+                case AREA_CLEAR:
+                    if (enemyLocation.isPresent()){
+                        AreaClearInfo areaClearInfo = Flags.decodeAreaClear(currentLoc, nearbyFlag);
+                        if (areaClearInfo.location.distanceSquaredTo(enemyLocation.get()) < 5) {
+                            enemyLocation = Optional.empty();
+                            System.out.println("CLEARING TARGET");
+                        }
+                    }
+                    break;
             }
         }
     }
 
     private void onNeutralNearby(RobotInfo robotInfo) throws GameActionException{
+        thisRoundNearbyNeutralCount += 1;
         if (!flagSet){
             System.out.println("FLAGGING NEUTRAl");
             rc.setFlag(Flags.encodeNeutralEcSpotted(rc.getRoundNum(), robotInfo.location, robotInfo.conviction));
