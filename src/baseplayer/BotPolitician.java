@@ -40,7 +40,7 @@ public class BotPolitician extends BotController {
 
     @Override
     public BotController run() throws GameActionException {
-        if (targetLocation.isPresent() && rc.getLocation().equals(targetLocation.get())) {
+        if (targetLocation.isPresent() && rc.getLocation().distanceSquaredTo(targetLocation.get()) < rc.getType().actionRadiusSquared - 5) {
             targetLocation = Optional.empty();
             bestTargetScore = 0;
         }
@@ -51,7 +51,8 @@ public class BotPolitician extends BotController {
 
         if (parentID.isPresent()) talkToParent();
         if (targetLocation.isPresent()){
-            nav.bugTo(targetLocation.get());
+            nav.bellmanFordTo(targetLocation.get());
+            //nav.bugTo(targetLocation.get());
         } else {
             if (scoutingDirection != null) {
                 nav.spreadOut(scoutingDirection);
@@ -119,7 +120,7 @@ public class BotPolitician extends BotController {
         switch (parentFlagType) {
             case ENEMY_SPOTTED:
                 EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(rc.getLocation(), parentFlag);
-                recordEnemy(enemySpottedInfo);
+                //recordEnemy(enemySpottedInfo);
                 setTargetLocIfBetter(rc.getTeam().opponent(), enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
                 break;
             case NEUTRAL_EC_SPOTTED:
@@ -132,7 +133,7 @@ public class BotPolitician extends BotController {
 
     private void onEnemyNearby(RobotInfo robotInfo) throws GameActionException {
         setTargetLocIfBetter(robotInfo.team, robotInfo.location, robotInfo.type, false);
-        recordEnemy(new EnemySpottedInfo(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
+        //recordEnemy(new EnemySpottedInfo(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
 
         if (!flagSet) {
             rc.setFlag(Flags.encodeEnemySpotted(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
@@ -165,7 +166,7 @@ public class BotPolitician extends BotController {
                         return;
                     }
                 }
-                recordEnemy(enemySpottedInfo);
+                //recordEnemy(enemySpottedInfo);
                 setTargetLocIfBetter(rc.getTeam().opponent(), enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
             }
         }

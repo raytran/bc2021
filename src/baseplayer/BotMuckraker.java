@@ -35,7 +35,7 @@ public class BotMuckraker extends BotController {
 
     @Override
     public BotController run() throws GameActionException {
-        if (enemyLocation.isPresent() && rc.getLocation().equals(enemyLocation.get())) {
+        if (enemyLocation.isPresent() && rc.getLocation().distanceSquaredTo(enemyLocation.get()) < rc.getType().actionRadiusSquared - 5) {
             enemyLocation = Optional.empty();
         }
         senseNearbyRobots(this::onEnemyNearby, this::onFriendlyNearby, this::onNeutralNearby);
@@ -45,7 +45,8 @@ public class BotMuckraker extends BotController {
             runCircleDefense();
         } else {
             if (enemyLocation.isPresent()){
-                nav.bugTo(enemyLocation.get());
+                nav.bellmanFordTo(enemyLocation.get());
+                //nav.bugTo(enemyLocation.get());
             } else {
                 if (scoutingDirection != null) {
                     nav.spreadOut(scoutingDirection);
@@ -89,7 +90,7 @@ public class BotMuckraker extends BotController {
     private void onEnemyNearby(RobotInfo robotInfo) throws GameActionException {
         setEnemyLocIfCloser(robotInfo.location, robotInfo.getType(), false);
         int actionRadius = rc.getType().actionRadiusSquared;
-        recordEnemy(new EnemySpottedInfo(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
+        //recordEnemy(new EnemySpottedInfo(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
 
         if (!flagSet) {
             rc.setFlag(Flags.encodeEnemySpotted(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
@@ -117,7 +118,7 @@ public class BotMuckraker extends BotController {
                         return;
                     }
                 }
-                recordEnemy(enemySpottedInfo);
+                //recordEnemy(enemySpottedInfo);
                 setEnemyLocIfCloser(enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
             }
         }
@@ -142,7 +143,7 @@ public class BotMuckraker extends BotController {
         switch (parentFlagType) {
             case ENEMY_SPOTTED:
                 EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(rc.getLocation(), parentFlag);
-                recordEnemy(enemySpottedInfo);
+                //recordEnemy(enemySpottedInfo);
                 setEnemyLocIfCloser(enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
                 break;
             default:

@@ -4,6 +4,7 @@ import baseplayer.MapLocPair;
 import baseplayer.Utilities;
 import baseplayer.ds.MapLocationArray;
 import baseplayer.ds.MinHeap;
+import baseplayer.nav.bellmanford.Pather;
 import battlecode.common.*;
 
 import java.util.*;
@@ -21,7 +22,12 @@ public class NavigationController {
 
     public NavigationController(RobotController rc) {
         this.rc = rc;
+        Pather.init(rc);
         currentMode = NavMode.DIRECT;
+    }
+
+    public void bellmanFordTo(MapLocation target) throws GameActionException {
+        Pather.pathTo(target);
     }
 
     /**
