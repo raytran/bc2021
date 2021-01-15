@@ -11,6 +11,9 @@ public class BotPolitician extends BotController {
     Optional<MapLocation> targetLocation;
     Direction scoutingDirection;
     double bestTargetScore = 0;
+    int thisRoundNearbyFriendlyCount = 0;
+    int thisRoundNearbyEnemyCount = 0;
+    int thisRoundNearbyNeutralCount = 0;
     int totalNearbyEnemyConviction = 0;
     int totalNearbyFriendlyConviction = 0;
 
@@ -40,16 +43,18 @@ public class BotPolitician extends BotController {
 
     @Override
     public BotController run() throws GameActionException {
-        if (targetLocation.isPresent() && rc.getLocation().distanceSquaredTo(targetLocation.get()) < rc.getType().actionRadiusSquared - 5) {
-            targetLocation = Optional.empty();
-            bestTargetScore = 0;
-        }
         totalNearbyFriendlyConviction = rc.getConviction();
         senseNearbyRobots(this::onEnemyNearby, this::onFriendlyNearby, this::onNeutralNearby);
 
-
-
         if (parentID.isPresent()) talkToParent();
+        if (targetLocation.isPresent() && rc.getLocation().distanceSquaredTo(targetLocation.get()) < rc.getType().actionRadiusSquared) {
+            if (thisRoundNearbyEnemyCount == 0 && thisRoundNearbyNeutralCount == 0) {
+                rc.setFlag(Flags.encodeAreaClear(rc.getRoundNum(), targetLocation.get()));
+                flagSet = true;
+                targetLocation = Optional.empty();
+                bestTargetScore = 0;
+            }
+        }
         if (targetLocation.isPresent()){
 
             if (Clock.getBytecodesLeft() < 7000){
@@ -76,6 +81,9 @@ public class BotPolitician extends BotController {
             rc.setFlag(mostRecentEnemyReportRebroadcast);
         }
 
+        thisRoundNearbyEnemyCount = 0;
+        thisRoundNearbyNeutralCount = 0;
+        thisRoundNearbyFriendlyCount =0;
         totalNearbyEnemyConviction = 0;
         enemyFound = false;
         flagSet = false;
@@ -136,6 +144,7 @@ public class BotPolitician extends BotController {
     }
 
     private void onEnemyNearby(RobotInfo robotInfo) throws GameActionException {
+        thisRoundNearbyEnemyCount += 1;
         setTargetLocIfBetter(robotInfo.team, robotInfo.location, robotInfo.type, false);
         //recordEnemy(new EnemySpottedInfo(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
 
@@ -154,29 +163,42 @@ public class BotPolitician extends BotController {
     }
 
     private void onFriendlyNearby(RobotInfo robotInfo) throws GameActionException {
+        thisRoundNearbyFriendlyCount += 1;
         MapLocation currentLoc = rc.getLocation();
         totalNearbyFriendlyConviction += robotInfo.conviction;
         if (rc.canGetFlag(robotInfo.ID)) {
             int nearbyFlag = rc.getFlag(robotInfo.ID);
-            if (Flags.decodeFlagType(nearbyFlag) == FlagType.ENEMY_SPOTTED) {
-                EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(currentLoc, nearbyFlag);
-                if (mostRecentEnemyReportRebroadcastTimestamp <= enemySpottedInfo.timestamp){
-                    mostRecentEnemyReportRebroadcastTimestamp = enemySpottedInfo.timestamp;
-                    mostRecentEnemyReportRebroadcast = nearbyFlag;
-                }else{
-                    // Check if this is too old to consider
-                    if (targetLocation.isPresent() && mostRecentEnemyReportRebroadcastTimestamp - enemySpottedInfo.timestamp > Flags.REBROADCAST_ROUND_LIMIT) {
-                        //System.out.println("TOO OLD!");
-                        return;
+            switch (Flags.decodeFlagType(nearbyFlag)){
+                case ENEMY_SPOTTED:
+                    EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(currentLoc, nearbyFlag);
+                    if (mostRecentEnemyReportRebroadcastTimestamp <= enemySpottedInfo.timestamp){
+                        mostRecentEnemyReportRebroadcastTimestamp = enemySpottedInfo.timestamp;
+                        mostRecentEnemyReportRebroadcast = nearbyFlag;
+                    }else{
+                        // Check if this is too old to consider
+                        if (targetLocation.isPresent() && mostRecentEnemyReportRebroadcastTimestamp - enemySpottedInfo.timestamp > Flags.REBROADCAST_ROUND_LIMIT) {
+                            //System.out.println("TOO OLD!");
+                            return;
+                        }
                     }
-                }
-                //recordEnemy(enemySpottedInfo);
-                setTargetLocIfBetter(rc.getTeam().opponent(), enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
+                    //recordEnemy(enemySpottedInfo);
+                    setTargetLocIfBetter(rc.getTeam().opponent(), enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
+                    break;
+                case AREA_CLEAR:
+                    if (targetLocation.isPresent()){
+                        AreaClearInfo areaClearInfo = Flags.decodeAreaClear(currentLoc, nearbyFlag);
+                        if (areaClearInfo.location.distanceSquaredTo(targetLocation.get()) < 5) {
+                            targetLocation = Optional.empty();
+                            System.out.println("CLEARING TARGET");
+                        }
+                    }
+                    break;
             }
         }
     }
 
     private void onNeutralNearby(RobotInfo robotInfo) throws GameActionException {
+        thisRoundNearbyNeutralCount += 1;
         if (!flagSet) {
             rc.setFlag(Flags.encodeNeutralEcSpotted(rc.getRoundNum(), robotInfo.location, robotInfo.conviction));
             flagSet = true;
