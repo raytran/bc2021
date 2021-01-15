@@ -91,13 +91,14 @@ public class BotMuckraker extends BotController {
 
     // sets enemy loc if !present or if enemy loc is closer
     private void setEnemyLocIfCloser(MapLocation newLoc, RobotType rt, boolean isGuess) {
-        MapLocation currentLoc = rc.getLocation();
-        if (!enemyLocation.isPresent()
-                || enemyLocIsGuess
-                || (newLoc.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(enemyLocation.get())
-                    && rt == RobotType.SLANDERER)){
-            enemyLocation = Optional.of(newLoc);
-            enemyLocIsGuess = isGuess;
+        if (rt == RobotType.SLANDERER || rt == RobotType.POLITICIAN){
+            MapLocation currentLoc = rc.getLocation();
+            if (!enemyLocation.isPresent()
+                    || enemyLocIsGuess
+                    || (newLoc.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(enemyLocation.get()))) {
+                enemyLocation = Optional.of(newLoc);
+                enemyLocIsGuess = isGuess;
+            }
         }
     }
 
@@ -183,7 +184,7 @@ public class BotMuckraker extends BotController {
     private void runCircleDefense() throws GameActionException {
         if (circleLocs.size() == 0){
             //System.out.println("CIRCLE DONE");
-            currentRadius = currentRadius +4;
+            currentRadius = currentRadius +3;
             circleLocs =
                     Utilities.getFilteredCircleLocs(1, parentLoc.get().x, parentLoc.get().y, parentLoc.get(), currentRadius);
         }
