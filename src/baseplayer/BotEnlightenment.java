@@ -2,10 +2,7 @@ package baseplayer;
 
 import baseplayer.ds.CircularLinkedList;
 import baseplayer.ds.LinkedListNode;
-import baseplayer.eccontrollers.ECBudgetController;
-import baseplayer.eccontrollers.ECFlagController;
-import baseplayer.eccontrollers.ECSpawnController;
-import baseplayer.eccontrollers.ECVoteController;
+import baseplayer.eccontrollers.*;
 import baseplayer.flags.NeutralEcSpottedInfo;
 import battlecode.common.*;
 
@@ -27,11 +24,14 @@ public class BotEnlightenment extends BotController {
     private final ECVoteController voteController;
     private final ECFlagController flagController;
     private final ECSpawnController spawnController;
+    private final ECSenseController senseController;
+    private double safetyEval = 0;
     private Optional<NeutralEcSpottedInfo> thisRoundNeutralEcSpottedInfo = Optional.empty();
 
 
     public BotEnlightenment(RobotController rc) throws GameActionException {
         super(rc);
+        senseController = new ECSenseController(rc, this);
         budgetController = new ECBudgetController(rc, this);
         voteController = new ECVoteController(rc, this, this.budgetController);
         flagController = new ECFlagController(rc, this);
@@ -39,6 +39,8 @@ public class BotEnlightenment extends BotController {
     }
     @Override
     public BotController run() throws GameActionException {
+        // Sense danger level
+        senseController.run();
         //Run budget controller
         budgetController.run();
         // Read and update flags
@@ -182,5 +184,13 @@ public class BotEnlightenment extends BotController {
     public Optional<NeutralEcSpottedInfo> getThisRoundNeutralEcSpottedInfo(){ return this.thisRoundNeutralEcSpottedInfo; }
     public void setThisRoundNeutralEcSpottedInfo(Optional<NeutralEcSpottedInfo> info){
         this.thisRoundNeutralEcSpottedInfo = info;
+    }
+
+    public void setSafetyEval(double newSafety){
+        safetyEval = newSafety;
+    }
+
+    public double getSafetyEval(){
+        return safetyEval;
     }
 }
