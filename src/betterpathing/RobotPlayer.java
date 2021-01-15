@@ -96,7 +96,7 @@ public strictfp class RobotPlayer {
         RobotPlayer.rc = rc;
         Pather.init(rc);
         nav = new NavigationController(rc);
-        goal = rc.getLocation().translate(-20, 20);
+        goal = rc.getLocation().translate(30, 30);
 
         turnCount = 0;
 
@@ -140,8 +140,8 @@ public strictfp class RobotPlayer {
 
     static void runPolitician() throws GameActionException {
         Pather.pathTo(goal);
-        if (rc.getRoundNum() == 1000){
-            goal = rc.getLocation().translate(20, -20);
+        if (rc.getRoundNum() == 500){
+            goal = rc.getLocation().translate(-20, -20);
         }
 
     }

@@ -4,7 +4,7 @@ northwest = dict(
         VAR_INDEX_TO_DELTA_NAME = "NORTHWEST_I_TO_DELTA",
         VAR_NEIGHBOR_NAME = "NORTHWEST_NEIGHBORS",
 
-        BELLMAN_FORD_METHOD_NAME = "betterDFS",
+        BELLMAN_FORD_METHOD_NAME = "pathTo",
         DELTA_TO_INDEX_METHOD_NAME = "northwestDeltaToIndex",
         INDEX_TO_DELTA_METHOD_NAME = "northwestIndexToDelta",
         INDEX_TO_NEIGHBOR_METHOD_NAME = "getNorthwestSemicircleNeighbors",
@@ -74,7 +74,7 @@ west = dict(
         VAR_INDEX_TO_DELTA_NAME = "WEST_I_TO_DELTA",
         VAR_NEIGHBOR_NAME = "WEST_NEIGHBORS",
 
-        BELLMAN_FORD_METHOD_NAME = "betterDFS",
+        BELLMAN_FORD_METHOD_NAME = "pathTo",
         DELTA_TO_INDEX_METHOD_NAME = "westDeltaToIndex",
         INDEX_TO_DELTA_METHOD_NAME = "westIndexToDelta",
         INDEX_TO_NEIGHBOR_METHOD_NAME = "getWestSemicircleNeighbors",
@@ -143,7 +143,7 @@ southwest = dict(
         VAR_INDEX_TO_DELTA_NAME = "SOUTHWEST_I_TO_DELTA",
         VAR_NEIGHBOR_NAME = "SOUTHWEST_NEIGHBORS",
 
-        BELLMAN_FORD_METHOD_NAME = "betterDFS",
+        BELLMAN_FORD_METHOD_NAME = "pathTo",
         DELTA_TO_INDEX_METHOD_NAME = "southwestDeltaToIndex",
         INDEX_TO_DELTA_METHOD_NAME = "southwestIndexToDelta",
         INDEX_TO_NEIGHBOR_METHOD_NAME = "getSouthwestSemicircleNeighbors",
@@ -214,7 +214,7 @@ south = dict(
         VAR_INDEX_TO_DELTA_NAME = "SOUTH_I_TO_DELTA",
         VAR_NEIGHBOR_NAME = "SOUTH_NEIGHBORS",
 
-        BELLMAN_FORD_METHOD_NAME = "betterDFS",
+        BELLMAN_FORD_METHOD_NAME = "pathTo",
         DELTA_TO_INDEX_METHOD_NAME = "southDeltaToIndex",
         INDEX_TO_DELTA_METHOD_NAME = "southIndexToDelta",
         INDEX_TO_NEIGHBOR_METHOD_NAME = "getSouthSemicircleNeighbors",
@@ -283,7 +283,7 @@ northeast = dict(
         VAR_INDEX_TO_DELTA_NAME = "NORTHEAST_I_TO_DELTA",
         VAR_NEIGHBOR_NAME = "NORTHEAST_NEIGHBORS",
 
-        BELLMAN_FORD_METHOD_NAME = "betterDFS",
+        BELLMAN_FORD_METHOD_NAME = "pathTo",
         DELTA_TO_INDEX_METHOD_NAME = "northeastDeltaToIndex",
         INDEX_TO_DELTA_METHOD_NAME = "northeastIndexToDelta",
         INDEX_TO_NEIGHBOR_METHOD_NAME = "getNortheastSemicircleNeighbors",
@@ -355,7 +355,7 @@ north = dict(
         VAR_INDEX_TO_DELTA_NAME = "NORTH_I_TO_DELTA",
         VAR_NEIGHBOR_NAME = "NORTH_NEIGHBORS",
 
-        BELLMAN_FORD_METHOD_NAME = "betterDFS",
+        BELLMAN_FORD_METHOD_NAME = "pathTo",
         DELTA_TO_INDEX_METHOD_NAME = "northDeltaToIndex",
         INDEX_TO_DELTA_METHOD_NAME = "northIndexToDelta",
         INDEX_TO_NEIGHBOR_METHOD_NAME = "getNorthSemicircleNeighbors",
@@ -424,7 +424,7 @@ southeast = dict(
         VAR_INDEX_TO_DELTA_NAME = "SOUTHEAST_I_TO_DELTA",
         VAR_NEIGHBOR_NAME = "SOUTHEAST_NEIGHBORS",
 
-        BELLMAN_FORD_METHOD_NAME = "betterDFS",
+        BELLMAN_FORD_METHOD_NAME = "pathTo",
         DELTA_TO_INDEX_METHOD_NAME = "southeastDeltaToIndex",
         INDEX_TO_DELTA_METHOD_NAME = "southeastIndexToDelta",
         INDEX_TO_NEIGHBOR_METHOD_NAME = "getSoutheastSemicircleNeighbors",
@@ -494,7 +494,7 @@ east = dict(
         VAR_INDEX_TO_DELTA_NAME = "EAST_I_TO_DELTA",
         VAR_NEIGHBOR_NAME = "EAST_NEIGHBORS",
 
-        BELLMAN_FORD_METHOD_NAME = "betterDFS",
+        BELLMAN_FORD_METHOD_NAME = "pathTo",
         DELTA_TO_INDEX_METHOD_NAME = "eastDeltaToIndex",
         INDEX_TO_DELTA_METHOD_NAME = "eastIndexToDelta",
         INDEX_TO_NEIGHBOR_METHOD_NAME = "getEastSemicircleNeighbors",
@@ -560,5 +560,5 @@ east = dict(
 
 
 
-target = north
+target = northeast
 

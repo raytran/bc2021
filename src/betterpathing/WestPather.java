@@ -51,7 +51,42 @@ public class WestPather{
         int minDist = Integer.MAX_VALUE;
         MapLocation replacement = null;
         MapLocation candidate = null;
+        candidate = new MapLocation(currentLoc.x, currentLoc.y);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + -1, currentLoc.y + 1);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + -1, currentLoc.y);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + -1, currentLoc.y + -1);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x, currentLoc.y + -1);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + 1, currentLoc.y + -1);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
         candidate = new MapLocation(currentLoc.x + 1, currentLoc.y + 1);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x, currentLoc.y + 1);
         if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
             minDist = candidate.distanceSquaredTo(targetLoc);
             replacement = candidate;
@@ -67,6 +102,36 @@ public class WestPather{
             replacement = candidate;
         }
         candidate = new MapLocation(currentLoc.x + -2, currentLoc.y + 2);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + -2, currentLoc.y + 1);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + -2, currentLoc.y);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + -2, currentLoc.y + -1);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + -2, currentLoc.y + -2);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + -1, currentLoc.y + -2);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x, currentLoc.y + -2);
         if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
             minDist = candidate.distanceSquaredTo(targetLoc);
             replacement = candidate;
@@ -92,26 +157,6 @@ public class WestPather{
             replacement = candidate;
         }
         candidate = new MapLocation(currentLoc.x + -3, currentLoc.y + -2);
-        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
-            minDist = candidate.distanceSquaredTo(targetLoc);
-            replacement = candidate;
-        }
-        candidate = new MapLocation(currentLoc.x + -2, currentLoc.y + -2);
-        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
-            minDist = candidate.distanceSquaredTo(targetLoc);
-            replacement = candidate;
-        }
-        candidate = new MapLocation(currentLoc.x + -1, currentLoc.y + -2);
-        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
-            minDist = candidate.distanceSquaredTo(targetLoc);
-            replacement = candidate;
-        }
-        candidate = new MapLocation(currentLoc.x, currentLoc.y + -2);
-        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
-            minDist = candidate.distanceSquaredTo(targetLoc);
-            replacement = candidate;
-        }
-        candidate = new MapLocation(currentLoc.x + 1, currentLoc.y + -1);
         if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
             minDist = candidate.distanceSquaredTo(targetLoc);
             replacement = candidate;
@@ -2194,56 +2239,56 @@ public class WestPather{
             case "0|2":
                 return 8;
             default: break;
-        }
+         }
         throw new RuntimeException("Bad delta");
     }
     static int[] westIndexToDelta(int index) {
         switch (index) {
-            case 21:
-                return WEST_I_TO_DELTA21;
-            case 20:
-                return WEST_I_TO_DELTA20;
-            case 19:
-                return WEST_I_TO_DELTA19;
-            case 18:
-                return WEST_I_TO_DELTA18;
-            case 17:
-                return WEST_I_TO_DELTA17;
-            case 14:
-                return WEST_I_TO_DELTA14;
-            case 13:
-                return WEST_I_TO_DELTA13;
-            case 12:
-                return WEST_I_TO_DELTA12;
-            case 11:
-                return WEST_I_TO_DELTA11;
-            case 10:
-                return WEST_I_TO_DELTA10;
-            case 15:
-                return WEST_I_TO_DELTA15;
-            case 3:
-                return WEST_I_TO_DELTA3;
-            case 2:
-                return WEST_I_TO_DELTA2;
-            case 1:
-                return WEST_I_TO_DELTA1;
-            case 9:
-                return WEST_I_TO_DELTA9;
-            case 5:
-                return WEST_I_TO_DELTA5;
-            case 6:
-                return WEST_I_TO_DELTA6;
-            case 16:
-                return WEST_I_TO_DELTA16;
-            case 4:
-                return WEST_I_TO_DELTA4;
-            case 0:
-                return WEST_I_TO_DELTA0;
-            case 7:
-                return WEST_I_TO_DELTA7;
-            case 8:
-                return WEST_I_TO_DELTA8;
-            default: break;
+        case 21:
+            return WEST_I_TO_DELTA21;
+        case 20:
+            return WEST_I_TO_DELTA20;
+        case 19:
+            return WEST_I_TO_DELTA19;
+        case 18:
+            return WEST_I_TO_DELTA18;
+        case 17:
+            return WEST_I_TO_DELTA17;
+        case 14:
+            return WEST_I_TO_DELTA14;
+        case 13:
+            return WEST_I_TO_DELTA13;
+        case 12:
+            return WEST_I_TO_DELTA12;
+        case 11:
+            return WEST_I_TO_DELTA11;
+        case 10:
+            return WEST_I_TO_DELTA10;
+        case 15:
+            return WEST_I_TO_DELTA15;
+        case 3:
+            return WEST_I_TO_DELTA3;
+        case 2:
+            return WEST_I_TO_DELTA2;
+        case 1:
+            return WEST_I_TO_DELTA1;
+        case 9:
+            return WEST_I_TO_DELTA9;
+        case 5:
+            return WEST_I_TO_DELTA5;
+        case 6:
+            return WEST_I_TO_DELTA6;
+        case 16:
+            return WEST_I_TO_DELTA16;
+        case 4:
+            return WEST_I_TO_DELTA4;
+        case 0:
+            return WEST_I_TO_DELTA0;
+        case 7:
+            return WEST_I_TO_DELTA7;
+        case 8:
+            return WEST_I_TO_DELTA8;
+        default: break;
         }
         throw new RuntimeException("Bad index");
     }
@@ -2296,7 +2341,7 @@ public class WestPather{
             default: break;
         }
         throw new RuntimeException("Bad index");
-    }
+     }
     public static void init(RobotController rc) {
         WestPather.rc = rc;
     }
@@ -2306,11 +2351,11 @@ public class WestPather{
                 int[] delta1 = westIndexToDelta(j);
                 rc.setIndicatorDot(new MapLocation(rc.getLocation().x + delta1[0], rc.getLocation().y + delta1[1]), 255, 0, 0);
             }
-            for (int neighborIndex : getWestSemicircleNeighbors(i)) {
-                int[] delta = westIndexToDelta(neighborIndex);
-                rc.setIndicatorDot(new MapLocation(rc.getLocation().x + delta[0], rc.getLocation().y + delta[1]), 0, 0, 255);
-            }
-            Clock.yield();
+        for (int neighborIndex : getWestSemicircleNeighbors(i)) {
+            int[] delta = westIndexToDelta(neighborIndex);
+            rc.setIndicatorDot(new MapLocation(rc.getLocation().x + delta[0], rc.getLocation().y + delta[1]), 0, 0, 255);
+        }
+        Clock.yield();
         }
     }
 }

@@ -47,12 +47,82 @@ public class SouthwestPather{
     public static final int[] SOUTHWEST_NEIGHBORS20 = {21, 12, 18, 19};
     public static final int[] SOUTHWEST_NEIGHBORS21 = {20, 19, 12, 11, 22};
     public static final int[] SOUTHWEST_NEIGHBORS22 = {21, 12, 11, 10};
-    static void betterDFS(MapLocation targetLoc) throws GameActionException {
+    static void pathTo(MapLocation targetLoc) throws GameActionException {
         MapLocation currentLoc = rc.getLocation();
         int minDist = Integer.MAX_VALUE;
         MapLocation replacement = null;
         MapLocation candidate = null;
+        candidate = new MapLocation(currentLoc.x, currentLoc.y);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x, currentLoc.y + 1);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + -1, currentLoc.y + 1);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + -1, currentLoc.y);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + -1, currentLoc.y + -1);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x, currentLoc.y + -1);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + 1, currentLoc.y + -1);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + 1, currentLoc.y);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
         candidate = new MapLocation(currentLoc.x + -1, currentLoc.y + 2);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + 2, currentLoc.y + -1);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + 1, currentLoc.y + -2);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x, currentLoc.y + -2);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + -1, currentLoc.y + -2);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + -2, currentLoc.y + -1);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + -2, currentLoc.y);
         if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
             minDist = candidate.distanceSquaredTo(targetLoc);
             replacement = candidate;
@@ -77,6 +147,11 @@ public class SouthwestPather{
             minDist = candidate.distanceSquaredTo(targetLoc);
             replacement = candidate;
         }
+        candidate = new MapLocation(currentLoc.x + -2, currentLoc.y + -2);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
         candidate = new MapLocation(currentLoc.x + -2, currentLoc.y + -3);
         if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
             minDist = candidate.distanceSquaredTo(targetLoc);
@@ -88,26 +163,6 @@ public class SouthwestPather{
             replacement = candidate;
         }
         candidate = new MapLocation(currentLoc.x, currentLoc.y + -3);
-        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
-            minDist = candidate.distanceSquaredTo(targetLoc);
-            replacement = candidate;
-        }
-        candidate = new MapLocation(currentLoc.x + 1, currentLoc.y + -2);
-        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
-            minDist = candidate.distanceSquaredTo(targetLoc);
-            replacement = candidate;
-        }
-        candidate = new MapLocation(currentLoc.x + 2, currentLoc.y + -1);
-        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
-            minDist = candidate.distanceSquaredTo(targetLoc);
-            replacement = candidate;
-        }
-        candidate = new MapLocation(currentLoc.x + 1, currentLoc.y);
-        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
-            minDist = candidate.distanceSquaredTo(targetLoc);
-            replacement = candidate;
-        }
-        candidate = new MapLocation(currentLoc.x, currentLoc.y + 1);
         if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
             minDist = candidate.distanceSquaredTo(targetLoc);
             replacement = candidate;

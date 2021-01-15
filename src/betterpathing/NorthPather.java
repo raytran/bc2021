@@ -51,12 +51,77 @@ public class NorthPather{
         int minDist = Integer.MAX_VALUE;
         MapLocation replacement = null;
         MapLocation candidate = null;
+        candidate = new MapLocation(currentLoc.x, currentLoc.y);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + 1, currentLoc.y);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + 1, currentLoc.y + 1);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x, currentLoc.y + 1);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + -1, currentLoc.y + 1);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + -1, currentLoc.y);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
         candidate = new MapLocation(currentLoc.x + -1, currentLoc.y + -1);
         if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
             minDist = candidate.distanceSquaredTo(targetLoc);
             replacement = candidate;
         }
-        candidate = new MapLocation(currentLoc.x + -2, currentLoc.y);
+        candidate = new MapLocation(currentLoc.x + 1, currentLoc.y + -1);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + 2, currentLoc.y);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + 2, currentLoc.y + 1);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + 2, currentLoc.y + 2);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + 1, currentLoc.y + 2);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x, currentLoc.y + 2);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + -1, currentLoc.y + 2);
+        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
+            minDist = candidate.distanceSquaredTo(targetLoc);
+            replacement = candidate;
+        }
+        candidate = new MapLocation(currentLoc.x + -2, currentLoc.y + 2);
         if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
             minDist = candidate.distanceSquaredTo(targetLoc);
             replacement = candidate;
@@ -66,7 +131,7 @@ public class NorthPather{
             minDist = candidate.distanceSquaredTo(targetLoc);
             replacement = candidate;
         }
-        candidate = new MapLocation(currentLoc.x + -2, currentLoc.y + 2);
+        candidate = new MapLocation(currentLoc.x + -2, currentLoc.y);
         if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
             minDist = candidate.distanceSquaredTo(targetLoc);
             replacement = candidate;
@@ -92,26 +157,6 @@ public class NorthPather{
             replacement = candidate;
         }
         candidate = new MapLocation(currentLoc.x + 2, currentLoc.y + 3);
-        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
-            minDist = candidate.distanceSquaredTo(targetLoc);
-            replacement = candidate;
-        }
-        candidate = new MapLocation(currentLoc.x + 2, currentLoc.y + 2);
-        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
-            minDist = candidate.distanceSquaredTo(targetLoc);
-            replacement = candidate;
-        }
-        candidate = new MapLocation(currentLoc.x + 2, currentLoc.y + 1);
-        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
-            minDist = candidate.distanceSquaredTo(targetLoc);
-            replacement = candidate;
-        }
-        candidate = new MapLocation(currentLoc.x + 2, currentLoc.y);
-        if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
-            minDist = candidate.distanceSquaredTo(targetLoc);
-            replacement = candidate;
-        }
-        candidate = new MapLocation(currentLoc.x + 1, currentLoc.y + -1);
         if (rc.onTheMap(candidate) && !rc.isLocationOccupied(candidate) && candidate.distanceSquaredTo(targetLoc) < minDist){
             minDist = candidate.distanceSquaredTo(targetLoc);
             replacement = candidate;
@@ -2194,56 +2239,56 @@ public class NorthPather{
             case "2|3":
                 return 21;
             default: break;
-        }
+         }
         throw new RuntimeException("Bad delta");
     }
     static int[] northIndexToDelta(int index) {
         switch (index) {
-            case 16:
-                return NORTH_I_TO_DELTA16;
-            case 15:
-                return NORTH_I_TO_DELTA15;
-            case 14:
-                return NORTH_I_TO_DELTA14;
-            case 17:
-                return NORTH_I_TO_DELTA17;
-            case 6:
-                return NORTH_I_TO_DELTA6;
-            case 5:
-                return NORTH_I_TO_DELTA5;
-            case 4:
-                return NORTH_I_TO_DELTA4;
-            case 13:
-                return NORTH_I_TO_DELTA13;
-            case 18:
-                return NORTH_I_TO_DELTA18;
-            case 0:
-                return NORTH_I_TO_DELTA0;
-            case 3:
-                return NORTH_I_TO_DELTA3;
-            case 12:
-                return NORTH_I_TO_DELTA12;
-            case 19:
-                return NORTH_I_TO_DELTA19;
-            case 7:
-                return NORTH_I_TO_DELTA7;
-            case 1:
-                return NORTH_I_TO_DELTA1;
-            case 2:
-                return NORTH_I_TO_DELTA2;
-            case 11:
-                return NORTH_I_TO_DELTA11;
-            case 20:
-                return NORTH_I_TO_DELTA20;
-            case 8:
-                return NORTH_I_TO_DELTA8;
-            case 9:
-                return NORTH_I_TO_DELTA9;
-            case 10:
-                return NORTH_I_TO_DELTA10;
-            case 21:
-                return NORTH_I_TO_DELTA21;
-            default: break;
+        case 16:
+            return NORTH_I_TO_DELTA16;
+        case 15:
+            return NORTH_I_TO_DELTA15;
+        case 14:
+            return NORTH_I_TO_DELTA14;
+        case 17:
+            return NORTH_I_TO_DELTA17;
+        case 6:
+            return NORTH_I_TO_DELTA6;
+        case 5:
+            return NORTH_I_TO_DELTA5;
+        case 4:
+            return NORTH_I_TO_DELTA4;
+        case 13:
+            return NORTH_I_TO_DELTA13;
+        case 18:
+            return NORTH_I_TO_DELTA18;
+        case 0:
+            return NORTH_I_TO_DELTA0;
+        case 3:
+            return NORTH_I_TO_DELTA3;
+        case 12:
+            return NORTH_I_TO_DELTA12;
+        case 19:
+            return NORTH_I_TO_DELTA19;
+        case 7:
+            return NORTH_I_TO_DELTA7;
+        case 1:
+            return NORTH_I_TO_DELTA1;
+        case 2:
+            return NORTH_I_TO_DELTA2;
+        case 11:
+            return NORTH_I_TO_DELTA11;
+        case 20:
+            return NORTH_I_TO_DELTA20;
+        case 8:
+            return NORTH_I_TO_DELTA8;
+        case 9:
+            return NORTH_I_TO_DELTA9;
+        case 10:
+            return NORTH_I_TO_DELTA10;
+        case 21:
+            return NORTH_I_TO_DELTA21;
+        default: break;
         }
         throw new RuntimeException("Bad index");
     }
@@ -2296,7 +2341,7 @@ public class NorthPather{
             default: break;
         }
         throw new RuntimeException("Bad index");
-    }
+     }
     public static void init(RobotController rc) {
         NorthPather.rc = rc;
     }
@@ -2306,11 +2351,11 @@ public class NorthPather{
                 int[] delta1 = northIndexToDelta(j);
                 rc.setIndicatorDot(new MapLocation(rc.getLocation().x + delta1[0], rc.getLocation().y + delta1[1]), 255, 0, 0);
             }
-            for (int neighborIndex : getNorthSemicircleNeighbors(i)) {
-                int[] delta = northIndexToDelta(neighborIndex);
-                rc.setIndicatorDot(new MapLocation(rc.getLocation().x + delta[0], rc.getLocation().y + delta[1]), 0, 0, 255);
-            }
-            Clock.yield();
+        for (int neighborIndex : getNorthSemicircleNeighbors(i)) {
+            int[] delta = northIndexToDelta(neighborIndex);
+            rc.setIndicatorDot(new MapLocation(rc.getLocation().x + delta[0], rc.getLocation().y + delta[1]), 0, 0, 255);
+        }
+        Clock.yield();
         }
     }
 }
