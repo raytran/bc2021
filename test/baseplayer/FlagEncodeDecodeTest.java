@@ -100,56 +100,11 @@ public class FlagEncodeDecodeTest {
 
 
     @Test
-    public void testEncodeDecodeEnemyClear() {
-        int flag = Flags.encodeEnemyClear(200, new MapLocation(29, 23), RobotType.MUCKRAKER);
-        assertEquals(FlagType.ENEMY_CLEAR, Flags.decodeFlagType(flag));
-        EnemyClearInfo info = Flags.decodeEnemyClear(new MapLocation(0, 0), flag);
-        assertEquals(200, info.timestamp);
-        assertEquals(info.enemyType, RobotType.MUCKRAKER);
-        assertEquals(info.location, new MapLocation(29, 23));
-
-
-        int flag2 = Flags.encodeEnemyClear(800, new MapLocation(63, 63), RobotType.ENLIGHTENMENT_CENTER);
-        EnemyClearInfo info2 = Flags.decodeEnemyClear(new MapLocation(0,0), flag2);
-        assertEquals(800, info2.timestamp);
-        assertEquals(info2.enemyType, RobotType.ENLIGHTENMENT_CENTER);
-        assertEquals(info2.location, new MapLocation(63, 63));
-
-        int flag3 = Flags.encodeEnemyClear(130, new MapLocation(-29, -23), RobotType.SLANDERER);
-        EnemyClearInfo info3 = Flags.decodeEnemyClear(new MapLocation(0, 0), flag3);
-        assertEquals(0, info3.timestamp);
-        assertEquals(info3.enemyType, RobotType.SLANDERER);
-        assertEquals(info3.location, new MapLocation(-29, -23));
-
-
-        int flag4 = Flags.encodeEnemyClear(2600, new MapLocation(-63, -63), RobotType.POLITICIAN);
-        EnemyClearInfo info4 = Flags.decodeEnemyClear(new MapLocation(-14, -14), flag4);
-        assertEquals(2600, info4.timestamp);
-        assertEquals(info4.enemyType, RobotType.POLITICIAN);
-        assertEquals(info4.location, new MapLocation(-63, -63));
-
-
-        int flag5 = Flags.encodeEnemyClear(1600, new MapLocation(28756, 17732), RobotType.POLITICIAN);
-        EnemyClearInfo info5 = Flags.decodeEnemyClear(new MapLocation(28746, 17722), flag5);
-        assertEquals(1600, info5.timestamp);
-        assertEquals(info5.enemyType, RobotType.POLITICIAN);
-        assertEquals(info5.location, new MapLocation(28756, 17732));
-
-        int flag6 = Flags.encodeEnemyClear(2800, new MapLocation(28751, 17713), RobotType.POLITICIAN);
-        EnemyClearInfo info6 = Flags.decodeEnemyClear(new MapLocation(28746, 17722), flag6);
-        assertEquals(2800, info6.timestamp);
-        assertEquals(info6.enemyType, RobotType.POLITICIAN);
-        assertEquals(info6.location, new MapLocation(28751, 17713));
-    }
-
-
-    @Test
-    public void testEncodeDecodeNeutralECClear() {
-        int flag = Flags.encodeNeutralEcClear(2789, new MapLocation(29, 23), 480);
-        assertEquals(FlagType.NEUTRAL_EC_CLEAR, Flags.decodeFlagType(flag));
-        NeutralEcClearInfo info = Flags.decodeNeutralClear(new MapLocation(0, 0), flag);
+    public void testEncodeAreaClear() {
+        int flag = Flags.encodeAreaClear(2789, new MapLocation(29, 23));
+        assertEquals(FlagType.AREA_CLEAR, Flags.decodeFlagType(flag));
+        AreaClearInfo info = Flags.decodeAreaClear(new MapLocation(0, 0), flag);
         assertEquals(2600, info.timestamp);
-        assertEquals(448, info.conviction);
         assertEquals(info.location, new MapLocation(29, 23));
     }
 

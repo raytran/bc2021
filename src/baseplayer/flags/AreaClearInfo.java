@@ -1,14 +1,13 @@
 package baseplayer.flags;
 
 import battlecode.common.MapLocation;
+import battlecode.common.RobotType;
 
-public class NeutralEcClearInfo {
+public class AreaClearInfo {
     public final int timestamp;
     public final MapLocation location;
-    public final int conviction;
-    public NeutralEcClearInfo(int timestamp, MapLocation location, int conviction){
+    public AreaClearInfo(int timestamp, MapLocation location) {
         this.timestamp = timestamp;
         this.location = location;
-        this.conviction = conviction;
     }
 }

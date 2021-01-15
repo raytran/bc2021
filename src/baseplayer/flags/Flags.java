@@ -63,44 +63,6 @@ public class Flags {
         return new NeutralEcSpottedInfo(decodeTimestamp(flag), actualLocation, (flag & 0b111) * 64);
     }
 
-
-    // NEUTRAL_EC_CLEAR
-    // [23:21]     [20:17]      [16:10]          [9:3]             [2:0]
-    // flagType    timestamp    cappedX % 128    cappedY % 128    floor(friendlyConviction/64)
-    public static int encodeNeutralEcClear(int roundNum, MapLocation location, int convictionLeft) {
-        int flag = encodeFlagBase(FlagType.NEUTRAL_EC_CLEAR, roundNum);
-        flag ^= ((location.x % 128) & 0b1111111) << 10;
-        flag ^= ((location.y % 128) & 0b1111111) << 3;
-        flag ^= (convictionLeft / 64) & 0b111;
-        return flag;
-    }
-
-    public static NeutralEcClearInfo decodeNeutralClear(MapLocation currentLoc, int flag) {
-        int xMod128 = (flag >>> 10) & 0b1111111;
-        int yMod128 = (flag >>> 3) & 0b1111111;
-        int xOffset = (currentLoc.x / 128) * 128;
-        int yOffset = (currentLoc.y / 128) * 128;
-
-        MapLocation actualLocation = new MapLocation(xMod128 + xOffset, yMod128 + yOffset);
-        MapLocation alternative = actualLocation.translate(-128, 0);
-        if (alternative.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(actualLocation)){
-            actualLocation = alternative;
-        }
-        alternative = actualLocation.translate(128, 0);
-        if (alternative.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(actualLocation)){
-            actualLocation = alternative;
-        }
-        alternative = actualLocation.translate(0, -128);
-        if (alternative.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(actualLocation)){
-            actualLocation = alternative;
-        }
-        alternative = actualLocation.translate(0, 128);
-        if (alternative.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(actualLocation)){
-            actualLocation = alternative;
-        }
-        return new NeutralEcClearInfo(decodeTimestamp(flag), actualLocation, (flag & 0b111) * 64);
-    }
-
     // ENEMY_SPOTTED
     // [23:21]     [20:17]      [16:10]        [9:3]         [2:1]              [0]
     // flagType    timestamp    enemyX % 128   enemyY % 128   enemyRobotType    isGuess
@@ -150,27 +112,26 @@ public class Flags {
     }
 
 
-    // ENEMY_CLEAR
-    // [23:21]     [20:17]      [16:10]        [9:3]          [2:1]              [0]
-    // flagType    timestamp    enemyX % 128   enemyY % 128   enemyRobotType     unused
+    // AREA_CLEAR
+    // [23:21]     [20:17]      [16:10]        [9:3]       [2:0]
+    // flagType    timestamp    X % 128        Y % 128     unused
 
     /**
-     * @param location of the enemy
-     * @return flag for enemy spotted at location
+     * @param location of the clear area
+     * @return flag for area clear
      */
-    public static int encodeEnemyClear(int roundNum, MapLocation location, RobotType enemyType) {
-        int flag = encodeFlagBase(FlagType.ENEMY_CLEAR, roundNum);
+    public static int encodeAreaClear(int roundNum, MapLocation location) {
+        int flag = encodeFlagBase(FlagType.AREA_CLEAR, roundNum);
         flag ^= ((location.x % 128) & 0b1111111) << 10;
         flag ^= ((location.y % 128) & 0b1111111) << 3;
-        flag ^= enemyType.ordinal() << 1;
         return flag;
     }
 
     /**
      * @param flag to be decoded
-     * @return information for enemy spotted
+     * @return information for area clear
      */
-    public static EnemyClearInfo decodeEnemyClear(MapLocation currentLoc, int flag) {
+    public static AreaClearInfo decodeAreaClear(MapLocation currentLoc, int flag) {
         int xMod128 = (flag >>> 10) & 0b1111111;
         int yMod128 = (flag >>> 3) & 0b1111111;
         int xOffset = (currentLoc.x / 128) * 128;
@@ -193,8 +154,7 @@ public class Flags {
         if (alternative.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(actualLocation)){
             actualLocation = alternative;
         }
-        RobotType enemyType = RobotType.values()[(flag >>> 1) & 0b11];
-        return new EnemyClearInfo(decodeTimestamp(flag), actualLocation, enemyType);
+        return new AreaClearInfo(decodeTimestamp(flag), actualLocation);
     }
 
     // BOUNDARY_SPOTTED
