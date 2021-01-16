@@ -7,10 +7,9 @@ import battlecode.common.RobotController;
 public class ECBudgetController implements ECController {
     private final RobotController rc;
     private final BotEnlightenment ec;
-    private final PIDDelta voteDelta = new PIDDelta(12.759624481201172, 1.302085518836975 , 21.483863830566406);
-    private final PIDDelta botDelta = new PIDDelta(6.498876571655273, 6.483767509460449, 28.79730796813965);
-    private final PIDDelta hpDelta = new PIDDelta( 5.50677490234375, 11.705179214477539, 1.2709863185882568);
-
+    private final PIDDelta voteDelta = new PIDDelta(50.135841369628906, 0, 4.649940013885498);
+    private final PIDDelta botDelta = new PIDDelta(8.244284629821777, 0, 103.1036376953125);
+    private final PIDDelta hpDelta = new PIDDelta( 34.32314682006836, 0, 35.57890319824219);
     private int voteBudget;
     private int botBudget;
     private int hpBudget;

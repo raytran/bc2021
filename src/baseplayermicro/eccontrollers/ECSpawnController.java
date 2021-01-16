@@ -27,11 +27,15 @@ public class ECSpawnController implements ECController {
         int budget = bc.getBotBudget();
         int roundNum = rc.getRoundNum();
         boolean givenOne = budget - prevBudget == 1;
+        int minAmount = 11;
         prevBudget = budget;
+        if(roundNum > 100 ) {
+            minAmount = roundNum - ec.getLastEnemySeen() > 250 ? (int) (MAX_BUILD_AMOUNT * Math.pow(roundNum / 1500, 2) + MIN_BUILD_AMOUNT) : MIN_BUILD_AMOUNT;
+        }
         int buildAmount = toBuild.equals(RobotType.MUCKRAKER) ? 1 : budget;
         if (toBuild.equals(RobotType.SLANDERER)){
             int i = 0;
-            while (budget > SLANDERER_VALUES[i] && i < 18){
+            while (minAmount > SLANDERER_VALUES[i] && i < 18){
                 i++;
             }
             buildAmount = SLANDERER_VALUES[i];
@@ -39,15 +43,16 @@ public class ECSpawnController implements ECController {
         if(roundNum <= 16 / rc.sensePassability(rc.getLocation())){
             buildAmount = 11;
         }
-        for (int i = 0; i < 8; i++) {
-            if (rc.canBuildRobot(toBuild, nextSpawnDirection, buildAmount)) {
-                rc.buildRobot(toBuild, nextSpawnDirection, buildAmount);
-                bc.withdrawBudget(this, buildAmount);
-                ec.recordSpawn(rc.senseRobotAtLocation(rc.getLocation().add(nextSpawnDirection)).ID, robotToSpawn());
-                break;
-            }
-            else{
-                nextSpawnDirection = nextSpawnDirection.rotateRight();
+        if(buildAmount >= minAmount || toBuild.equals(RobotType.MUCKRAKER)) {
+            for (int i = 0; i < 8; i++) {
+                if (rc.canBuildRobot(toBuild, nextSpawnDirection, buildAmount)) {
+                    rc.buildRobot(toBuild, nextSpawnDirection, buildAmount);
+                    bc.withdrawBudget(this, buildAmount);
+                    ec.recordSpawn(rc.senseRobotAtLocation(rc.getLocation().add(nextSpawnDirection)).ID, robotToSpawn());
+                    break;
+                } else {
+                    nextSpawnDirection = nextSpawnDirection.rotateRight();
+                }
             }
         }
     }
@@ -75,7 +80,6 @@ public class ECSpawnController implements ECController {
             MUCKRAKER_RATE = 0.10;
             SLANDERER_RATE = 0.45;
         }
-
         if((double) ec.getSlandererCount() / ec.getLocalRobotCount() < SLANDERER_RATE){
             return RobotType.SLANDERER;
         }

@@ -206,19 +206,18 @@ public class BotPolitician extends BotController {
         }
     }
     private void onNeutralNearby(RobotInfo robotInfo) throws GameActionException {
-        if(!scout) {
-            thisRoundNearbyNeutralCount += 1;
-            if (!flagSet) {
-                rc.setFlag(Flags.encodeNeutralEcSpotted(rc.getRoundNum(), robotInfo.location, robotInfo.conviction));
-                flagSet = true;
-            }
-            setTargetLocIfBetter(Team.NEUTRAL, robotInfo.location, robotInfo.type, false);
-
-            int actionRadius = rc.getType().actionRadiusSquared;
-            if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < 4
-                    && rc.canEmpower(4)) {
-                rc.empower(4);
-            }
+        thisRoundNearbyNeutralCount += 1;
+        if (!flagSet) {
+            rc.setFlag(Flags.encodeNeutralEcSpotted(rc.getRoundNum(), robotInfo.location, robotInfo.conviction));
+            flagSet = true;
         }
+        setTargetLocIfBetter(Team.NEUTRAL, robotInfo.location, robotInfo.type, false);
+
+        int actionRadius = rc.getType().actionRadiusSquared;
+        if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < 4
+                && rc.canEmpower(4)) {
+            rc.empower(4);
+        }
+
     }
 }
