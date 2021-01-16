@@ -48,7 +48,7 @@ public class ECSpawnController implements ECController{
             opPoliticianNeeded = true;
             opAmount = (int) (ec.getThisRoundNeutralEcSpottedInfo().get().conviction / 5);
           //  buildAmount = opAmount;
-            //System.out.println("Trying to spawn the super politicians with " + buildAmount + " Influence");
+            System.out.println("Trying to spawn the super politicians with " + buildAmount + " Influence");
         }
         if(opPoliticianNeeded){
          //   buildAmount = opAmount;

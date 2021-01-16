@@ -48,7 +48,7 @@ public class ECFlagController implements ECController {
                                 ec.recordEnemy(enemySpottedInfo);
                                 mostRecentEnemyReportTimestamp = enemySpottedInfo.timestamp;
                             }else{
-                                //System.out.println("CAUGHT A STALE");
+                                System.out.println("CAUGHT A STALE");
                             }
                             break;
                         case BOUNDARY_SPOTTED:
@@ -96,7 +96,7 @@ public class ECFlagController implements ECController {
             rc.setFlag(Flags.encodeEnemySpotted(enemyReport.get().timestamp, enemyReport.get().location, enemyReport.get().enemyType, false));
         }else if (ec.getEastBoundary().isPresent() && ec.getWestBoundary().isPresent()
                 || ec.getNorthBoundary().isPresent() && ec.getSouthBoundary().isPresent()) {
-            //System.out.println("TRYING REFLECTION");
+            System.out.println("TRYING REFLECTION");
             if (ec.getEastBoundary().isPresent() && ec.getWestBoundary().isPresent()) {
                 int xDelta = rc.getLocation().x - ec.getWestBoundary().get();
                 int targetX = ec.getEastBoundary().get() - xDelta;

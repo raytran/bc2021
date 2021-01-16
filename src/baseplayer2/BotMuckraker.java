@@ -22,6 +22,10 @@ public class BotMuckraker extends BotController {
     boolean enemyFound = false;
     boolean flagSet = false;
     boolean enemyLocIsGuess = true;
+
+    int thisRoundNearbyEnemyCount = 0;
+    int thisRoundNearbyNeutralCount = 0;
+    int thisRoundNearbyFriendlyCount =0;
     public BotMuckraker(RobotController rc) throws GameActionException {
         super(rc);
         isDefending = rc.getRoundNum() > 100 && Math.random() > Math.pow((double) rc.getRoundNum() / 3000, 0.5);
@@ -35,17 +39,26 @@ public class BotMuckraker extends BotController {
 
     @Override
     public BotController run() throws GameActionException {
-        if (enemyLocation.isPresent() && rc.getLocation().equals(enemyLocation.get())) {
+        if (enemyLocation.isPresent() && rc.getLocation().distanceSquaredTo(enemyLocation.get()) < rc.getType().actionRadiusSquared - 5) {
             enemyLocation = Optional.empty();
         }
         senseNearbyRobots(this::onEnemyNearby, this::onFriendlyNearby, this::onNeutralNearby);
         if (parentID.isPresent()) talkToParent();
 
+
+        if (enemyLocation.isPresent() && rc.getLocation().distanceSquaredTo(enemyLocation.get()) < rc.getType().actionRadiusSquared) {
+            if (thisRoundNearbyEnemyCount == 0 && thisRoundNearbyNeutralCount == 0) {
+                rc.setFlag(Flags.encodeAreaClear(rc.getRoundNum(), enemyLocation.get()));
+                flagSet = true;
+                enemyLocation = Optional.empty();
+            }
+        }
         if (isDefending){
             runCircleDefense();
         } else {
             if (enemyLocation.isPresent()){
-                nav.bugTo(enemyLocation.get());
+                nav.moveTo(enemyLocation.get());
+                //nav.bugTo(enemyLocation.get());
             } else {
                 if (scoutingDirection != null) {
                     nav.spreadOut(scoutingDirection);
@@ -70,26 +83,31 @@ public class BotMuckraker extends BotController {
 
         enemyFound = false;
         flagSet = false;
+        thisRoundNearbyEnemyCount = 0;
+        thisRoundNearbyNeutralCount = 0;
+        thisRoundNearbyFriendlyCount =0;
         return this;
     }
 
     // sets enemy loc if !present or if enemy loc is closer
     private void setEnemyLocIfCloser(MapLocation newLoc, RobotType rt, boolean isGuess) {
-        MapLocation currentLoc = rc.getLocation();
-        if (!enemyLocation.isPresent()
-                || enemyLocIsGuess
-                || (newLoc.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(enemyLocation.get())
-                    && rt == RobotType.SLANDERER)){
-            enemyLocation = Optional.of(newLoc);
-            enemyLocIsGuess = isGuess;
+        if (rt == RobotType.SLANDERER || rt == RobotType.POLITICIAN){
+            MapLocation currentLoc = rc.getLocation();
+            if (!enemyLocation.isPresent()
+                    || enemyLocIsGuess
+                    || (newLoc.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(enemyLocation.get()))) {
+                enemyLocation = Optional.of(newLoc);
+                enemyLocIsGuess = isGuess;
+            }
         }
     }
 
 
     private void onEnemyNearby(RobotInfo robotInfo) throws GameActionException {
+        thisRoundNearbyEnemyCount += 1;
         setEnemyLocIfCloser(robotInfo.location, robotInfo.getType(), false);
         int actionRadius = rc.getType().actionRadiusSquared;
-        recordEnemy(new EnemySpottedInfo(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
+        //recordEnemy(new EnemySpottedInfo(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
 
         if (!flagSet) {
             rc.setFlag(Flags.encodeEnemySpotted(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
@@ -102,30 +120,43 @@ public class BotMuckraker extends BotController {
     }
 
     private void onFriendlyNearby(RobotInfo robotInfo) throws GameActionException {
+        thisRoundNearbyFriendlyCount += 1;
         MapLocation currentLoc = rc.getLocation();
         if (rc.canGetFlag(robotInfo.ID)) {
             int nearbyFlag = rc.getFlag(robotInfo.ID);
-            if (Flags.decodeFlagType(nearbyFlag) == FlagType.ENEMY_SPOTTED) {
-                EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(currentLoc, nearbyFlag);
-                if (mostRecentEnemyReportRebroadcastTimestamp <= enemySpottedInfo.timestamp){
-                    mostRecentEnemyReportRebroadcastTimestamp = enemySpottedInfo.timestamp;
-                    mostRecentEnemyReportRebroadcast = nearbyFlag;
-                }else{
-                    // Check if this is too old to consider
-                    if (mostRecentEnemyReportRebroadcastTimestamp - enemySpottedInfo.timestamp > Flags.REBROADCAST_ROUND_LIMIT) {
-                        //System.out.println("TOO OLD!");
-                        return;
+            switch (Flags.decodeFlagType(nearbyFlag)){
+                case ENEMY_SPOTTED:
+                    EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(currentLoc, nearbyFlag);
+                    if (mostRecentEnemyReportRebroadcastTimestamp <= enemySpottedInfo.timestamp){
+                        mostRecentEnemyReportRebroadcastTimestamp = enemySpottedInfo.timestamp;
+                        mostRecentEnemyReportRebroadcast = nearbyFlag;
+                    }else{
+                        // Check if this is too old to consider
+                        if (mostRecentEnemyReportRebroadcastTimestamp - enemySpottedInfo.timestamp > Flags.REBROADCAST_ROUND_LIMIT) {
+                            //System.out.println("TOO OLD!");
+                            return;
+                        }
                     }
-                }
-                recordEnemy(enemySpottedInfo);
-                setEnemyLocIfCloser(enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
+                    //recordEnemy(enemySpottedInfo);
+                    setEnemyLocIfCloser(enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
+                    break;
+                case AREA_CLEAR:
+                    if (enemyLocation.isPresent()){
+                        AreaClearInfo areaClearInfo = Flags.decodeAreaClear(currentLoc, nearbyFlag);
+                        if (areaClearInfo.location.distanceSquaredTo(enemyLocation.get()) < 5) {
+                            enemyLocation = Optional.empty();
+                            System.out.println("CLEARING TARGET");
+                        }
+                    }
+                    break;
             }
         }
     }
 
     private void onNeutralNearby(RobotInfo robotInfo) throws GameActionException{
+        thisRoundNearbyNeutralCount += 1;
         if (!flagSet){
-            //System.out.println("FLAGGING NEUTRAl");
+            System.out.println("FLAGGING NEUTRAl");
             rc.setFlag(Flags.encodeNeutralEcSpotted(rc.getRoundNum(), robotInfo.location, robotInfo.conviction));
             flagSet = true;
         }
@@ -142,7 +173,7 @@ public class BotMuckraker extends BotController {
         switch (parentFlagType) {
             case ENEMY_SPOTTED:
                 EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(rc.getLocation(), parentFlag);
-                recordEnemy(enemySpottedInfo);
+                //recordEnemy(enemySpottedInfo);
                 setEnemyLocIfCloser(enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
                 break;
             default:
@@ -153,7 +184,7 @@ public class BotMuckraker extends BotController {
     private void runCircleDefense() throws GameActionException {
         if (circleLocs.size() == 0){
             //System.out.println("CIRCLE DONE");
-            currentRadius = currentRadius +4;
+            currentRadius = currentRadius +3;
             circleLocs =
                     Utilities.getFilteredCircleLocs(1, parentLoc.get().x, parentLoc.get().y, parentLoc.get(), currentRadius);
         }
@@ -179,9 +210,10 @@ public class BotMuckraker extends BotController {
             }
             //nav.bugTo(circleTargetLoc);
 
-            if (!nav.bugAndHeuristicTo(circleTargetLoc)){
-                circleTargetLoc = null;
-            }
+            nav.moveTo(circleTargetLoc);
+            //if (!nav.moveTo(circleTargetLoc)){
+            //    circleTargetLoc = null;
+            //}
             //if (!nav.bugAndDijkstraTo(circleTargetLoc)){
             //    circleTargetLoc = null;
             //}

@@ -111,6 +111,52 @@ public class Flags {
         return new EnemySpottedInfo(decodeTimestamp(flag), actualLocation, enemyType, ((flag) & 1) == 1);
     }
 
+
+    // AREA_CLEAR
+    // [23:21]     [20:17]      [16:10]        [9:3]       [2:0]
+    // flagType    timestamp    X % 128        Y % 128     unused
+
+    /**
+     * @param location of the clear area
+     * @return flag for area clear
+     */
+    public static int encodeAreaClear(int roundNum, MapLocation location) {
+        int flag = encodeFlagBase(FlagType.AREA_CLEAR, roundNum);
+        flag ^= ((location.x % 128) & 0b1111111) << 10;
+        flag ^= ((location.y % 128) & 0b1111111) << 3;
+        return flag;
+    }
+
+    /**
+     * @param flag to be decoded
+     * @return information for area clear
+     */
+    public static AreaClearInfo decodeAreaClear(MapLocation currentLoc, int flag) {
+        int xMod128 = (flag >>> 10) & 0b1111111;
+        int yMod128 = (flag >>> 3) & 0b1111111;
+        int xOffset = (currentLoc.x / 128) * 128;
+        int yOffset = (currentLoc.y / 128) * 128;
+
+        MapLocation actualLocation = new MapLocation(xMod128 + xOffset, yMod128 + yOffset);
+        MapLocation alternative = actualLocation.translate(-128, 0);
+        if (alternative.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(actualLocation)){
+            actualLocation = alternative;
+        }
+        alternative = actualLocation.translate(128, 0);
+        if (alternative.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(actualLocation)){
+            actualLocation = alternative;
+        }
+        alternative = actualLocation.translate(0, -128);
+        if (alternative.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(actualLocation)){
+            actualLocation = alternative;
+        }
+        alternative = actualLocation.translate(0, 128);
+        if (alternative.distanceSquaredTo(currentLoc) < currentLoc.distanceSquaredTo(actualLocation)){
+            actualLocation = alternative;
+        }
+        return new AreaClearInfo(decodeTimestamp(flag), actualLocation);
+    }
+
     // BOUNDARY_SPOTTED
     // Boundary spotted uses exact coordinate
     // [23:21]      [20:17]        [16:2]                [1:0]

@@ -7,9 +7,9 @@ import baseplayer2.BotEnlightenment;
 public class ECBudgetController implements ECController {
     private final RobotController rc;
     private final BotEnlightenment ec;
-    private final PIDDelta voteDelta = new PIDDelta(0.008632262739787608, 0.0005452966922399983, 8.22219339509718);
-    private final PIDDelta botDelta = new PIDDelta(0.3692316058077829, 0.923636702077396, 0.0008471261494654054);
-    private final PIDDelta hpDelta = new PIDDelta(1.882931214605141, 0.0007754124514607656, 28.876219442905626);
+    private final PIDDelta voteDelta = new PIDDelta(0.00056225329943771, 0.5181197625047697, 6.498128824758158);
+    private final PIDDelta botDelta = new PIDDelta(7.317118695202152, 0.9211522793024067, 5.205476317248733);
+    private final PIDDelta hpDelta = new PIDDelta(0.03402011743802558, 25.071294481374203, 0.005515024216498822);
     private int voteBudget;
     private int botBudget;
     private int hpBudget;
