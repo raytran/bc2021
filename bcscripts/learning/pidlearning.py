@@ -330,16 +330,16 @@ public class ECBudgetController implements ECController {
 """
 base_values = [0.001, 0.01, 0.1, 1, 5, 10, 25, 50, 100]
 initial = [50, 0.1, 0.5, 2, 0.001, 0.1, 0.1, 0.001, 1]
-prev_parameters_blue = initial # pickle.load(open('prev_blue.pkl', 'rb'))
-prev_parameters_red = initial # pickle.load(open('prev_red.pkl', 'rb'))
-win_avg_state = initial # pickle.load(open('state_values.pkl', 'rb'))
-experience_buffer = [] # pickle.load(open('experiences.pkl', 'rb'))
+prev_parameters_blue = pickle.load(open('prev_blue.pkl', 'rb'))
+prev_parameters_red = pickle.load(open('prev_red.pkl', 'rb'))
+win_avg_state = pickle.load(open('state_values.pkl', 'rb'))
+experience_buffer = pickle.load(open('experiences.pkl', 'rb'))
 
 model_arch = OrderedDict([('lin1', nn.Linear(9, 5)),
                           ('relu1', nn.ReLU()),
                           ('lin2', nn.Linear(5, 1))])
 
-q_network = nn.Sequential(model_arch) # t.load('q_func.pkl')
+q_network = t.load('q_func.pkl')
 
 
 # determines reward based on input team and stdout
