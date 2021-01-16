@@ -71,9 +71,6 @@ public class ECSpawnController implements ECController{
                 }
             }
         }
-        else{
-            //System.out.println("NOT SPAWNING THIS ROUND BECAUSE OUR BUDGET IS TOO LOW");
-        }
     }
     //Round by round hard coding / changing the spawn rates over time
     private RobotType robotToSpawn() throws GameActionException{
