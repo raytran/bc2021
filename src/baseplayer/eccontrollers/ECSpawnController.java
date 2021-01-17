@@ -30,7 +30,7 @@ public class ECSpawnController implements ECController {
         int minAmount = 11;
         prevBudget = budget;
         if(roundNum > 100 ) {
-            minAmount = roundNum - ec.getLastEnemySeen() > 250 ? (int) (MAX_BUILD_AMOUNT * Math.pow(roundNum / 1500, 2) + MIN_BUILD_AMOUNT) : MIN_BUILD_AMOUNT;
+            minAmount = ec.getSafetyEval() > 100 ? (int) (MAX_BUILD_AMOUNT * Math.pow(roundNum / 1500, 2) + MIN_BUILD_AMOUNT) : MIN_BUILD_AMOUNT;
         }
         int buildAmount = toBuild.equals(RobotType.MUCKRAKER) ? 1 : budget;
         if (toBuild.equals(RobotType.SLANDERER)){

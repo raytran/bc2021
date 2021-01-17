@@ -1,6 +1,6 @@
 package baseplayer.eccontrollers;
 
-public class PIDDelta {
+public class PIDBudgetVariable {
     private double kP;
     private double kI;
     private double kD;
@@ -10,7 +10,7 @@ public class PIDDelta {
     private double sigE;
     private double value;
 
-    public PIDDelta(double kP, double kI, double kD) {
+    public PIDBudgetVariable(double kP, double kI, double kD) {
         this.kP = kP;
         this.kI = kI;
         this.kD = kD;
@@ -21,7 +21,7 @@ public class PIDDelta {
         sigE = discount * sigE + error;
         double deltaE = error - prevError;
         prevError = error;
-        value = kP * error + kI * sigE + kD * deltaE;
+        value = Math.max(0, kP * error + kI * sigE + kD * deltaE);
     }
 
     public void setTarget(double target) { this.target = target; }
