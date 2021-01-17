@@ -1,7 +1,7 @@
 package baseplayerspawning;
 
-import baseplayerspawning.flags.*;
 import battlecode.common.*;
+import baseplayerspawning.flags.*;
 
 import java.util.Optional;
 
@@ -22,14 +22,12 @@ public class BotPolitician extends BotController {
     int mostRecentEnemyReportRebroadcast = 0;
 
     boolean targetLocIsGuess = true;
+
     boolean enemyFound = false;
     boolean flagSet = false;
-    boolean isLattice = false;
-    private boolean scout = false;
     public BotPolitician(RobotController rc) throws GameActionException {
         super(rc);
         targetLocation = Optional.empty();
-        isLattice = rc.getRoundNum() % 10 == 0;
         if (parentLoc.isPresent()){
             scoutingDirection = parentLoc.get().directionTo(rc.getLocation());
             assert scoutingDirection != null;
@@ -57,31 +55,25 @@ public class BotPolitician extends BotController {
                 bestTargetScore = 0;
             }
         }
-
-        if (isLattice){
-            System.out.println("LATTICE DEF");
-            latticeDefense();
+        if (targetLocation.isPresent()){
+            nav.moveTo(targetLocation.get());
         } else {
-            if (targetLocation.isPresent()){
-                nav.moveTo(targetLocation.get());
+            if (scoutingDirection != null) {
+                nav.spreadOut(scoutingDirection);
             } else {
-                if (scoutingDirection != null) {
-                    nav.spreadOut(scoutingDirection);
-                } else {
-                    Direction random = Utilities.randomDirection();
-                    nav.spreadOut(random);
-                }
+                Direction random = Utilities.randomDirection();
+                nav.spreadOut(random);
             }
-            // Search for boundary if we can
-            if (Clock.getBytecodesLeft() > 1000 && !enemyFound && !flagSet){
-                searchForNearbyBoundaries();
-                flagBoundaries();
-            }
+        }
+        // Search for boundary if we can
+        if (Clock.getBytecodesLeft() > 1000 && !enemyFound && !flagSet){
+            searchForNearbyBoundaries();
+            flagBoundaries();
+        }
 
-            if (!flagSet){
-                //System.out.println("REBROADCAST");
-                rc.setFlag(mostRecentEnemyReportRebroadcast);
-            }
+        if (!flagSet){
+            ////System.out.println("REBROADCAST");
+            rc.setFlag(mostRecentEnemyReportRebroadcast);
         }
 
         thisRoundNearbyEnemyCount = 0;
@@ -139,12 +131,9 @@ public class BotPolitician extends BotController {
                 setTargetLocIfBetter(rc.getTeam().opponent(), enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
                 break;
             case NEUTRAL_EC_SPOTTED:
+            case OP_SPAWNED:
                 NeutralEcSpottedInfo neutralEcSpottedInfo = Flags.decodeNeutralEcSpotted(rc.getLocation(), parentFlag);
                 setTargetLocIfBetter(Team.NEUTRAL, neutralEcSpottedInfo.location, RobotType.ENLIGHTENMENT_CENTER, false);
-            case GO_SCOUT:
-                searchForNearbyBoundaries();
-                flagBoundaries();
-                scout = true;
                 break;
             default:
                 break;
@@ -152,61 +141,58 @@ public class BotPolitician extends BotController {
     }
 
     private void onEnemyNearby(RobotInfo robotInfo) throws GameActionException {
-        if(!scout) {
-            thisRoundNearbyEnemyCount += 1;
-            setTargetLocIfBetter(robotInfo.team, robotInfo.location, robotInfo.type, false);
-            //recordEnemy(new EnemySpottedInfo(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
+        thisRoundNearbyEnemyCount += 1;
+        setTargetLocIfBetter(robotInfo.team, robotInfo.location, robotInfo.type, false);
+        //recordEnemy(new EnemySpottedInfo(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
 
-            if (!flagSet) {
-                rc.setFlag(Flags.encodeEnemySpotted(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
-                flagSet = true;
-            }
+        if (!flagSet) {
+            rc.setFlag(Flags.encodeEnemySpotted(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
+            flagSet = true;
+        }
 
-            int actionRadius = rc.getType().actionRadiusSquared;
-            if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < actionRadius) {
-                totalNearbyEnemyConviction += robotInfo.conviction;
-                if (rc.canEmpower(actionRadius) && (totalNearbyEnemyConviction > 3 || (double) rc.getConviction() / totalNearbyFriendlyConviction < 0.25)) {
-                    rc.empower(actionRadius);
-                }
+        int actionRadius = rc.getType().actionRadiusSquared;
+        if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < actionRadius){
+            totalNearbyEnemyConviction += robotInfo.conviction;
+            if (rc.canEmpower(actionRadius) && (totalNearbyEnemyConviction > 3 || (double) rc.getConviction()/totalNearbyFriendlyConviction < 0.25)) {
+                rc.empower(actionRadius);
             }
         }
     }
 
     private void onFriendlyNearby(RobotInfo robotInfo) throws GameActionException {
-        if(!scout) {
-            thisRoundNearbyFriendlyCount += 1;
-            MapLocation currentLoc = rc.getLocation();
-            totalNearbyFriendlyConviction += robotInfo.conviction;
-            if (rc.canGetFlag(robotInfo.ID)) {
-                int nearbyFlag = rc.getFlag(robotInfo.ID);
-                switch (Flags.decodeFlagType(nearbyFlag)) {
-                    case ENEMY_SPOTTED:
-                        EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(currentLoc, nearbyFlag);
-                        if (mostRecentEnemyReportRebroadcastTimestamp <= enemySpottedInfo.timestamp) {
-                            mostRecentEnemyReportRebroadcastTimestamp = enemySpottedInfo.timestamp;
-                            mostRecentEnemyReportRebroadcast = nearbyFlag;
-                        } else {
-                            // Check if this is too old to consider
-                            if (mostRecentEnemyReportRebroadcastTimestamp - enemySpottedInfo.timestamp > Flags.REBROADCAST_ROUND_LIMIT) {
-                                //System.out.println("TOO OLD!");
-                                return;
-                            }
+        thisRoundNearbyFriendlyCount += 1;
+        MapLocation currentLoc = rc.getLocation();
+        totalNearbyFriendlyConviction += robotInfo.conviction;
+        if (rc.canGetFlag(robotInfo.ID)) {
+            int nearbyFlag = rc.getFlag(robotInfo.ID);
+            switch (Flags.decodeFlagType(nearbyFlag)){
+                case ENEMY_SPOTTED:
+                    EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(currentLoc, nearbyFlag);
+                    if (mostRecentEnemyReportRebroadcastTimestamp <= enemySpottedInfo.timestamp){
+                        mostRecentEnemyReportRebroadcastTimestamp = enemySpottedInfo.timestamp;
+                        mostRecentEnemyReportRebroadcast = nearbyFlag;
+                    }else{
+                        // Check if this is too old to consider
+                        if (mostRecentEnemyReportRebroadcastTimestamp - enemySpottedInfo.timestamp > Flags.REBROADCAST_ROUND_LIMIT) {
+                            ////System.out.println("TOO OLD!");
+                            return;
                         }
-                        //recordEnemy(enemySpottedInfo);
-                        setTargetLocIfBetter(rc.getTeam().opponent(), enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
-                        break;
-                    case AREA_CLEAR:
-                        if (targetLocation.isPresent()) {
-                            AreaClearInfo areaClearInfo = Flags.decodeAreaClear(currentLoc, nearbyFlag);
-                            if (areaClearInfo.location.distanceSquaredTo(targetLocation.get()) < 5) {
-                                targetLocation = Optional.empty();
-                                System.out.println("CLEARING TARGET");
-                            }
+                    }
+                    //recordEnemy(enemySpottedInfo);
+                    setTargetLocIfBetter(rc.getTeam().opponent(), enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
+                    break;
+                case AREA_CLEAR:
+                    if (targetLocation.isPresent()){
+                        AreaClearInfo areaClearInfo = Flags.decodeAreaClear(currentLoc, nearbyFlag);
+                        if (areaClearInfo.location.distanceSquaredTo(targetLocation.get()) < 5) {
+                            targetLocation = Optional.empty();
+                            //System.out.println("CLEARING TARGET");
                         }
-                        break;
-                }
+                    }
+                    break;
             }
         }
+
     }
 
     private void onNeutralNearby(RobotInfo robotInfo) throws GameActionException {
@@ -221,59 +207,6 @@ public class BotPolitician extends BotController {
         if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < 4
                 && rc.canEmpower(4)) {
             rc.empower(4);
-        }
-    }
-
-    final static int[][] offsets = {{2,4},{3,1},{4,-2},{1,-3},{-2,-4},{-3,-1},{-4,2},{-1,3}};
-    static boolean inGrid = false;
-    static MapLocation latticeLoc;
-    private void latticeDefense() throws GameActionException {
-        if (!inGrid) {
-            if (latticeLoc == null) {
-                int closestDist = Integer.MAX_VALUE;
-                MapLocation closestBot = null;
-                for (RobotInfo robotInfo : rc.senseNearbyRobots()){
-                    if (robotInfo.type == RobotType.ENLIGHTENMENT_CENTER || rc.getFlag(robotInfo.ID) == 1){
-                        if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < closestDist){
-                            closestDist = robotInfo.location.distanceSquaredTo(rc.getLocation());
-                            closestBot = robotInfo.location;
-                        }
-                    }
-                }
-
-                if (closestBot != null){
-                    for (int[] offset : offsets){
-                        MapLocation possible = closestBot.translate(offset[0], offset[1]);
-                        if (rc.canSenseLocation(possible) && rc.onTheMap(possible) && !rc.isLocationOccupied(possible)){
-                            latticeLoc = possible;
-                        }
-                    }
-                }
-            }
-
-            if (latticeLoc == null){
-                if (parentLoc.isPresent())
-                    nav.fuzzyMove(parentLoc.get().directionTo(rc.getLocation()));
-                else
-                    nav.fuzzyMove(Utilities.randomDirection());
-            }else{
-                nav.moveTo(latticeLoc);
-                if (rc.getLocation().equals(latticeLoc)){
-                    rc.setFlag(1);
-                    flagSet = true;
-                    inGrid = true;
-                }else if (rc.canSenseLocation(latticeLoc)
-                        && rc.isLocationOccupied(latticeLoc)
-                        && rc.getFlag(rc.senseRobotAtLocation(latticeLoc).ID) == 1){
-                    MapLocation original = rc.senseRobotAtLocation(latticeLoc).location;
-                    for (int[] offset : offsets){
-                        MapLocation possible = original.translate(offset[0], offset[1]);
-                        if (rc.canSenseLocation(possible) && rc.onTheMap(possible) && !rc.isLocationOccupied(possible)){
-                            latticeLoc = possible;
-                        }
-                    }
-                }
-            }
         }
     }
 }

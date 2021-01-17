@@ -8,8 +8,8 @@ public class ECSpawnController implements ECController {
     private static double MUCKRAKER_RATE = 0.5;
     private static double SLANDERER_RATE = 0.3;
     private final int[] SLANDERER_VALUES = {21, 42, 63, 85, 107, 130, 154, 178, 203, 228, 255, 282, 310, 339, 368, 399, 431, 463, 497};
-    private final int MAX_BUILD_AMOUNT = 500;
-    private final int MIN_BUILD_AMOUNT = 20;
+    private final int MAX_BUILD_AMOUNT = 250;
+    private final int MIN_BUILD_AMOUNT = 11;
     private final RobotController rc;
     private final BotEnlightenment ec;
     private final ECBudgetController bc;
@@ -17,6 +17,7 @@ public class ECSpawnController implements ECController {
     private int prevBudget = 0;
     private boolean opPoliticianNeeded = false;
     private int opAmount = 0;
+    private int numSpawned = 0;
     public ECSpawnController(RobotController rc, BotEnlightenment ec, ECBudgetController bc) {
         this.rc = rc;
         this.ec = ec;
@@ -30,11 +31,14 @@ public class ECSpawnController implements ECController {
         int roundNum = rc.getRoundNum();
         boolean givenOne = budget - prevBudget == 1;
         prevBudget = budget;
-        // if only given one influence to spend, spawn MUCKRAKER
         toBuild = givenOne ? RobotType.MUCKRAKER : toBuild;
         int buildAmount = toBuild.equals(RobotType.MUCKRAKER) ? 1 : budget;
-        int minAmount = roundNum - ec.getSafetyEval() > 250 ? (int) (MAX_BUILD_AMOUNT * Math.pow(roundNum/2999., 2) + MIN_BUILD_AMOUNT) : MIN_BUILD_AMOUNT;
-
+        int minAmount = 11;
+        if(numSpawned > 20)
+            minAmount = roundNum - ec.getSafetyEval() > 100 ? (int) (MAX_BUILD_AMOUNT * Math.pow(roundNum/1500.0, 2) + MIN_BUILD_AMOUNT) : MIN_BUILD_AMOUNT;
+        if(numSpawned <= 0){
+            minAmount = (int) (rc.getInfluence() * 0.5);
+        }
         if (toBuild.equals(RobotType.SLANDERER)){
             int i = 0;
             while (minAmount > SLANDERER_VALUES[i] && i < 18){
@@ -42,64 +46,62 @@ public class ECSpawnController implements ECController {
             }
             buildAmount = SLANDERER_VALUES[i];
         }
-        if(rc.getRoundNum() > 400 && toBuild.equals(RobotType.POLITICIAN) && ec.getThisRoundNeutralEcSpottedInfo().isPresent()){
-          //  rc.setIndicatorDot(rc.getLocation(),255,0,0);
+        if(toBuild.equals(RobotType.POLITICIAN) && ec.getThisRoundNeutralEcSpottedInfo().isPresent()){
             opPoliticianNeeded = true;
-            opAmount = (int) (ec.getThisRoundNeutralEcSpottedInfo().get().conviction * 1.05);
+            opAmount = (int) (ec.getThisRoundNeutralEcSpottedInfo().get().conviction * 1.25);
+            opAmount = (opAmount < rc.getInfluence() / 2)? opAmount : (int) (opAmount * 0.5);
             buildAmount = opAmount;
-            //System.out.println("Trying to spawn the super politicians with " + buildAmount + " Influence");
         }
         if(opPoliticianNeeded){
             buildAmount = opAmount;
         }
-
-        if(buildAmount > minAmount || toBuild.equals(RobotType.MUCKRAKER)) {
+        if(buildAmount >= minAmount || toBuild.equals(RobotType.MUCKRAKER)) {
             for (int i = 0; i < 8; i++) {
-                //TODO This line is causing us not to spawn every turn we are not spawning even if it costs 1
                 if (rc.canBuildRobot(toBuild, nextSpawnDirection, buildAmount)) {
                     //Built the robot, add id to total
                     rc.buildRobot(toBuild, nextSpawnDirection, buildAmount);
                     bc.withdrawBudget(this, buildAmount);
                     ec.recordSpawn(rc.senseRobotAtLocation(rc.getLocation().add(nextSpawnDirection)).ID, robotToSpawn());
-                    if(opPoliticianNeeded) {
+                    if (opPoliticianNeeded) {
                         ec.setOpSpawned(true);
                         opPoliticianNeeded = false;
                     }
+                    numSpawned++;
                     break;
-                }
-                else{
+                } else {
                     nextSpawnDirection = nextSpawnDirection.rotateRight();
                 }
             }
         }
+
     }
     //Round by round hard coding / changing the spawn rates over time
     private RobotType robotToSpawn() throws GameActionException{
         int roundNum = rc.getRoundNum();
-        if (roundNum < 18 / rc.sensePassability(rc.getLocation())) {
+        if(numSpawned <= 0){
+            return RobotType.SLANDERER;
+        }
+        if (numSpawned < 9 ) {
             MUCKRAKER_RATE = 1.0;
             POLITICIAN_RATE = 0.0;
             SLANDERER_RATE = 0.0;
         }
-        if (roundNum >= 18 / rc.sensePassability(rc.getLocation()) && roundNum <= 1200 ){
+        //"Normal" Rates
+        if (numSpawned > 9 && roundNum <= 1500 ){
             MUCKRAKER_RATE = 0.35;
             POLITICIAN_RATE = 0.35;
             SLANDERER_RATE = 0.3;
         }
-       if(roundNum > 1200) {
-            MUCKRAKER_RATE = 0;
-            POLITICIAN_RATE = 1;
-            SLANDERER_RATE = 0.0;
-        }
-        //Special conditions
         RobotInfo[] robots = rc.senseNearbyRobots(RobotType.ENLIGHTENMENT_CENTER.sensorRadiusSquared,rc.getTeam().opponent());
         for(RobotInfo robot : robots){
             if(robot.getType() == RobotType.MUCKRAKER){
-                ////System.out.println("Disabled Slanderer spawning");
-                MUCKRAKER_RATE = 0.25;
-                POLITICIAN_RATE = 0.75;
-                SLANDERER_RATE = 0.0;
+                MUCKRAKER_RATE = 0.35;
+                POLITICIAN_RATE = 0.65;
+                SLANDERER_RATE = -1;
             }
+        }
+        if(ec.getSafetyEval() < 0){
+            return RobotType.POLITICIAN;
         }
         if(ec.getThisRoundNeutralEcSpottedInfo().isPresent()){
             opPoliticianNeeded = true;

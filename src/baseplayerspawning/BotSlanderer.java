@@ -16,7 +16,7 @@ public class BotSlanderer extends BotController {
     @Override
     public BotController run() throws GameActionException {
         senseNearbyRobots(this::onNearbyEnemy, this::onNearbyFriendly, this::onNearbyNeutral);
-        if (targetLoc == null){
+        if (age > 1 && targetLoc == null){
             nav.spreadOut(awayFromEnemy);
         }else{
             nav.moveTo(targetLoc);
@@ -26,11 +26,6 @@ public class BotSlanderer extends BotController {
             return BotPolitician.fromSlanderer(this);
         }
 
-        // Search for boundary if we can
-        if (Clock.getBytecodesLeft() > 1000) {
-            searchForNearbyBoundaries();
-            flagBoundaries();
-        }
         closest = Integer.MAX_VALUE;
         flagSet = false;
         return this;

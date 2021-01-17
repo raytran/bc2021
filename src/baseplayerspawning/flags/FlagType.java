@@ -7,6 +7,7 @@ public enum FlagType {
     AREA_CLEAR,
     BOUNDARY_SPOTTED,
     GO_SCOUT,
+    OP_SPAWNED,
     ASSISTANCE_REQUIRED;
     public static final FlagType[] values = values();
 }
