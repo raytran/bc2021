@@ -1,11 +1,11 @@
-package baseplayermicro;
+package baseplayerspawning;
 
-import baseplayermicro.flags.Flags;
+import baseplayerspawning.flags.Flags;
 import battlecode.common.*;
-import baseplayermicro.GroupInfo;
 
 public class BotSlanderer extends BotController {
     Direction awayFromEnemy;
+    MapLocation targetLoc;
     int closest = Integer.MAX_VALUE;
     boolean flagSet = false;
     public BotSlanderer(RobotController rc) throws GameActionException {
@@ -15,39 +15,24 @@ public class BotSlanderer extends BotController {
 
     @Override
     public BotController run() throws GameActionException {
-        parentID.ifPresent(this::setGroup);
-        Direction targetDir = Direction.CENTER;
         senseNearbyRobots(this::onNearbyEnemy, this::onNearbyFriendly, this::onNearbyNeutral);
-        nav.spreadOut(awayFromEnemy);
+        if (targetLoc == null){
+            nav.spreadOut(awayFromEnemy);
+        }else{
+            nav.moveTo(targetLoc);
+        }
         if (rc.getType() == RobotType.POLITICIAN){
             // Just converted; return a politician controller instead
             return BotPolitician.fromSlanderer(this);
         }
-        int groupMembers = 0;
-        int groupDist = 0;
-        for (RobotInfo robotInfo : rc.senseNearbyRobots()){
-            if (robotInfo.team.equals(rc.getTeam().opponent())){
-            } else {
-                GroupInfo groupInfo = Flags.decodeGroupFlag(rc.getFlag(robotInfo.ID));
-                if (groupInfo.group == getGroup()){
-                    groupDist = Math.max(rc.getLocation().distanceSquaredTo(robotInfo.location), groupDist);
-                    groupMembers += 1;
 
-                    if (groupInfo.dir != Direction.CENTER) targetDir = groupInfo.dir;
-                }
-            }
+        // Search for boundary if we can
+        if (Clock.getBytecodesLeft() > 1000) {
+            searchForNearbyBoundaries();
+            flagBoundaries();
         }
-
-        if (groupMembers == 2 && groupDist < 7)
-            if (targetDir != Direction.CENTER)
-                nav.fuzzyMove(targetDir);
-            else
-                nav.fuzzyMove(parentLoc.get().directionTo(rc.getLocation()));
-
-        System.out.println("I AM IN GROUP " + getGroup() + " WITH " + groupMembers);
-        age += 1;
-        rc.setFlag(getGroup());
-
+        closest = Integer.MAX_VALUE;
+        flagSet = false;
         return this;
     }
 
@@ -63,6 +48,11 @@ public class BotSlanderer extends BotController {
     }
 
     private void onNearbyFriendly(RobotInfo robotInfo) throws GameActionException {
+        if (rc.canGetFlag(robotInfo.ID)){
+            if (rc.getFlag(robotInfo.ID) == 1){
+                targetLoc = robotInfo.location;
+            }
+        }
 
     }
 

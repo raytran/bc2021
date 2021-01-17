@@ -1,6 +1,6 @@
-package baseplayermicro;
+package baseplayerspawning;
 
-import baseplayermicro.flags.*;
+import baseplayerspawning.flags.*;
 import battlecode.common.*;
 
 import java.util.Optional;
@@ -22,12 +22,14 @@ public class BotPolitician extends BotController {
     int mostRecentEnemyReportRebroadcast = 0;
 
     boolean targetLocIsGuess = true;
-    private boolean scout = false;
     boolean enemyFound = false;
     boolean flagSet = false;
+    boolean isLattice = false;
+    private boolean scout = false;
     public BotPolitician(RobotController rc) throws GameActionException {
         super(rc);
         targetLocation = Optional.empty();
+        isLattice = rc.getRoundNum() % 10 == 0;
         if (parentLoc.isPresent()){
             scoutingDirection = parentLoc.get().directionTo(rc.getLocation());
             assert scoutingDirection != null;
@@ -55,25 +57,31 @@ public class BotPolitician extends BotController {
                 bestTargetScore = 0;
             }
         }
-        if (targetLocation.isPresent()){
-            nav.moveTo(targetLocation.get());
-        } else {
-            if (scoutingDirection != null) {
-                nav.spreadOut(scoutingDirection);
-            } else {
-                Direction random = Utilities.randomDirection();
-                nav.spreadOut(random);
-            }
-        }
-        // Search for boundary if we can
-        if (Clock.getBytecodesLeft() > 1000 && !enemyFound && !flagSet){
-            searchForNearbyBoundaries();
-            flagBoundaries();
-        }
 
-        if (!flagSet){
-            //System.out.println("REBROADCAST");
-            rc.setFlag(mostRecentEnemyReportRebroadcast);
+        if (isLattice){
+            System.out.println("LATTICE DEF");
+            latticeDefense();
+        } else {
+            if (targetLocation.isPresent()){
+                nav.moveTo(targetLocation.get());
+            } else {
+                if (scoutingDirection != null) {
+                    nav.spreadOut(scoutingDirection);
+                } else {
+                    Direction random = Utilities.randomDirection();
+                    nav.spreadOut(random);
+                }
+            }
+            // Search for boundary if we can
+            if (Clock.getBytecodesLeft() > 1000 && !enemyFound && !flagSet){
+                searchForNearbyBoundaries();
+                flagBoundaries();
+            }
+
+            if (!flagSet){
+                //System.out.println("REBROADCAST");
+                rc.setFlag(mostRecentEnemyReportRebroadcast);
+            }
         }
 
         thisRoundNearbyEnemyCount = 0;
@@ -126,25 +134,19 @@ public class BotPolitician extends BotController {
         FlagType parentFlagType = Flags.decodeFlagType(parentFlag);
         switch (parentFlagType) {
             case ENEMY_SPOTTED:
-                if(!scout) {
-                    EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(rc.getLocation(), parentFlag);
-                    //recordEnemy(enemySpottedInfo);
-                    setTargetLocIfBetter(rc.getTeam().opponent(), enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
-                }
+                EnemySpottedInfo enemySpottedInfo = Flags.decodeEnemySpotted(rc.getLocation(), parentFlag);
+                //recordEnemy(enemySpottedInfo);
+                setTargetLocIfBetter(rc.getTeam().opponent(), enemySpottedInfo.location, enemySpottedInfo.enemyType, enemySpottedInfo.isGuess);
                 break;
             case NEUTRAL_EC_SPOTTED:
-                if(!scout) {
-                    NeutralEcSpottedInfo neutralEcSpottedInfo = Flags.decodeNeutralEcSpotted(rc.getLocation(), parentFlag);
-                    setTargetLocIfBetter(Team.NEUTRAL, neutralEcSpottedInfo.location, RobotType.ENLIGHTENMENT_CENTER, false);
-                }
-                break;
+                NeutralEcSpottedInfo neutralEcSpottedInfo = Flags.decodeNeutralEcSpotted(rc.getLocation(), parentFlag);
+                setTargetLocIfBetter(Team.NEUTRAL, neutralEcSpottedInfo.location, RobotType.ENLIGHTENMENT_CENTER, false);
             case GO_SCOUT:
                 searchForNearbyBoundaries();
                 flagBoundaries();
                 scout = true;
                 break;
             default:
-                runFollower();
                 break;
         }
     }
@@ -206,6 +208,7 @@ public class BotPolitician extends BotController {
             }
         }
     }
+
     private void onNeutralNearby(RobotInfo robotInfo) throws GameActionException {
         thisRoundNearbyNeutralCount += 1;
         if (!flagSet) {
@@ -219,6 +222,58 @@ public class BotPolitician extends BotController {
                 && rc.canEmpower(4)) {
             rc.empower(4);
         }
+    }
 
+    final static int[][] offsets = {{2,4},{3,1},{4,-2},{1,-3},{-2,-4},{-3,-1},{-4,2},{-1,3}};
+    static boolean inGrid = false;
+    static MapLocation latticeLoc;
+    private void latticeDefense() throws GameActionException {
+        if (!inGrid) {
+            if (latticeLoc == null) {
+                int closestDist = Integer.MAX_VALUE;
+                MapLocation closestBot = null;
+                for (RobotInfo robotInfo : rc.senseNearbyRobots()){
+                    if (robotInfo.type == RobotType.ENLIGHTENMENT_CENTER || rc.getFlag(robotInfo.ID) == 1){
+                        if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < closestDist){
+                            closestDist = robotInfo.location.distanceSquaredTo(rc.getLocation());
+                            closestBot = robotInfo.location;
+                        }
+                    }
+                }
+
+                if (closestBot != null){
+                    for (int[] offset : offsets){
+                        MapLocation possible = closestBot.translate(offset[0], offset[1]);
+                        if (rc.canSenseLocation(possible) && rc.onTheMap(possible) && !rc.isLocationOccupied(possible)){
+                            latticeLoc = possible;
+                        }
+                    }
+                }
+            }
+
+            if (latticeLoc == null){
+                if (parentLoc.isPresent())
+                    nav.fuzzyMove(parentLoc.get().directionTo(rc.getLocation()));
+                else
+                    nav.fuzzyMove(Utilities.randomDirection());
+            }else{
+                nav.moveTo(latticeLoc);
+                if (rc.getLocation().equals(latticeLoc)){
+                    rc.setFlag(1);
+                    flagSet = true;
+                    inGrid = true;
+                }else if (rc.canSenseLocation(latticeLoc)
+                        && rc.isLocationOccupied(latticeLoc)
+                        && rc.getFlag(rc.senseRobotAtLocation(latticeLoc).ID) == 1){
+                    MapLocation original = rc.senseRobotAtLocation(latticeLoc).location;
+                    for (int[] offset : offsets){
+                        MapLocation possible = original.translate(offset[0], offset[1]);
+                        if (rc.canSenseLocation(possible) && rc.onTheMap(possible) && !rc.isLocationOccupied(possible)){
+                            latticeLoc = possible;
+                        }
+                    }
+                }
+            }
+        }
     }
 }

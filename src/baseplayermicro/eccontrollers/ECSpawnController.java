@@ -7,14 +7,15 @@ public class ECSpawnController implements ECController {
     private final int[] SLANDERER_VALUES = {21, 42, 63, 85, 107, 130, 154, 178, 203, 228, 255, 282, 310, 339, 368, 399, 431, 463, 497};
     private final int MAX_BUILD_AMOUNT = 500;
     private final int MIN_BUILD_AMOUNT = 20;
-    private static double POLITICIAN_RATE = 0.35;
-    private static double MUCKRAKER_RATE = 0.35;
-    private static double SLANDERER_RATE = 0.30;
+    private static final RobotType[] robotQueue = {RobotType.SLANDERER,RobotType.POLITICIAN,RobotType.MUCKRAKER};
     private final RobotController rc;
     private final BotEnlightenment ec;
     private final ECBudgetController bc;
     private Direction nextSpawnDirection = Direction.NORTH;
     private int prevBudget = 0;
+    private int numSpawned = 0;
+    private int currentSpawnIndex = 0;
+    private boolean bigPoliticianNeeded = false;
     public ECSpawnController(RobotController rc, BotEnlightenment ec, ECBudgetController bc) {
         this.rc = rc;
         this.ec = ec;
@@ -29,8 +30,9 @@ public class ECSpawnController implements ECController {
         boolean givenOne = budget - prevBudget == 1;
         int minAmount = 11;
         prevBudget = budget;
-        if(roundNum > 100 ) {
-            minAmount = roundNum - ec.getLastEnemySeen() > 250 ? (int) (MAX_BUILD_AMOUNT * Math.pow(roundNum / 1500, 2) + MIN_BUILD_AMOUNT) : MIN_BUILD_AMOUNT;
+        if(budget == 1) toBuild = RobotType.MUCKRAKER;
+        if(numSpawned > 24 ){
+            minAmount = roundNum - ec.getLastEnemySeen() > 250 ? (int) (MAX_BUILD_AMOUNT * Math.pow(roundNum / 3000, 2) + MIN_BUILD_AMOUNT) : MIN_BUILD_AMOUNT;
         }
         int buildAmount = toBuild.equals(RobotType.MUCKRAKER) ? 1 : budget;
         if (toBuild.equals(RobotType.SLANDERER)){
@@ -40,8 +42,11 @@ public class ECSpawnController implements ECController {
             }
             buildAmount = SLANDERER_VALUES[i];
         }
-        if(roundNum <= 16 / rc.sensePassability(rc.getLocation())){
-            buildAmount = 11;
+        //if(numSpawned < 8){
+          //  buildAmount = 11;
+        //}
+        if(bigPoliticianNeeded && ec.getThisRoundNeutralEcSpottedInfo().isPresent()){
+            //buildAmount = ec.getThisRoundNeutralEcSpottedInfo().get().conviction + 10;
         }
         if(buildAmount >= minAmount || toBuild.equals(RobotType.MUCKRAKER)) {
             for (int i = 0; i < 8; i++) {
@@ -49,44 +54,30 @@ public class ECSpawnController implements ECController {
                     rc.buildRobot(toBuild, nextSpawnDirection, buildAmount);
                     bc.withdrawBudget(this, buildAmount);
                     ec.recordSpawn(rc.senseRobotAtLocation(rc.getLocation().add(nextSpawnDirection)).ID, robotToSpawn());
+                    currentSpawnIndex = (currentSpawnIndex == 3) ? 0 : ++currentSpawnIndex;
+                    numSpawned++;
+                    bigPoliticianNeeded = false;
                     break;
                 } else {
                     nextSpawnDirection = nextSpawnDirection.rotateRight();
                 }
             }
         }
+        rc.setFlag(numSpawned/3 + (numSpawned % 3));
     }
     //Round by round hard coding / changing the spawn rates over time
     private RobotType robotToSpawn() throws GameActionException{
-        int roundNumber = rc.getRoundNum();
-        //Spawn 8 Politicians early for scouting
-        if(roundNumber <= 16 / rc.sensePassability(rc.getLocation())){
+        //Do the special checks
+        if(ec.getSafetyEval() < 0){
             return RobotType.POLITICIAN;
         }
-        //Do the checks for safety
-        if(ec.getSafetyEval() < 0 ){
-            POLITICIAN_RATE = 0.75;
-            MUCKRAKER_RATE = 0.25;
-            SLANDERER_RATE = 0;
-            System.out.println("VERY BAD");
+        if(ec.getThisRoundNeutralEcSpottedInfo().isPresent()){
+            bigPoliticianNeeded = true;
+            return RobotType.POLITICIAN;
         }
-        else if(ec.getThisRoundNeutralEcSpottedInfo().isPresent()){
-            POLITICIAN_RATE = 1.0;
-            MUCKRAKER_RATE = 0.0;
-            SLANDERER_RATE = 0.0;
-        }
-        else{
-            POLITICIAN_RATE = 0.45;
-            MUCKRAKER_RATE = 0.10;
-            SLANDERER_RATE = 0.45;
-        }
-        if((double) ec.getSlandererCount() / ec.getLocalRobotCount() < SLANDERER_RATE){
-            return RobotType.SLANDERER;
-        }
-        else if((double)ec.getMuckrakerCount() /  ec.getLocalRobotCount()  < MUCKRAKER_RATE){
+        if(numSpawned < 8){
             return RobotType.MUCKRAKER;
         }
-        else return RobotType.POLITICIAN;
-
+        else return robotQueue[currentSpawnIndex];
     }
 }

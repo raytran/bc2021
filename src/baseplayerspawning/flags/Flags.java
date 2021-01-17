@@ -1,9 +1,7 @@
-package baseplayermicro.flags;
+package baseplayerspawning.flags;
 
-import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotType;
-import baseplayermicro.GroupInfo;
 
 /**
  * Abstracts the flag system for the game
@@ -183,14 +181,6 @@ public class Flags {
     }
 
     /**
-     * Returns go scout flag
-     * @param roundNum current round number
-     * @return a blank flag with type GO_SCOUT
-     */
-    public static int encodeGoScout(int roundNum){
-        return encodeFlagBase(FlagType.GO_SCOUT,roundNum);
-    }
-    /**
      * @param flag to be decoded
      * @return the type of the flag
      */
@@ -206,18 +196,20 @@ public class Flags {
         return ((flag >> TIMESTAMP_SHIFT) & 0b1111) * 200;
     }
 
+    /**
+     * Returns go scout flag
+     * @param roundNum current round number
+     * @return a blank flag with type GO_SCOUT
+     */
+    public static int encodeGoScout(int roundNum){
+        return encodeFlagBase(FlagType.GO_SCOUT,roundNum);
+    }
     private static int encodeFlagBase(FlagType type, int roundNum) {
         return (type.ordinal() << FLAGTYPE_SHIFT) ^ (((roundNum/200) & 0b1111)  << TIMESTAMP_SHIFT);
     }
+
     private static int signExtend(int num, int bitWidth) {
         // Shift bits to the front, then shift back with signed right shift
         return (num << (32 - bitWidth)) >> (32 - bitWidth);
-    }
-    public static int encodeGroupFlag(int groupNum, Direction targetDir) {
-        return (targetDir.ordinal() << 10) ^ (groupNum & 0b111111);
-    }
-
-    public static GroupInfo decodeGroupFlag(int flag) {
-        return new GroupInfo(flag & 0b111111, Direction.values()[flag >> 10]);
     }
 }

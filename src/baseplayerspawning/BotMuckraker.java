@@ -1,9 +1,9 @@
-package baseplayermicro;
+package baseplayerspawning;
 
-import baseplayermicro.flags.AreaClearInfo;
-import baseplayermicro.flags.EnemySpottedInfo;
-import baseplayermicro.flags.FlagType;
-import baseplayermicro.flags.Flags;
+import baseplayerspawning.flags.AreaClearInfo;
+import baseplayerspawning.flags.EnemySpottedInfo;
+import baseplayerspawning.flags.FlagType;
+import baseplayerspawning.flags.Flags;
 import battlecode.common.*;
 
 import java.util.List;
@@ -55,7 +55,27 @@ public class BotMuckraker extends BotController {
                 enemyLocation = Optional.empty();
             }
         }
-        runFollower();
+        //if (isDefending){
+         //   runCircleDefense();
+        //} else {
+            if (enemyLocation.isPresent()){
+                nav.moveTo(enemyLocation.get());
+                //nav.bugTo(enemyLocation.get());
+            } else {
+                if (scoutingDirection != null) {
+                    if (!rc.onTheMap(rc.getLocation().add(scoutingDirection))
+                        || rc.isLocationOccupied(rc.getLocation().add(scoutingDirection))){
+                        scoutingDirection = Utilities.randomDirection();
+                    }
+                    if (rc.canMove(scoutingDirection)){
+                        rc.move(scoutingDirection);
+                    }
+                } else {
+                    Direction random = Utilities.randomDirection();
+                    nav.spreadOut(random);
+                }
+            }
+        //}
 
         // Search for boundary if we can
         if (Clock.getBytecodesLeft() > 1000 && !enemyFound && !flagSet){

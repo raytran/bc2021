@@ -1,18 +1,16 @@
-package baseplayermicro;
+package baseplayerspawning;
 
-import baseplayermicro.ds.CircularLinkedList;
-import baseplayermicro.flags.BoundaryType;
-import baseplayermicro.flags.EnemySpottedInfo;
-import baseplayermicro.flags.Flags;
-import baseplayermicro.nav.NavigationController;
+import baseplayerspawning.ds.CircularLinkedList;
+import baseplayerspawning.flags.BoundaryType;
+import baseplayerspawning.flags.EnemySpottedInfo;
+import baseplayerspawning.flags.Flags;
+import baseplayerspawning.nav.NavigationController;
 import battlecode.common.*;
-import baseplayermicro.GroupInfo;
 
 import java.util.*;
 
 public abstract class BotController {
     private final List<EnemySpottedInfo> reportedEnemies = new LinkedList<>();
-    private int group = -1;
     Optional<Integer> parentID = Optional.empty();
     Optional<MapLocation> parentLoc = Optional.empty();
     Optional<Integer> northBoundary;
@@ -266,33 +264,4 @@ public abstract class BotController {
             }
         }
     }
-    public void runFollower() throws GameActionException {
-        if(parentID.isPresent())
-        group = rc.getFlag(parentID.get());
-        int closetEnemyDist = Integer.MAX_VALUE;
-        Direction targetDir = Direction.CENTER;
-        MapLocation targetLoc = null;
-        for (RobotInfo robotInfo : rc.senseNearbyRobots()){
-            if (robotInfo.team.equals(rc.getTeam())){
-                if (rc.canGetFlag(robotInfo.ID)) {
-                    GroupInfo groupInfo = Flags.decodeGroupFlag(rc.getFlag(robotInfo.ID));
-                    if (groupInfo.group == group){
-                        if (targetLoc == null || robotInfo.type == RobotType.SLANDERER)
-                            targetLoc = robotInfo.location;
-                    }
-                }
-            } else if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < closetEnemyDist) {
-                closetEnemyDist = robotInfo.location.distanceSquaredTo(rc.getLocation());
-                targetDir = robotInfo.location.directionTo(rc.getLocation());
-            }
-        }
-        if (targetLoc != null)
-            nav.moveTo(targetLoc);
-        System.out.println("I AM IN GROUP " + group + " MOVING TO " + targetLoc);
-        age += 1;
-        rc.setFlag(Flags.encodeGroupFlag(group, targetDir));
-
-    }
-    public int getGroup(){return group; }
-    public void setGroup(int group){this.group = group;}
 }
