@@ -5,6 +5,7 @@ import battlecode.common.*;
 
 public class BotSlanderer extends BotController {
     Direction awayFromEnemy;
+    MapLocation targetLoc;
     int closest = Integer.MAX_VALUE;
     boolean flagSet = false;
     public BotSlanderer(RobotController rc) throws GameActionException {
@@ -15,7 +16,11 @@ public class BotSlanderer extends BotController {
     @Override
     public BotController run() throws GameActionException {
         senseNearbyRobots(this::onNearbyEnemy, this::onNearbyFriendly, this::onNearbyNeutral);
-        nav.spreadOut(awayFromEnemy);
+        if (targetLoc == null){
+            nav.spreadOut(awayFromEnemy);
+        }else{
+            nav.moveTo(targetLoc);
+        }
         if (rc.getType() == RobotType.POLITICIAN){
             // Just converted; return a politician controller instead
             return BotPolitician.fromSlanderer(this);
@@ -43,6 +48,11 @@ public class BotSlanderer extends BotController {
     }
 
     private void onNearbyFriendly(RobotInfo robotInfo) throws GameActionException {
+        if (rc.canGetFlag(robotInfo.ID)){
+            if (rc.getFlag(robotInfo.ID) == 1){
+                targetLoc = robotInfo.location;
+            }
+        }
 
     }
 

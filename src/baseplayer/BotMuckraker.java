@@ -53,9 +53,9 @@ public class BotMuckraker extends BotController {
                 enemyLocation = Optional.empty();
             }
         }
-        if (isDefending){
-            runCircleDefense();
-        } else {
+        //if (isDefending){
+         //   runCircleDefense();
+        //} else {
             if (enemyLocation.isPresent()){
                 nav.moveTo(enemyLocation.get());
                 //nav.bugTo(enemyLocation.get());
@@ -73,7 +73,7 @@ public class BotMuckraker extends BotController {
                     nav.spreadOut(random);
                 }
             }
-        }
+        //}
 
         // Search for boundary if we can
         if (Clock.getBytecodesLeft() > 1000 && !enemyFound && !flagSet){
