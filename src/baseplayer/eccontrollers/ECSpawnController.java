@@ -29,11 +29,8 @@ public class ECSpawnController implements ECController {
         int roundNum = rc.getRoundNum();
         boolean givenOne = budget - prevBudget == 1;
         prevBudget = budget;
-
-        // if only given one influence to spend, spawn MUCKRAKER
-        toBuild = givenOne ? RobotType.MUCKRAKER : toBuild;
         int buildAmount = toBuild.equals(RobotType.MUCKRAKER) ? 1 : budget;
-        int minAmount = roundNum - ec.getLastEnemySeen() > 250 ? (int) (MAX_BUILD_AMOUNT * Math.pow(roundNum/2999., 2) + MIN_BUILD_AMOUNT) : MIN_BUILD_AMOUNT;
+        int minAmount = ec.getSafetyEval() > 100 ? (int) (MAX_BUILD_AMOUNT * Math.pow(roundNum / 1500, 2) + MIN_BUILD_AMOUNT) : MIN_BUILD_AMOUNT;
 
         if (toBuild.equals(RobotType.SLANDERER)){
             int i = 0;
