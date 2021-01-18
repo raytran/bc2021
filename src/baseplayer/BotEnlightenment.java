@@ -29,6 +29,7 @@ public class BotEnlightenment extends BotController {
     private double avgBotChange = 0;
     private double avgInfluenceChange = 0;
     private Optional<NeutralEcSpottedInfo> thisRoundNeutralEcSpottedInfo = Optional.empty();
+    private boolean opSpawned = false;
 
 
     public BotEnlightenment(RobotController rc) throws GameActionException {
@@ -192,4 +193,10 @@ public class BotEnlightenment extends BotController {
     public void setAvgInfluenceChange(double newAvg) { avgInfluenceChange = newAvg; }
 
     public double getAvgInfluenceChange() { return avgInfluenceChange; }
+    public boolean getOpSpawned(){
+        return opSpawned;
+    }
+    public void setOpSpawned(boolean spawned){
+        opSpawned = spawned;
+    }
 }

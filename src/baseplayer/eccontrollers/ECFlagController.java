@@ -106,6 +106,9 @@ public class ECFlagController implements ECController {
                 int targetY = ec.getNorthBoundary().get() - yDelta;
                 rc.setFlag(Flags.encodeEnemySpotted(rc.getRoundNum(), new MapLocation(rc.getLocation().x, targetY), RobotType.ENLIGHTENMENT_CENTER, true));
             }
+            if(ec.getOpSpawned() && ec.getThisRoundNeutralEcSpottedInfo().isPresent()){
+                rc.setFlag(baseplayerspawning.flags.Flags.encodeOpSpawned(ec.getThisRoundNeutralEcSpottedInfo().get().timestamp, ec.getThisRoundNeutralEcSpottedInfo().get().location, ec.getThisRoundNeutralEcSpottedInfo().get().conviction));
+            }
         }
     }
 }
