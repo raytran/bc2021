@@ -72,7 +72,10 @@ public class ECFlagController implements ECController {
                             }
                             break;
                         case NEUTRAL_EC_SPOTTED:
-                            ec.setThisRoundNeutralEcSpottedInfo(Optional.of(Flags.decodeNeutralEcSpotted(rc.getLocation(), flag)));
+                            NeutralEcSpottedInfo esi = Flags.decodeNeutralEcSpotted(rc.getLocation(), flag);
+                            if (Math.abs(rc.getRoundNum() - esi.timestamp) < 300){
+                                ec.setThisRoundNeutralEcSpottedInfo(Optional.of(esi));
+                            }
                             //System.out.println("NEUTRAL EC FOUND " + .location + " WITH " + neutralEcSpottedInfo.conviction + " HP");
                             break;
                         default:

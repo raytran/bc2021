@@ -50,6 +50,7 @@ public class ECSpawnController implements ECController {
             opPoliticianNeeded = true;
             opAmount = (int) (ec.getThisRoundNeutralEcSpottedInfo().get().conviction * 1.25);
             opAmount = (opAmount < rc.getInfluence() / 2)? opAmount : (int) (opAmount * 0.5);
+            opAmount = Math.max(minAmount, Math.max(budget, opAmount));
             buildAmount = opAmount;
         }
         if(opPoliticianNeeded){
