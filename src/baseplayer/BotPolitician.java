@@ -160,7 +160,7 @@ public class BotPolitician extends BotController {
         int actionRadius = rc.getType().actionRadiusSquared;
         if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < actionRadius){
             totalNearbyEnemyConviction += robotInfo.conviction;
-            if (rc.canEmpower(actionRadius) && (totalNearbyEnemyConviction > 3 || (double) rc.getConviction()/totalNearbyFriendlyConviction < 0.25)) {
+            if (rc.canEmpower(actionRadius) && ((double) totalNearbyEnemyConviction/rc.getConviction() > .15 || (double) rc.getConviction()/totalNearbyFriendlyConviction < 0.25)) {
                 rc.empower(actionRadius);
             }
         }
@@ -211,9 +211,9 @@ public class BotPolitician extends BotController {
         setTargetLocIfBetter(Team.NEUTRAL, robotInfo.location, robotInfo.type, false);
 
         int actionRadius = rc.getType().actionRadiusSquared;
-        if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < 4
-                && rc.canEmpower(4)) {
-            rc.empower(4);
+        if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < 3
+                && rc.canEmpower(3)) {
+            rc.empower(3);
         }
     }
 

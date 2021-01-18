@@ -9,9 +9,9 @@ public class ECBudgetController implements ECController {
     private final RobotController rc;
     private final BotEnlightenment ec;
     private final ECTargetController tc;
-    private final PIDBudgetVariable voteDelta = new PIDBudgetVariable(6.280970419429587, 4.9880401089480495, 0.1395469629277209);
-    private final PIDBudgetVariable botDelta = new PIDBudgetVariable(12.711921954316688, 1.3863756325478838, 21.654003961898646);
-    private final PIDBudgetVariable hpDelta = new PIDBudgetVariable(0.15316350882201285, 3.191962568378806, 2.5172813134647183);
+    private final PIDBudgetVariable voteDelta = new PIDBudgetVariable(1.992340467902314, 13.33508709416899, 10.147950143760873);
+    private final PIDBudgetVariable botDelta = new PIDBudgetVariable(1.645671505485164, 4.566132458022629, 10.223223034742178);
+    private final PIDBudgetVariable hpDelta = new PIDBudgetVariable(13.697310253660023, 13.54050566507965, 2.597528091615467);
 
     private int voteBudget;
     private int botBudget;

@@ -1,17 +1,20 @@
 from pidlearning import *
 import numpy as np
 
-
+experience_buffer = pickle.load(open('experiences_chevron.pkl', 'rb')) + pickle.load(open('experiences_crossstitch.pkl', 'rb'))\
+                    + pickle.load(open('experiences_crownjewels.pkl', 'rb')) + pickle.load(open('experiences_exesandohs.pkl', 'rb'))\
+                    + pickle.load(open('experiences_illusion.pkl', 'rb'))
+print(len(experience_buffer))
 experience, reward = experience_buffer[0]
 experiences = experience
 rewards = t.tensor([[reward]])
 
-new_arch = OrderedDict([('lin1', nn.Linear(9, 25)),
-                                 ('sig1', nn.ReLU()),
-                                 ('lin2', nn.Linear(25, 1)),
-                                 ('batch', nn.BatchNorm1d(1))])
-new_q = t.load('new_qqq.pkl')  # nn.Sequential(new_arch)
-new_q.eval()
+q_arch = OrderedDict([('lin1', nn.Linear(9, 25)),
+                      ('sig1', nn.ReLU()),
+                      ('lin2', nn.Linear(25, 1)),
+                      ('batch', nn.BatchNorm1d(1))])
+q_func = nn.Sequential(q_arch)  # t.load('q_func.pkl')
+q_func.eval()
 
 for experience, reward in experience_buffer[1:]:
     experiences = t.cat((experiences, experience), dim=0)
@@ -19,7 +22,7 @@ for experience, reward in experience_buffer[1:]:
 
 
 # train
-def batch_gd(network, loss_fn, optimizer, x, y, iters, lrate=1.5e-3, k=25):
+def batch_gd(network, loss_fn, optimizer, x, y, iters, lrate=1.5e-4, k=50):
     d, n = tuple(x.size())
 
     network.train()
@@ -38,8 +41,11 @@ def batch_gd(network, loss_fn, optimizer, x, y, iters, lrate=1.5e-3, k=25):
         yt = y[:k, :].float()
 
         out = network(xt)
-        losses = loss_fn(out, yt)
-        loss = losses.sum()
+
+        all_linear1_params = t.cat([x.view(-1) for x in network.lin1.parameters()])
+        all_linear2_params = t.cat([x.view(-1) for x in network.lin2.parameters()])
+        loss = loss_fn(out, yt) + .1 * t.norm(all_linear1_params, 1) + .1 * t.norm(all_linear2_params, 2)
+        # loss = losses.sum()
 
         opt.zero_grad()
         loss.backward()
@@ -52,36 +58,47 @@ def gd_optimize(network, initial, iters, lrate):
     network.eval()
 
     x = initial
-    print(x)
     steps = 0
     while steps < iters:
         out = -network(x)
-        print(out)
+        if steps % 100 == 0:
+            print(out)
         out.backward()
 
         x = x - lrate * x.grad
         x.retain_grad()
 
         steps += 1
-    return x
+    if input('continue?') == 'Y':
+        gd_optimize(network, x, iters, lrate)
+    else:
+        return x
 
 
-if __name__ == '__main__':
-    #batch_gd(new_q, nn.MSELoss(), optim.SGD, experiences, rewards, 5000)
-    #ind = 0
-    #for experience, _ in experience_buffer:
-    #    new_q.eval()
-    #    print(ind, new_q(experience))
-    #    ind += 1
-    #new_q.train()
-    #if input('Save model?') == 'Y':
-    #   t.save(new_q, 'new_qqq.pkl')
-    optimal = t.load('optimal_x.pkl')  # gd_optimize(new_q, t.tensor([generate_input()], requires_grad=True), 1000, 1.5e-3)
+def train_and_save():
+    batch_gd(q_func, nn.MSELoss(), optim.Adadelta, experiences, rewards, 5000)
+    ind = 0
+    for experience, _ in experience_buffer:
+        q_func.eval()
+        print(ind, q_func(experience))
+        ind += 1
+    q_func.train()
+    if input('Save model?') == 'Y':
+       t.save(q_func, 'q_func2.pkl')
+
+
+def optimize_and_save():
+    optimal = gd_optimize(q_func, t.tensor([generate_input()], requires_grad=True), 5000, 1.5e-4)
     list_optimal = optimal.detach().tolist()[0]
     for i in range(len(list_optimal)):
         list_optimal[i] = list_optimal[i] if list_optimal[i] > 0 else 0
     print(list_optimal)
     inp = stateInput(list_optimal, 'A')
-    print(new_q(inp.tensor))
-    #if input('save this?') == 'Y':
-        #t.save(optimal, 'optimal_x.pkl')
+    print(q_func(inp.tensor))
+    if input('save this?') == 'Y':
+        t.save(optimal, 'optimal_x2.pkl')
+
+
+if __name__ == '__main__':
+    train_and_save()
+    optimize_and_save()

@@ -20,7 +20,7 @@ public class ECSenseController implements ECController{
     private int prevBotCount;
     private int prevInfluence;
     private Direction nextSpawnDirection = Direction.NORTH;
-    private final int MEMORY = 100;
+    private final int MEMORY = 75;
     public ECSenseController(RobotController rc, BotEnlightenment ec) {
         this.ec = ec;
         this.rc = rc;
@@ -34,7 +34,7 @@ public class ECSenseController implements ECController{
         Team enemy = rc.getTeam().opponent();
         MapLocation currentLoc = rc.getLocation();
         for (RobotInfo ri : rc.senseNearbyRobots(radius)) {
-            if (ri.team.equals(enemy)) {
+            if (ri.team.equals(enemy) && !ri.getType().equals(RobotType.ENLIGHTENMENT_CENTER)) {
                 safetyEval -= ri.influence;
             } else {
                 safetyEval += ri.influence;
@@ -43,7 +43,7 @@ public class ECSenseController implements ECController{
                     EnemySpottedInfo esi = Flags.decodeEnemySpotted(currentLoc, friendFlag);
                     if (esi.enemyType != RobotType.SLANDERER) {
                         if (esi.location.distanceSquaredTo(currentLoc) < rc.getType().sensorRadiusSquared + 20){
-                            safetyEval -= 1/(double) esi.location.distanceSquaredTo(currentLoc);
+                            safetyEval -= 1/(1+(double) esi.location.distanceSquaredTo(currentLoc));
                         }
                     }
                 }
@@ -61,7 +61,7 @@ public class ECSenseController implements ECController{
 
         // update influence metrics
         int currentInfluence = rc.getInfluence();
-        int influenceChange = currentInfluence - prevInfluence;
+        int influenceChange = rc.getRoundNum() != 1 ? currentInfluence - prevInfluence : 0;
         updateAverageInfluenceChange(influenceChange);
         prevInfluence = currentInfluence;
 
