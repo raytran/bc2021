@@ -53,21 +53,27 @@ public class BotMuckraker extends BotController {
                 enemyLocation = Optional.empty();
             }
         }
-        if (isDefending){
-            runCircleDefense();
-        } else {
+        //if (isDefending){
+         //   runCircleDefense();
+        //} else {
             if (enemyLocation.isPresent()){
                 nav.moveTo(enemyLocation.get());
                 //nav.bugTo(enemyLocation.get());
             } else {
                 if (scoutingDirection != null) {
-                    nav.spreadOut(scoutingDirection);
+                    if (!rc.onTheMap(rc.getLocation().add(scoutingDirection))
+                        || rc.isLocationOccupied(rc.getLocation().add(scoutingDirection))){
+                        scoutingDirection = Utilities.randomDirection();
+                    }
+                    if (rc.canMove(scoutingDirection)){
+                        rc.move(scoutingDirection);
+                    }
                 } else {
                     Direction random = Utilities.randomDirection();
                     nav.spreadOut(random);
                 }
             }
-        }
+        //}
 
         // Search for boundary if we can
         if (Clock.getBytecodesLeft() > 1000 && !enemyFound && !flagSet){
@@ -145,7 +151,7 @@ public class BotMuckraker extends BotController {
                         AreaClearInfo areaClearInfo = Flags.decodeAreaClear(currentLoc, nearbyFlag);
                         if (areaClearInfo.location.distanceSquaredTo(enemyLocation.get()) < 5) {
                             enemyLocation = Optional.empty();
-                            System.out.println("CLEARING TARGET");
+                            //System.out.println("CLEARING TARGET");
                         }
                     }
                     break;
@@ -156,7 +162,7 @@ public class BotMuckraker extends BotController {
     private void onNeutralNearby(RobotInfo robotInfo) throws GameActionException{
         thisRoundNearbyNeutralCount += 1;
         if (!flagSet){
-            System.out.println("FLAGGING NEUTRAl");
+            //System.out.println("FLAGGING NEUTRAl");
             rc.setFlag(Flags.encodeNeutralEcSpotted(rc.getRoundNum(), robotInfo.location, robotInfo.conviction));
             flagSet = true;
         }

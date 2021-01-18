@@ -8,9 +8,10 @@ import baseplayer2.Utilities;
 public class ECBudgetController implements ECController {
     private final RobotController rc;
     private final BotEnlightenment ec;
-    private final PIDBudgetVariable voteDelta = new PIDBudgetVariable(5.135841369628906, 0, 4.649940013885498);
-    private final PIDBudgetVariable botDelta = new PIDBudgetVariable(8.244284629821777, 0, 103.1036376953125);
-    private final PIDBudgetVariable hpDelta = new PIDBudgetVariable( 34.32314682006836, 0, 35.57890319824219);
+    private final ECTargetController tc;
+    private final PIDBudgetVariable voteDelta = new PIDBudgetVariable(0.013410846867888439, 0.5083481451904198, 26.37798920248532);
+    private final PIDBudgetVariable botDelta = new PIDBudgetVariable(8.363592394892157, 0.0006833658069512131, 0.4591859152662422);
+    private final PIDBudgetVariable hpDelta = new PIDBudgetVariable(40.68713703109449, 0.005550114767426786, 0.06560613048351827);
 
     private int voteBudget;
     private int botBudget;
@@ -20,6 +21,7 @@ public class ECBudgetController implements ECController {
     public ECBudgetController(RobotController rc, BotEnlightenment ec) {
         this.rc = rc;
         this.ec = ec;
+        this.tc = new ECTargetController(rc, ec);
     }
 
     @Override
@@ -34,10 +36,12 @@ public class ECBudgetController implements ECController {
 
         int income = currentInfluence - voteBudget - botBudget - hpBudget;
         if (income > 0) {
-            //TODO: update smart PID targets
-            double voteTarget = (double) currentRound / 2;
-            double botTarget = 0.25 * currentRound;
-            double hpTarget = 1 + currentRound * 0.125;
+            tc.updateHeuristics();
+            tc.updateTargets();
+
+            double voteTarget = tc.getVoteTarget();
+            double botTarget = tc.getBotTarget();
+            double hpTarget = tc.getHpTarget();
 
             if (hpBudget > hpTarget) {
                 int diff = (int) (hpBudget - hpTarget);
@@ -46,8 +50,8 @@ public class ECBudgetController implements ECController {
             }
 
             // check
-            System.out.println("Game state vars:\nSafety Eval: " + ec.getSafetyEval() + "\nAvg Safety: " + ec.getAvgSafetyEval()
-            + "\nAvg Influence Change: " + ec.getAvgInfluenceChange() + "\nAvg Bot Change: " + ec.getAvgBotChange());
+            //System.out.println("Game state vars:\nSafety Eval: " + ec.getSafetyEval() + "\nAvg Safety: " + ec.getAvgSafetyEval()
+            //+ "\nAvg Influence Change: " + ec.getAvgInfluenceChange() + "\nAvg Bot Change: " + ec.getAvgBotChange());
 
             // set new targets
             voteDelta.setTarget(voteTarget);
@@ -63,7 +67,7 @@ public class ECBudgetController implements ECController {
             double voteDValue = voteDelta.getValue();
             double botDValue = botDelta.getValue();
             double hpDValue = hpDelta.getValue();
-            System.out.println("Deltas:\nVote: " + voteDValue + "\nBot: " + botDValue + "\nHP: " + hpDValue);
+            //System.out.println("Deltas:\nVote: " + voteDValue + "\nBot: " + botDValue + "\nHP: " + hpDValue);
             double total = voteDValue + botDValue + hpDValue;
             if (total > 0) {
                 voteDValue *= 1. / total;
@@ -72,7 +76,7 @@ public class ECBudgetController implements ECController {
                 voteDValue = 0;
                 botDValue = 1;
             }
-            System.out.println("Normalized Deltas:\n" + "Vote: " + voteDValue + "\nBot: " + botDValue);
+            //System.out.println("Normalized Deltas:\n" + "Vote: " + voteDValue + "\nBot: " + botDValue);
 
             int voteAllocation;
             int botAllocation;
@@ -120,8 +124,8 @@ public class ECBudgetController implements ECController {
             botBudget += botAllocation;
             hpBudget += hpAllocation;
 
-            System.out.println("Total influence: " + currentInfluence + "\nVoting Budget: "
-                    + voteBudget + "\nBot Budget: " + botBudget + "\nSaving: " + hpBudget);
+            //System.out.println("Total influence: " + currentInfluence + "\nVoting Budget: "
+                    //+ voteBudget + "\nBot Budget: " + botBudget + "\nSaving: " + hpBudget);
         }
     }
 

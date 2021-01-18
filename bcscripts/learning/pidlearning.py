@@ -39,13 +39,16 @@ red_file = """package baseplayer3.eccontrollers;
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 import baseplayer3.BotEnlightenment;
+import baseplayer3.Utilities;
 
 public class ECBudgetController implements ECController {
     private final RobotController rc;
     private final BotEnlightenment ec;
-    private final PIDDelta voteDelta = new PIDDelta(%s, %s, %s);
-    private final PIDDelta botDelta = new PIDDelta(%s, %s, %s);
-    private final PIDDelta hpDelta = new PIDDelta(%s, %s, %s);
+    private final ECTargetController tc;
+    private final PIDBudgetVariable voteDelta = new PIDBudgetVariable(%s, %s, %s);
+    private final PIDBudgetVariable botDelta = new PIDBudgetVariable(%s, %s, %s);
+    private final PIDBudgetVariable hpDelta = new PIDBudgetVariable(%s, %s, %s);
+
     private int voteBudget;
     private int botBudget;
     private int hpBudget;
@@ -54,101 +57,112 @@ public class ECBudgetController implements ECController {
     public ECBudgetController(RobotController rc, BotEnlightenment ec) {
         this.rc = rc;
         this.ec = ec;
+        this.tc = new ECTargetController(rc, ec);
     }
 
     @Override
     public void run() throws GameActionException {
         int currentInfluence = rc.getInfluence();
         int currentRound = rc.getRoundNum();
+        if (currentRound == 1) {
+            botBudget = 88;
+            voteBudget = 20;
+            hpBudget = 42;
+        }
+
         int income = currentInfluence - voteBudget - botBudget - hpBudget;
+        if (income > 0) {
+            tc.updateHeuristics();
+            tc.updateTargets();
 
-        //TODO: update PID targets
-        /** add alpha, beta scaling factor to adjust early voting and bot budgets
-         double alpha = Math.pow((double) rc.getRoundNum() / MAX_ROUNDS, 0.2);
-         double beta = 1 + (1 - alpha);
-         voteDelta *= alpha;
-         botDelta *= beta; **/
-        double voteTarget = 0.5 * currentRound < 250 ? (double) currentRound/250 : 1;
-        double botTarget = currentRound * 0.25;
-        double hpTarget = 1 + currentRound - ec.getLastEnemySeen() < 500 ? (int) (rc.getRoundNum() * 0.25) : (int) (rc.getRoundNum() * 0.05);
+            double voteTarget = tc.getVoteTarget();
+            double botTarget = tc.getBotTarget();
+            double hpTarget = tc.getHpTarget();
 
-        // set new targets
-        voteDelta.setTarget(voteTarget);
-        botDelta.setTarget(botTarget);
-        hpDelta.setTarget(hpTarget);
-
-        // update deltas
-        voteDelta.update((double) rc.getTeamVotes()/currentRound);
-        botDelta.update(ec.getLocalRobotCount());
-        hpDelta.update(hpBudget);
-
-        // normalize to positive percentages
-        double voteDValue = voteDelta.getValue();
-        double botDValue = botDelta.getValue();
-        double hpDValue = hpDelta.getValue();
-        //System.out.println("Deltas:\\nVote: " + voteDValue + "\\nBot: " + botDValue + "\\nHP: " + hpDValue);
-        if (voteDValue < 0 || botDValue < 0 || hpDValue < 0 ) {
-            double min = Math.min(voteDValue, Math.min(botDValue, hpDValue));
-            voteDValue -= min;
-            botDValue -= min;
-            hpDValue -= min;
-        }
-        double total = voteDValue + botDValue + hpDValue;
-        voteDValue *= total > 0 ? 1. / total : 1;
-        botDValue *= total > 0 ? 1. / total : 0;
-        //System.out.println("Normalized Deltas:\\n" + "Vote: " + voteDValue + "\\nBot: " + botDValue);
-
-        int voteAllocation;
-        int botAllocation;
-        int hpAllocation;
-        try {
-            voteAllocation = (int) Math.round(voteDValue * income);
-            botAllocation = (int) Math.round(botDValue * income);
-            hpAllocation = income - voteAllocation - botAllocation;
-            //System.out.println("initial allocations: " + voteAllocation + ' ' + botAllocation + ' ' + hpAllocation);
-            //assert income <= voteAllocation + botAllocation + hpAllocation;
-            assert voteAllocation >= 0 && botAllocation >= 0 && hpAllocation >= 0;
-        } catch (AssertionError e){
-            //System.out.println("assertion error");
-            voteAllocation = (int) Math.floor(voteDValue * income);
-            botAllocation = (int) Math.floor(botDValue * income);
-            hpAllocation = income - voteAllocation - botAllocation;
-        }
-
-        /** if there are nearby enemy politicians, make sure we have enough hp
-        int enemyInfluence = ec.checkNearbyEnemies();
-        if (hpBudget <= enemyInfluence && hpBudget != 0) {
-            if (currentInfluence > enemyInfluence + 1) {
-                hpBudget = enemyInfluence + 1;
-                int remainingInfluence = currentInfluence - hpBudget;
-                double newTotal = voteDValue + botDValue;
-                voteAllocation = (int) (voteDValue / newTotal * remainingInfluence);
-                botAllocation = remainingInfluence - (voteBudget + voteAllocation);
-            } else {
-                voteAllocation = 0;
-                botAllocation = 0;
-                hpBudget += income - 1;
-                botBudget += 1;
+            if (hpBudget > hpTarget) {
+                int diff = (int) (hpBudget - hpTarget);
+                hpBudget -= diff;
+                income += diff;
             }
-        }
 
-        if (rc.getTeamVotes() > 1500) {
-            botBudget += voteAllocation + botAllocation + voteBudget;
-            voteBudget = 0;
-        } else if (currentRound - ec.getLastBotSpawn() > 150) {
-            voteBudget = voteAllocation + botAllocation + botBudget;
-            botBudget = 0;
-        } else {
+            // check
+            //System.out.println("Game state vars:\\nSafety Eval: " + ec.getSafetyEval() + "\\nAvg Safety: " + ec.getAvgSafetyEval()
+            //+ "\\nAvg Influence Change: " + ec.getAvgInfluenceChange() + "\\nAvg Bot Change: " + ec.getAvgBotChange());
+
+            // set new targets
+            voteDelta.setTarget(voteTarget);
+            botDelta.setTarget(botTarget);
+            hpDelta.setTarget(hpTarget);
+
+            // update deltas
+            voteDelta.update(rc.getTeamVotes());
+            botDelta.update(ec.getLocalRobotCount());
+            hpDelta.update(hpBudget);
+
+            // normalize to positive percentages
+            double voteDValue = voteDelta.getValue();
+            double botDValue = botDelta.getValue();
+            double hpDValue = hpDelta.getValue();
+            //System.out.println("Deltas:\\nVote: " + voteDValue + "\\nBot: " + botDValue + "\\nHP: " + hpDValue);
+            double total = voteDValue + botDValue + hpDValue;
+            if (total > 0) {
+                voteDValue *= 1. / total;
+                botDValue *= 1. / total;
+            } else {
+                voteDValue = 0;
+                botDValue = 1;
+            }
+            //System.out.println("Normalized Deltas:\\n" + "Vote: " + voteDValue + "\\nBot: " + botDValue);
+
+            int voteAllocation;
+            int botAllocation;
+            int hpAllocation;
+            try {
+                voteAllocation = (int) Math.round(voteDValue * income);
+                botAllocation = (int) Math.round(botDValue * income);
+                hpAllocation = income - voteAllocation - botAllocation;
+                assert voteAllocation >= 0 && botAllocation >= 0 && hpAllocation >= 0;
+            } catch (AssertionError e) {
+                voteAllocation = (int) Math.floor(voteDValue * income);
+                botAllocation = (int) Math.floor(botDValue * income);
+                hpAllocation = income - voteAllocation - botAllocation;
+            }
+
+            /** if there are nearby enemy politicians, make sure we have enough hp
+             int enemyInfluence = ec.checkNearbyEnemies();
+             if (hpBudget <= enemyInfluence && hpBudget != 0) {
+             if (currentInfluence > enemyInfluence + 1) {
+             hpBudget = enemyInfluence + 1;
+             int remainingInfluence = currentInfluence - hpBudget;
+             double newTotal = voteDValue + botDValue;
+             voteAllocation = (int) (voteDValue / newTotal * remainingInfluence);
+             botAllocation = remainingInfluence - (voteBudget + voteAllocation);
+             } else {
+             voteAllocation = 0;
+             botAllocation = 0;
+             hpBudget += income - 1;
+             botBudget += 1;
+             }
+             }**/
+
+            if (rc.getTeamVotes() >= Utilities.VOTE_WIN) {
+                botBudget += voteAllocation + botAllocation + voteBudget;
+                voteBudget = 0;
+            } else if (currentRound - ec.getLastBotSpawn() > 150) {
+                voteBudget = voteAllocation + botAllocation + botBudget;
+                botBudget = 0;
+            } else {
+                voteBudget += voteAllocation;
+                botBudget += botAllocation;
+            }
+
             voteBudget += voteAllocation;
             botBudget += botAllocation;
-        }**/
+            hpBudget += hpAllocation;
 
-        voteBudget += voteAllocation;
-        botBudget += botAllocation;
-        hpBudget += hpAllocation;
-
-        //System.out.println("Total influence: " + currentInfluence + "\\nVoting Budget: "
-                //+ voteBudget + "\\nBot Budget: " + botBudget + "\\nSaving: " + hpBudget);
+            //System.out.println("Total influence: " + currentInfluence + "\\nVoting Budget: "
+                    //+ voteBudget + "\\nBot Budget: " + botBudget + "\\nSaving: " + hpBudget);
+        }
     }
 
     /**
@@ -186,13 +200,16 @@ blue_file = """package baseplayer2.eccontrollers;
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 import baseplayer2.BotEnlightenment;
+import baseplayer2.Utilities;
 
 public class ECBudgetController implements ECController {
     private final RobotController rc;
     private final BotEnlightenment ec;
-    private final PIDDelta voteDelta = new PIDDelta(%s, %s, %s);
-    private final PIDDelta botDelta = new PIDDelta(%s, %s, %s);
-    private final PIDDelta hpDelta = new PIDDelta(%s, %s, %s);
+    private final ECTargetController tc;
+    private final PIDBudgetVariable voteDelta = new PIDBudgetVariable(%s, %s, %s);
+    private final PIDBudgetVariable botDelta = new PIDBudgetVariable(%s, %s, %s);
+    private final PIDBudgetVariable hpDelta = new PIDBudgetVariable(%s, %s, %s);
+
     private int voteBudget;
     private int botBudget;
     private int hpBudget;
@@ -201,101 +218,112 @@ public class ECBudgetController implements ECController {
     public ECBudgetController(RobotController rc, BotEnlightenment ec) {
         this.rc = rc;
         this.ec = ec;
+        this.tc = new ECTargetController(rc, ec);
     }
 
     @Override
     public void run() throws GameActionException {
         int currentInfluence = rc.getInfluence();
         int currentRound = rc.getRoundNum();
+        if (currentRound == 1) {
+            botBudget = 88;
+            voteBudget = 20;
+            hpBudget = 42;
+        }
+
         int income = currentInfluence - voteBudget - botBudget - hpBudget;
+        if (income > 0) {
+            tc.updateHeuristics();
+            tc.updateTargets();
 
-        //TODO: update PID targets
-        /** add alpha, beta scaling factor to adjust early voting and bot budgets
-         double alpha = Math.pow((double) rc.getRoundNum() / MAX_ROUNDS, 0.2);
-         double beta = 1 + (1 - alpha);
-         voteDelta *= alpha;
-         botDelta *= beta; **/
-        double voteTarget = 0.5 * currentRound < 250 ? (double) currentRound/250 : 1;
-        double botTarget = currentRound * 0.25;
-        double hpTarget = 1 + currentRound - ec.getLastEnemySeen() < 500 ? (int) (rc.getRoundNum() * 0.25) : (int) (rc.getRoundNum() * 0.05);
+            double voteTarget = tc.getVoteTarget();
+            double botTarget = tc.getBotTarget();
+            double hpTarget = tc.getHpTarget();
 
-        // set new targets
-        voteDelta.setTarget(voteTarget);
-        botDelta.setTarget(botTarget);
-        hpDelta.setTarget(hpTarget);
-
-        // update deltas
-        voteDelta.update((double) rc.getTeamVotes()/currentRound);
-        botDelta.update(ec.getLocalRobotCount());
-        hpDelta.update(hpBudget);
-
-        // normalize to positive percentages
-        double voteDValue = voteDelta.getValue();
-        double botDValue = botDelta.getValue();
-        double hpDValue = hpDelta.getValue();
-        //System.out.println("Deltas:\\nVote: " + voteDValue + "\\nBot: " + botDValue + "\\nHP: " + hpDValue);
-        if (voteDValue < 0 || botDValue < 0 || hpDValue < 0 ) {
-            double min = Math.min(voteDValue, Math.min(botDValue, hpDValue));
-            voteDValue -= min;
-            botDValue -= min;
-            hpDValue -= min;
-        }
-        double total = voteDValue + botDValue + hpDValue;
-        voteDValue *= total > 0 ? 1. / total : 1;
-        botDValue *= total > 0 ? 1. / total : 0;
-        //System.out.println("Normalized Deltas:\\n" + "Vote: " + voteDValue + "\\nBot: " + botDValue);
-
-        int voteAllocation;
-        int botAllocation;
-        int hpAllocation;
-        try {
-            voteAllocation = (int) Math.round(voteDValue * income);
-            botAllocation = (int) Math.round(botDValue * income);
-            hpAllocation = income - voteAllocation - botAllocation;
-            //System.out.println("initial allocations: " + voteAllocation + ' ' + botAllocation + ' ' + hpAllocation);
-            //assert income <= voteAllocation + botAllocation + hpAllocation;
-            assert voteAllocation >= 0 && botAllocation >= 0 && hpAllocation >= 0;
-        } catch (AssertionError e){
-            //System.out.println("assertion error");
-            voteAllocation = (int) Math.floor(voteDValue * income);
-            botAllocation = (int) Math.floor(botDValue * income);
-            hpAllocation = income - voteAllocation - botAllocation;
-        }
-
-        /** if there are nearby enemy politicians, make sure we have enough hp
-        int enemyInfluence = ec.checkNearbyEnemies();
-        if (hpBudget <= enemyInfluence && hpBudget != 0) {
-            if (currentInfluence > enemyInfluence + 1) {
-                hpBudget = enemyInfluence + 1;
-                int remainingInfluence = currentInfluence - hpBudget;
-                double newTotal = voteDValue + botDValue;
-                voteAllocation = (int) (voteDValue / newTotal * remainingInfluence);
-                botAllocation = remainingInfluence - (voteBudget + voteAllocation);
-            } else {
-                voteAllocation = 0;
-                botAllocation = 0;
-                hpBudget += income - 1;
-                botBudget += 1;
+            if (hpBudget > hpTarget) {
+                int diff = (int) (hpBudget - hpTarget);
+                hpBudget -= diff;
+                income += diff;
             }
-        }
 
-        if (rc.getTeamVotes() > 1500) {
-            botBudget += voteAllocation + botAllocation + voteBudget;
-            voteBudget = 0;
-        } else if (currentRound - ec.getLastBotSpawn() > 150) {
-            voteBudget = voteAllocation + botAllocation + botBudget;
-            botBudget = 0;
-        } else {
+            // check
+            //System.out.println("Game state vars:\\nSafety Eval: " + ec.getSafetyEval() + "\\nAvg Safety: " + ec.getAvgSafetyEval()
+            //+ "\\nAvg Influence Change: " + ec.getAvgInfluenceChange() + "\\nAvg Bot Change: " + ec.getAvgBotChange());
+
+            // set new targets
+            voteDelta.setTarget(voteTarget);
+            botDelta.setTarget(botTarget);
+            hpDelta.setTarget(hpTarget);
+
+            // update deltas
+            voteDelta.update(rc.getTeamVotes());
+            botDelta.update(ec.getLocalRobotCount());
+            hpDelta.update(hpBudget);
+
+            // normalize to positive percentages
+            double voteDValue = voteDelta.getValue();
+            double botDValue = botDelta.getValue();
+            double hpDValue = hpDelta.getValue();
+            //System.out.println("Deltas:\\nVote: " + voteDValue + "\\nBot: " + botDValue + "\\nHP: " + hpDValue);
+            double total = voteDValue + botDValue + hpDValue;
+            if (total > 0) {
+                voteDValue *= 1. / total;
+                botDValue *= 1. / total;
+            } else {
+                voteDValue = 0;
+                botDValue = 1;
+            }
+            //System.out.println("Normalized Deltas:\\n" + "Vote: " + voteDValue + "\\nBot: " + botDValue);
+
+            int voteAllocation;
+            int botAllocation;
+            int hpAllocation;
+            try {
+                voteAllocation = (int) Math.round(voteDValue * income);
+                botAllocation = (int) Math.round(botDValue * income);
+                hpAllocation = income - voteAllocation - botAllocation;
+                assert voteAllocation >= 0 && botAllocation >= 0 && hpAllocation >= 0;
+            } catch (AssertionError e) {
+                voteAllocation = (int) Math.floor(voteDValue * income);
+                botAllocation = (int) Math.floor(botDValue * income);
+                hpAllocation = income - voteAllocation - botAllocation;
+            }
+
+            /** if there are nearby enemy politicians, make sure we have enough hp
+             int enemyInfluence = ec.checkNearbyEnemies();
+             if (hpBudget <= enemyInfluence && hpBudget != 0) {
+             if (currentInfluence > enemyInfluence + 1) {
+             hpBudget = enemyInfluence + 1;
+             int remainingInfluence = currentInfluence - hpBudget;
+             double newTotal = voteDValue + botDValue;
+             voteAllocation = (int) (voteDValue / newTotal * remainingInfluence);
+             botAllocation = remainingInfluence - (voteBudget + voteAllocation);
+             } else {
+             voteAllocation = 0;
+             botAllocation = 0;
+             hpBudget += income - 1;
+             botBudget += 1;
+             }
+             }**/
+
+            if (rc.getTeamVotes() >= Utilities.VOTE_WIN) {
+                botBudget += voteAllocation + botAllocation + voteBudget;
+                voteBudget = 0;
+            } else if (currentRound - ec.getLastBotSpawn() > 150) {
+                voteBudget = voteAllocation + botAllocation + botBudget;
+                botBudget = 0;
+            } else {
+                voteBudget += voteAllocation;
+                botBudget += botAllocation;
+            }
+
             voteBudget += voteAllocation;
             botBudget += botAllocation;
-        }**/
+            hpBudget += hpAllocation;
 
-        voteBudget += voteAllocation;
-        botBudget += botAllocation;
-        hpBudget += hpAllocation;
-
-        //System.out.println("Total influence: " + currentInfluence + "\\nVoting Budget: "
-                //+ voteBudget + "\\nBot Budget: " + botBudget + "\\nSaving: " + hpBudget);
+            //System.out.println("Total influence: " + currentInfluence + "\\nVoting Budget: "
+                    //+ voteBudget + "\\nBot Budget: " + botBudget + "\\nSaving: " + hpBudget);
+        }
     }
 
     /**
@@ -330,16 +358,16 @@ public class ECBudgetController implements ECController {
 """
 base_values = [0.001, 0.01, 0.1, 1, 5, 10, 25, 50, 100]
 initial = [50, 0.1, 0.5, 2, 0.001, 0.1, 0.1, 0.001, 1]
-prev_parameters_blue = pickle.load(open('prev_blue.pkl', 'rb'))
-prev_parameters_red = pickle.load(open('prev_red.pkl', 'rb'))
-win_avg_state = pickle.load(open('state_values.pkl', 'rb'))
-experience_buffer = pickle.load(open('experiences.pkl', 'rb'))
+prev_parameters_blue = initial  # pickle.load(open('prev_blue.pkl', 'rb'))
+prev_parameters_red = initial # pickle.load(open('prev_red.pkl', 'rb'))
+win_avg_state = initial  # pickle.load(open('state_values.pkl', 'rb'))
+experience_buffer = []  # pickle.load(open('experiences.pkl', 'rb'))
 
 model_arch = OrderedDict([('lin1', nn.Linear(9, 5)),
                           ('relu1', nn.ReLU()),
                           ('lin2', nn.Linear(5, 1))])
 
-q_network = t.load('q_func.pkl')
+q_network = nn.Sequential(model_arch)
 
 
 # determines reward based on input team and stdout
@@ -387,10 +415,10 @@ def get_game_output(blue, red):
 
 
 # learns Q(s, a)
-def learn_q(network, loss_fn, optimizer, iters, lrate=1e-3):
+def run_matches(iters):
     global win_avg_state
     global prev_winner
-    opt = optimizer(network.parameters(), lr=lrate)
+    global experience_buffer
     num_updates = 0
 
     while num_updates < iters:
@@ -416,21 +444,10 @@ def learn_q(network, loss_fn, optimizer, iters, lrate=1e-3):
                 win_avg_state[i] += inp[i]
                 win_avg_state[i] *= 0.5
         prev_winner = winner
-        j = 0
-        for experience in experience_buffer:
-            print(f'Replaying experience: {j}')
-            out = network(experience[0])
-            loss = loss_fn(out.float(), t.tensor([[experience[1]]]).float())
-
-            opt.zero_grad()
-            loss.backward()
-            opt.step()
-            j += 1
 
         num_updates += 1
 
     os.chdir(home)
-    t.save(network, 'q_func.pkl')
     pickle.dump(win_avg_state, open('state_values.pkl', "wb"))
     pickle.dump(prev_parameters_blue, open('prev_blue.pkl', "wb"))
     pickle.dump(prev_parameters_red, open('prev_red.pkl', 'wb'))
@@ -439,7 +456,7 @@ def learn_q(network, loss_fn, optimizer, iters, lrate=1e-3):
 
 if __name__ == '__main__':
     try:
-        learn_q(q_network, nn.MSELoss(), optim.Rprop, 100, lrate=1e-2)
+        run_matches(100)
     except Exception as exception:
         print(exception)
         os.chdir(home)

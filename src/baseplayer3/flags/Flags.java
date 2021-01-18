@@ -36,7 +36,16 @@ public class Flags {
         flag ^= (convictionLeft / 64) & 0b111;
         return flag;
     }
-
+    // NEUTRAL_EC_SPOTTED And OP Successfully Spawned
+    // [23:21]     [20:17]      [16:10]          [9:3]             [2:0]
+    // flagType    timestamp    neutralX % 128   neutralY % 128    floor(neutralConviction/64)
+    public static int encodeOpSpawned(int roundNum, MapLocation location, int convictionLeft){
+        int flag = encodeFlagBase(FlagType.OP_SPAWNED, roundNum);
+        flag ^= ((location.x % 128) & 0b1111111) << 10;
+        flag ^= ((location.y % 128) & 0b1111111) << 3;
+        flag ^= (convictionLeft / 64) & 0b111;
+        return flag;
+    }
     public static NeutralEcSpottedInfo decodeNeutralEcSpotted(MapLocation currentLoc, int flag) {
         int xMod128 = (flag >>> 10) & 0b1111111;
         int yMod128 = (flag >>> 3) & 0b1111111;

@@ -48,7 +48,7 @@ public class ECFlagController implements ECController {
                                 ec.recordEnemy(enemySpottedInfo);
                                 mostRecentEnemyReportTimestamp = enemySpottedInfo.timestamp;
                             }else{
-                                System.out.println("CAUGHT A STALE");
+                                //System.out.println("CAUGHT A STALE");
                             }
                             break;
                         case BOUNDARY_SPOTTED:
@@ -72,7 +72,10 @@ public class ECFlagController implements ECController {
                             }
                             break;
                         case NEUTRAL_EC_SPOTTED:
-                            ec.setThisRoundNeutralEcSpottedInfo(Optional.of(Flags.decodeNeutralEcSpotted(rc.getLocation(), flag)));
+                            NeutralEcSpottedInfo esi = Flags.decodeNeutralEcSpotted(rc.getLocation(), flag);
+                            if (Math.abs(rc.getRoundNum() - esi.timestamp) < 300){
+                                ec.setThisRoundNeutralEcSpottedInfo(Optional.of(esi));
+                            }
                             //System.out.println("NEUTRAL EC FOUND " + .location + " WITH " + neutralEcSpottedInfo.conviction + " HP");
                             break;
                         default:
@@ -96,7 +99,7 @@ public class ECFlagController implements ECController {
             rc.setFlag(Flags.encodeEnemySpotted(enemyReport.get().timestamp, enemyReport.get().location, enemyReport.get().enemyType, false));
         }else if (ec.getEastBoundary().isPresent() && ec.getWestBoundary().isPresent()
                 || ec.getNorthBoundary().isPresent() && ec.getSouthBoundary().isPresent()) {
-            System.out.println("TRYING REFLECTION");
+            //System.out.println("TRYING REFLECTION");
             if (ec.getEastBoundary().isPresent() && ec.getWestBoundary().isPresent()) {
                 int xDelta = rc.getLocation().x - ec.getWestBoundary().get();
                 int targetX = ec.getEastBoundary().get() - xDelta;
@@ -105,6 +108,9 @@ public class ECFlagController implements ECController {
                 int yDelta = rc.getLocation().y - ec.getSouthBoundary().get();
                 int targetY = ec.getNorthBoundary().get() - yDelta;
                 rc.setFlag(Flags.encodeEnemySpotted(rc.getRoundNum(), new MapLocation(rc.getLocation().x, targetY), RobotType.ENLIGHTENMENT_CENTER, true));
+            }
+            if(ec.getOpSpawned() && ec.getThisRoundNeutralEcSpottedInfo().isPresent()){
+                rc.setFlag(baseplayerspawning.flags.Flags.encodeOpSpawned(ec.getThisRoundNeutralEcSpottedInfo().get().timestamp, ec.getThisRoundNeutralEcSpottedInfo().get().location, ec.getThisRoundNeutralEcSpottedInfo().get().conviction));
             }
         }
     }

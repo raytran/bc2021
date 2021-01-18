@@ -3,6 +3,8 @@ package baseplayer2;
 import baseplayer2.flags.Flags;
 import battlecode.common.*;
 
+import java.util.Map;
+
 public class BotSlanderer extends BotController {
     Direction awayFromEnemy;
     MapLocation targetLoc;
@@ -11,16 +13,13 @@ public class BotSlanderer extends BotController {
     public BotSlanderer(RobotController rc) throws GameActionException {
         super(rc);
         awayFromEnemy = Utilities.randomDirection();
+        targetLoc = parentLoc.get().translate((int) (5 * Math.random()), (int) (5 * Math.random()));
     }
 
     @Override
     public BotController run() throws GameActionException {
         senseNearbyRobots(this::onNearbyEnemy, this::onNearbyFriendly, this::onNearbyNeutral);
-        if (targetLoc == null){
-            nav.spreadOut(awayFromEnemy);
-        }else{
-            nav.moveTo(targetLoc);
-        }
+        nav.moveTo(targetLoc);
         if (rc.getType() == RobotType.POLITICIAN){
             // Just converted; return a politician controller instead
             return BotPolitician.fromSlanderer(this);
@@ -40,6 +39,7 @@ public class BotSlanderer extends BotController {
         if (rc.getLocation().distanceSquaredTo(robotInfo.location) < closest){
             awayFromEnemy = robotInfo.location.directionTo(rc.getLocation());
             closest = rc.getLocation().distanceSquaredTo(robotInfo.location);
+            targetLoc = rc.getLocation().add(robotInfo.location.directionTo(rc.getLocation()));
         }
         if (!flagSet) {
             rc.setFlag(Flags.encodeEnemySpotted(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));

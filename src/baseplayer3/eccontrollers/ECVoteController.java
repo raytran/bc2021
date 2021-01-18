@@ -58,7 +58,7 @@ public class ECVoteController implements ECController {
                 }
             } else if (prevVoted) {
                 for(int i=initialAmount;i<=amount;i++) {
-                    counts[amount - initialAmount]++;
+                    counts[i - initialAmount]++;
                 }
                 if (!prevAdjustMultiplier && amount == MAX_VOTE) {
                     prevAdjustMultiplier = true;
@@ -101,14 +101,16 @@ public class ECVoteController implements ECController {
             }
 
             int bidAmount = amount * multiplier;
-            if (rc.canBid(bidAmount) && bidAmount <= currentBudget) {
+            if (rc.canBid(bidAmount) && bc.canSpend(this, bidAmount)) {
                 rc.bid(bidAmount);
                 //System.out.println("bid: " + bidAmount);
                 bc.withdrawBudget(this, bidAmount);
                 prevVoted = true;
-            } else {
+            } else if (rc.canBid(1) && bc.canSpend(this, 1)){
                 rc.bid(1);
                 bc.withdrawBudget(this, 1);
+                prevVoted = false;
+            } else {
                 prevVoted = false;
             }
         }
