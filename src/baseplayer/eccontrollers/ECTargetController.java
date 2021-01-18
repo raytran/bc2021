@@ -32,8 +32,8 @@ public class ECTargetController {
 
     public void updateTargets() {
         voteTarget = rc.getTeamVotes() + 1;
-        botTarget = ec.getLocalRobotCount();
-        hpTarget = (int) (0.15 * rc.getRoundNum()); // not sure what's a better system for this one
+        botTarget = ec.getLocalRobotCount() + 1;
+        hpTarget = (int) (0.05 * rc.getRoundNum()); // not sure what's a better system for this one
         int hpChange = 0;
         if (se > SE_THRESHOLD) {
             botTarget++;
