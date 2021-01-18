@@ -139,7 +139,7 @@ public class BotPolitician extends BotController {
                 break;
             case NEUTRAL_EC_SPOTTED:
             case OP_SPAWNED:
-                baseplayerspawning.flags.NeutralEcSpottedInfo neutralEcSpottedInfo = baseplayerspawning.flags.Flags.decodeNeutralEcSpotted(rc.getLocation(), parentFlag);
+                NeutralEcSpottedInfo neutralEcSpottedInfo = Flags.decodeNeutralEcSpotted(rc.getLocation(), parentFlag);
                 setTargetLocIfBetter(Team.NEUTRAL, neutralEcSpottedInfo.location, RobotType.ENLIGHTENMENT_CENTER, false);
                 break;
             default:

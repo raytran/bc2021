@@ -1,10 +1,7 @@
 package dlmoreram011821_01;
 
 import battlecode.common.*;
-import dlmoreram011821_01.flags.AreaClearInfo;
-import dlmoreram011821_01.flags.EnemySpottedInfo;
-import dlmoreram011821_01.flags.FlagType;
-import dlmoreram011821_01.flags.Flags;
+import dlmoreram011821_01.flags.*;
 
 import java.util.Optional;
 
@@ -142,7 +139,7 @@ public class BotPolitician extends BotController {
                 break;
             case NEUTRAL_EC_SPOTTED:
             case OP_SPAWNED:
-                baseplayerspawning.flags.NeutralEcSpottedInfo neutralEcSpottedInfo = baseplayerspawning.flags.Flags.decodeNeutralEcSpotted(rc.getLocation(), parentFlag);
+                NeutralEcSpottedInfo neutralEcSpottedInfo = Flags.decodeNeutralEcSpotted(rc.getLocation(), parentFlag);
                 setTargetLocIfBetter(Team.NEUTRAL, neutralEcSpottedInfo.location, RobotType.ENLIGHTENMENT_CENTER, false);
                 break;
             default:
