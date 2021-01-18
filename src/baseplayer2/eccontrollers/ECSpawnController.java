@@ -1,9 +1,8 @@
 package baseplayer2.eccontrollers;
+
 import baseplayer2.BotEnlightenment;
 import battlecode.common.*;
-import battlecode.common.GameActionException;
-
-public class ECSpawnController implements ECController{
+public class ECSpawnController implements ECController {
     private static double POLITICIAN_RATE = 0.2;
     private static double MUCKRAKER_RATE = 0.5;
     private static double SLANDERER_RATE = 0.3;
@@ -30,11 +29,8 @@ public class ECSpawnController implements ECController{
         int roundNum = rc.getRoundNum();
         boolean givenOne = budget - prevBudget == 1;
         prevBudget = budget;
-
-        // if only given one influence to spend, spawn MUCKRAKER
-        toBuild = givenOne ? RobotType.MUCKRAKER : toBuild;
         int buildAmount = toBuild.equals(RobotType.MUCKRAKER) ? 1 : budget;
-        int minAmount = roundNum - ec.getLastEnemySeen() > 250 ? (int) (MAX_BUILD_AMOUNT * Math.pow(roundNum/2999., 2) + MIN_BUILD_AMOUNT) : MIN_BUILD_AMOUNT;
+        int minAmount = ec.getSafetyEval() > 100 ? (int) (MAX_BUILD_AMOUNT * Math.pow(roundNum / 1500, 2) + MIN_BUILD_AMOUNT) : MIN_BUILD_AMOUNT;
 
         if (toBuild.equals(RobotType.SLANDERER)){
             int i = 0;
@@ -44,14 +40,14 @@ public class ECSpawnController implements ECController{
             buildAmount = SLANDERER_VALUES[i];
         }
         if(rc.getRoundNum() > 400 && toBuild.equals(RobotType.POLITICIAN) && ec.getThisRoundNeutralEcSpottedInfo().isPresent()){
-          //  rc.setIndicatorDot(rc.getLocation(),255,0,0);
+            //  rc.setIndicatorDot(rc.getLocation(),255,0,0);
             opPoliticianNeeded = true;
             opAmount = (int) (ec.getThisRoundNeutralEcSpottedInfo().get().conviction / 5);
-          //  buildAmount = opAmount;
-            System.out.println("Trying to spawn the super politicians with " + buildAmount + " Influence");
+            //  buildAmount = opAmount;
+            //System.out.println("Trying to spawn the super politicians with " + buildAmount + " Influence");
         }
         if(opPoliticianNeeded){
-         //   buildAmount = opAmount;
+            //   buildAmount = opAmount;
         }
         if(buildAmount > minAmount || toBuild.equals(RobotType.MUCKRAKER)) {
             for (int i = 0; i < 8; i++) {
@@ -61,18 +57,18 @@ public class ECSpawnController implements ECController{
                     rc.buildRobot(toBuild, nextSpawnDirection, buildAmount);
                     bc.withdrawBudget(this, buildAmount);
                     ec.recordSpawn(rc.senseRobotAtLocation(rc.getLocation().add(nextSpawnDirection)).ID, robotToSpawn());
-                    //System.out.println("SPAWNING " + toBuild);
+                    ////System.out.println("SPAWNING " + toBuild);
                     break;
                 }
                 else{
                     nextSpawnDirection = nextSpawnDirection.rotateRight();
-                    //System.out.println("NOT SPAWNING BECAUSE WE CAN'T CURRENTLY BUILD A ROBOT");
-                    //System.out.println(toBuild + " " + influence + "" + nextSpawnDirection);
+                    ////System.out.println("NOT SPAWNING BECAUSE WE CAN'T CURRENTLY BUILD A ROBOT");
+                    ////System.out.println(toBuild + " " + influence + "" + nextSpawnDirection);
                 }
             }
         }
         else{
-            //System.out.println("NOT SPAWNING THIS ROUND BECAUSE OUR BUDGET IS TOO LOW");
+            ////System.out.println("NOT SPAWNING THIS ROUND BECAUSE OUR BUDGET IS TOO LOW");
         }
     }
     //Round by round hard coding / changing the spawn rates over time
@@ -88,7 +84,7 @@ public class ECSpawnController implements ECController{
             POLITICIAN_RATE = 0.35;
             SLANDERER_RATE = 0.3;
         }
-       if(roundNum > 2700) {
+        if(roundNum > 2700) {
             MUCKRAKER_RATE = 0;
             POLITICIAN_RATE = 1;
             SLANDERER_RATE = 0.0;
@@ -97,7 +93,7 @@ public class ECSpawnController implements ECController{
         RobotInfo[] robots = rc.senseNearbyRobots(RobotType.ENLIGHTENMENT_CENTER.sensorRadiusSquared,rc.getTeam().opponent());
         for(RobotInfo robot : robots){
             if(robot.getType() == RobotType.MUCKRAKER){
-                //System.out.println("Disabled Slanderer spawning");
+                ////System.out.println("Disabled Slanderer spawning");
                 MUCKRAKER_RATE = 0.25;
                 POLITICIAN_RATE = 0.75;
                 SLANDERER_RATE = 0.0;
@@ -116,7 +112,7 @@ public class ECSpawnController implements ECController{
             return RobotType.POLITICIAN;
         }
         else{
-            //System.out.println("TRYING TO SPAWN AN ENLIGHTENMENT CENTER");
+            ////System.out.println("TRYING TO SPAWN AN ENLIGHTENMENT CENTER");
             return RobotType.MUCKRAKER;
         }
     }

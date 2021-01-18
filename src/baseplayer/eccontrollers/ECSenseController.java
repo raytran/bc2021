@@ -19,6 +19,7 @@ public class ECSenseController implements ECController{
     private double averageInfluenceChange;
     private int prevBotCount;
     private int prevInfluence;
+    private Direction nextSpawnDirection = Direction.NORTH;
     private final int MEMORY = 100;
     public ECSenseController(RobotController rc, BotEnlightenment ec) {
         this.ec = ec;
@@ -48,7 +49,7 @@ public class ECSenseController implements ECController{
                 }
             }
         }
-        System.out.println("SAFETY EVAL: " + safetyEval);
+        //System.out.println("SAFETY EVAL: " + safetyEval);
         ec.setSafetyEval(safetyEval);
         updateAverageSafety(safetyEval);
 
@@ -63,6 +64,25 @@ public class ECSenseController implements ECController{
         int influenceChange = currentInfluence - prevInfluence;
         updateAverageInfluenceChange(influenceChange);
         prevInfluence = currentInfluence;
+
+        // check we are not surrounded
+        checkSpawn();
+    }
+
+    /**
+     * checks if our EC is able to spawn
+     */
+    private void checkSpawn() {
+        boolean canSpawn = false;
+        for (int i = 0; i < 8; i++) {
+            if (rc.canBuildRobot(RobotType.MUCKRAKER, nextSpawnDirection, 1)) {
+                canSpawn = true;
+                break;
+            } else {
+                nextSpawnDirection = nextSpawnDirection.rotateRight();
+            }
+        }
+        ec.setCanSpawn(canSpawn);
     }
 
     /**
@@ -73,8 +93,8 @@ public class ECSenseController implements ECController{
         if (rc.getRoundNum() == 1) {
             averageInfluenceChange = change;
         } else {
-            averageInfluenceChange += (change - averageSafety) / MEMORY;
-            ec.setAvgInfluenceChange(averageSafety);
+            averageInfluenceChange += (change - averageInfluenceChange) / MEMORY;
+            ec.setAvgInfluenceChange(averageInfluenceChange);
         }
     }
 
@@ -83,7 +103,7 @@ public class ECSenseController implements ECController{
      * @param change new change in bot count
      */
     private void updateAverageBotChange(double change) {
-        if (rc.getRoundNum() == 1) {
+        if (rc.getRoundNum() == 2) {
             averageBotChange = change;
         } else {
             averageBotChange += (change - averageBotChange) / MEMORY;

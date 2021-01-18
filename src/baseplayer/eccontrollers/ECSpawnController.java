@@ -55,7 +55,7 @@ public class ECSpawnController implements ECController {
         if(opPoliticianNeeded){
             buildAmount = opAmount;
         }
-        if(buildAmount >= minAmount || toBuild.equals(RobotType.MUCKRAKER)) {
+        if((buildAmount >= minAmount || toBuild.equals(RobotType.MUCKRAKER)) && bc.canSpend(this, buildAmount)) {
             for (int i = 0; i < 8; i++) {
                 if (rc.canBuildRobot(toBuild, nextSpawnDirection, buildAmount)) {
                     //Built the robot, add id to total

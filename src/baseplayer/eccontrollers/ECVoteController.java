@@ -58,7 +58,7 @@ public class ECVoteController implements ECController {
                 }
             } else if (prevVoted) {
                 for(int i=initialAmount;i<=amount;i++) {
-                    counts[amount - initialAmount]++;
+                    counts[i - initialAmount]++;
                 }
                 if (!prevAdjustMultiplier && amount == MAX_VOTE) {
                     prevAdjustMultiplier = true;
