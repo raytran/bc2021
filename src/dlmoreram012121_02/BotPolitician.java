@@ -1,6 +1,6 @@
-package baseplayer;
+package dlmoreram012121_02;
 
-import baseplayer.flags.*;
+import dlmoreram012121_02.flags.*;
 import battlecode.common.*;
 
 import java.util.Optional;
@@ -58,7 +58,7 @@ public class BotPolitician extends BotController {
         }
 
         if (isLattice){
-            System.out.println("LATTICE DEF");
+            //System.out.println("LATTICE DEF");
             latticeDefense();
         } else {
             if (targetLocation.isPresent()){
@@ -78,7 +78,7 @@ public class BotPolitician extends BotController {
             }
 
             if (!flagSet){
-                //System.out.println("REBROADCAST");
+                ////System.out.println("REBROADCAST");
                 rc.setFlag(mostRecentEnemyReportRebroadcast);
             }
         }
@@ -181,7 +181,7 @@ public class BotPolitician extends BotController {
                     }else{
                         // Check if this is too old to consider
                         if (mostRecentEnemyReportRebroadcastTimestamp - enemySpottedInfo.timestamp > Flags.REBROADCAST_ROUND_LIMIT) {
-                            //System.out.println("TOO OLD!");
+                            ////System.out.println("TOO OLD!");
                             return;
                         }
                     }
@@ -193,7 +193,7 @@ public class BotPolitician extends BotController {
                         AreaClearInfo areaClearInfo = Flags.decodeAreaClear(currentLoc, nearbyFlag);
                         if (areaClearInfo.location.distanceSquaredTo(targetLocation.get()) < 5) {
                             targetLocation = Optional.empty();
-                            System.out.println("CLEARING TARGET");
+                            //System.out.println("CLEARING TARGET");
                         }
                     }
                     break;

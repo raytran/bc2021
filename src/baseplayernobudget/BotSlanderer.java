@@ -5,51 +5,42 @@ import battlecode.common.*;
 
 public class BotSlanderer extends BotController {
     Direction awayFromEnemy;
-    BoundarySpottedInfo[] spottedBoundaries = new BoundarySpottedInfo[4];
     MapLocation targetLoc;
     MapLocation homeLoc;
-    int lastEnemySighting;
+    BoundarySpottedInfo[] spottedBoundaries = new BoundarySpottedInfo[4];
     int closest = Integer.MAX_VALUE;
+    int lastEnemySpotted = 0;
     boolean flagSet = false;
     public BotSlanderer(RobotController rc) throws GameActionException {
         super(rc);
-        awayFromEnemy = Utilities.randomDirection();
+        Utilities.checkBoundaries(rc, spottedBoundaries);
+        Direction dir = Utilities.toNearestBoundary(rc, spottedBoundaries);
+        if (dir != null) awayFromEnemy = dir;
+        else awayFromEnemy = Utilities.randomDirection();
         homeLoc = parentLoc.get();
         targetLoc = homeLoc.translate((int) (5 * Math.random()), (int) (5 * Math.random()));
     }
 
     @Override
     public BotController run() throws GameActionException {
-        Utilities.checkBoundaries(rc, spottedBoundaries);
-        senseNearbyRobots(this::onNearbyEnemy, this::onNearbyFriendly, this::onNearbyNeutral);
-        /*if (rc.getRoundNum() - lastEnemySighting < 5) {
-            targetLoc = rc.getLocation().add(awayFromEnemy);
-        }*/
-        Direction toBoundary = Utilities.toNearestBoundary(rc, spottedBoundaries);
-        /*nav.moveTo(targetLoc);*/
-        if (toBoundary != null) nav.moveTo(rc.getLocation().add(toBoundary));
-        else nav.moveTo(targetLoc);
-        if (rc.getType() == RobotType.POLITICIAN){
-            // Just converted; return a politician controller instead
-            return BotPolitician.fromSlanderer(this);
+        if (rc.getRoundNum() > 5 && rc.getRoundNum() - lastEnemySpotted > 5) {
+            senseNearbyRobots(this::onNearbyEnemy, this::onNearbyFriendly, this::onNearbyNeutral);
+            latticePosition();
+        } else {
+            System.out.println("SCARED");
+            nav.moveTo(rc.getLocation().add(awayFromEnemy));
         }
-
-        // Search for boundary if we can
-        if (Clock.getBytecodesLeft() > 1000) {
-            searchForNearbyBoundaries();
-            flagBoundaries();
-        }
-        closest = Integer.MAX_VALUE;
-        flagSet = false;
         return this;
     }
 
     private void onNearbyEnemy(RobotInfo robotInfo) throws GameActionException {
-        lastEnemySighting = rc.getRoundNum();
         if (rc.getLocation().distanceSquaredTo(robotInfo.location) < closest){
             awayFromEnemy = robotInfo.location.directionTo(rc.getLocation());
             closest = rc.getLocation().distanceSquaredTo(robotInfo.location);
-            targetLoc = rc.getLocation().add(robotInfo.location.directionTo(rc.getLocation()));
+            nav.moveTo(rc.getLocation().add(awayFromEnemy));
+            lastEnemySpotted = rc.getRoundNum();
+            inGrid = false;
+            latticeLoc = null;
         }
         if (!flagSet) {
             rc.setFlag(Flags.encodeEnemySpotted(rc.getRoundNum(), robotInfo.location, robotInfo.getType(), false));
@@ -58,23 +49,70 @@ public class BotSlanderer extends BotController {
     }
 
     private void onNearbyFriendly(RobotInfo robotInfo) throws GameActionException {
-        /*if (rc.canGetFlag(robotInfo.ID)){
-            int flag = rc.getFlag(robotInfo.ID);
-            if (flag == 1){
-                robotInfo.location.add(robotInfo.location.directionTo(homeLoc));
-            }
-            /*if (Flags.decodeFlagType(flag) == FlagType.ENEMY_SPOTTED) {
-               EnemySpottedInfo enemyInfo = Flags.decodeEnemySpotted(rc.getLocation(), flag);
-               targetLoc = rc.getLocation().add(enemyInfo.location.directionTo(rc.getLocation()));
-               System.out.println("running from reported enemy");
+        /*if(rc.canGetFlag(robotInfo.ID)) {
+            if(rc.getFlag(robotInfo.ID) == 2) {
+                rc.move(robotInfo.location.directionTo(rc.getLocation()));
+                inGrid = false;
+                lastEnemySpotted = rc.getRoundNum();
+                rc.setFlag(2);
+                flagSet = true;
             }
         }*/
     }
 
     private void onNearbyNeutral(RobotInfo robotInfo) throws GameActionException {
-        if (!flagSet) {
-            rc.setFlag(Flags.encodeNeutralEcSpotted(rc.getRoundNum(), robotInfo.location, robotInfo.conviction));
-            flagSet = true;
+    }
+
+    final static int[][] offsets = {{-1,-1},{1,-1},{-1,1},{1,1}};
+    static boolean inGrid = false;
+    static MapLocation latticeLoc;
+    private void latticePosition() throws GameActionException {
+        if (!inGrid) {
+            if (latticeLoc == null) {
+                int closestDist = Integer.MAX_VALUE;
+                MapLocation closestBot = null;
+                for (RobotInfo robotInfo : rc.senseNearbyRobots()){
+                    if (robotInfo.type == RobotType.ENLIGHTENMENT_CENTER || rc.getFlag(robotInfo.ID) == 1){
+                        if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < closestDist){
+                            closestDist = robotInfo.location.distanceSquaredTo(rc.getLocation());
+                            closestBot = robotInfo.location;
+                        }
+                    }
+                }
+
+                if (closestBot != null){
+                    for (int[] offset : offsets){
+                        MapLocation possible = closestBot.translate(offset[0], offset[1]);
+                        if (rc.canSenseLocation(possible) && rc.onTheMap(possible) && !rc.isLocationOccupied(possible)){
+                            latticeLoc = possible;
+                        }
+                    }
+                }
+            }
+
+            if (latticeLoc == null){
+                if (parentLoc.isPresent())
+                    nav.fuzzyMove(parentLoc.get().directionTo(rc.getLocation()));
+                else
+                    nav.fuzzyMove(Utilities.randomDirection());
+            }else{
+                nav.moveTo(latticeLoc);
+                if (rc.getLocation().equals(latticeLoc)){
+                    rc.setFlag(1);
+                    flagSet = true;
+                    inGrid = true;
+                }else if (rc.canSenseLocation(latticeLoc)
+                        && rc.isLocationOccupied(latticeLoc)
+                        && rc.getFlag(rc.senseRobotAtLocation(latticeLoc).ID) == 1){
+                    MapLocation original = rc.senseRobotAtLocation(latticeLoc).location;
+                    for (int[] offset : offsets){
+                        MapLocation possible = original.translate(offset[0], offset[1]);
+                        if (rc.canSenseLocation(possible) && rc.onTheMap(possible) && !rc.isLocationOccupied(possible)){
+                            latticeLoc = possible;
+                        }
+                    }
+                }
+            }
         }
     }
 

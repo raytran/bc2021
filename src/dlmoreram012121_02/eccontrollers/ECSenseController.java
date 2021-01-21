@@ -1,19 +1,17 @@
-package baseplayernobudget.eccontrollers;
+package dlmoreram012121_02.eccontrollers;
 
-import baseplayernobudget.BotEnlightenment;
-import baseplayernobudget.flags.EnemySpottedInfo;
-import baseplayernobudget.flags.FlagType;
-import baseplayernobudget.flags.Flags;
+import dlmoreram012121_02.BotEnlightenment;
+import dlmoreram012121_02.flags.EnemySpottedInfo;
+import dlmoreram012121_02.flags.FlagType;
+import dlmoreram012121_02.flags.Flags;
 import battlecode.common.*;
-
-import java.awt.*;
 
 /**
  * Senses nearby environment and generates a safety evaluation
  * Where more positive = safer
  *   and more negative = danger
  */
-public class ECSenseController implements ECController {
+public class ECSenseController implements ECController{
     RobotController rc;
     BotEnlightenment ec;
     private double averageSafety;
@@ -31,17 +29,15 @@ public class ECSenseController implements ECController {
     @Override
     public void run() throws GameActionException {
         // update safety metric
-        double safetyEval = 0.;
+        double safetyEval = 1;
         int radius = rc.getType().sensorRadiusSquared;
         Team enemy = rc.getTeam().opponent();
         MapLocation currentLoc = rc.getLocation();
-        boolean enemyMuckraker = false;
         for (RobotInfo ri : rc.senseNearbyRobots(radius)) {
             if (ri.team.equals(enemy) && !ri.getType().equals(RobotType.ENLIGHTENMENT_CENTER)) {
-                if (ri.getType().equals(RobotType.MUCKRAKER)) enemyMuckraker = true;
                 safetyEval -= ri.influence;
             } else {
-                if(ri.getType().equals(RobotType.POLITICIAN)) safetyEval += ri.influence;
+                safetyEval += ri.influence;
                 int friendFlag = rc.getFlag(ri.ID);
                 if (Flags.decodeFlagType(rc.getFlag(ri.ID)) == FlagType.ENEMY_SPOTTED) {
                     EnemySpottedInfo esi = Flags.decodeEnemySpotted(currentLoc, friendFlag);
@@ -53,17 +49,17 @@ public class ECSenseController implements ECController {
                 }
             }
         }
-        ec.setEnemyMuckraker(enemyMuckraker);
+        ////System.out.println("SAFETY EVAL: " + safetyEval);
         ec.setSafetyEval(safetyEval);
         updateAverageSafety(safetyEval);
 
-        // update bot metric
+        // update bot metrics
         int currentBotCount = ec.getLocalRobotCount();
         int botChange = currentBotCount - prevBotCount;
         updateAverageBotChange(botChange);
         prevBotCount = currentBotCount;
 
-        // update influence metric
+        // update influence metrics
         int currentInfluence = rc.getInfluence();
         int influenceChange = rc.getRoundNum() != 1 ? currentInfluence - prevInfluence : 0;
         updateAverageInfluenceChange(influenceChange);

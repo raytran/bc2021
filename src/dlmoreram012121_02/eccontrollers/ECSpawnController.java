@@ -1,7 +1,7 @@
-package baseplayer.eccontrollers;
+package dlmoreram012121_02.eccontrollers;
 
 import battlecode.common.*;
-import baseplayer.BotEnlightenment;
+import dlmoreram012121_02.BotEnlightenment;
 
 import java.awt.*;
 
@@ -76,7 +76,7 @@ public class ECSpawnController implements ECController {
             SLANDERER_RATE = 0.75;
         }
         //"Normal" Rates
-        if (numSpawned > 9){
+        if (numSpawned > 9 && roundNum <= 1500 ){
             MUCKRAKER_RATE = 0.1;
             POLITICIAN_RATE = 0.4;
             SLANDERER_RATE = 0.5;
@@ -113,7 +113,7 @@ public class ECSpawnController implements ECController {
             return RobotType.POLITICIAN;
         }
         else{
-            ////System.out.println("TRYING TO SPAWN AN ENLIGHTENMENT CENTER");
+            //////System.out.println("TRYING TO SPAWN AN ENLIGHTENMENT CENTER");
             return RobotType.MUCKRAKER;
         }
     }

@@ -1,10 +1,10 @@
-package baseplayer;
+package dlmoreram012121_02;
 
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotType;
 import battlecode.common.RobotController;
-import baseplayer.flags.*;
+import dlmoreram012121_02.flags.*;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -88,19 +88,19 @@ public class Utilities {
                     switch(dir) {
                         case NORTH:
                             boundaries[0] = new BoundarySpottedInfo(rc.getRoundNum(), loc.y - 1, BoundaryType.NORTH);
-                            System.out.println("Setting NORTH at " + (loc.y - 1));
+                            //System.out.println("Setting NORTH at " + (loc.y - 1));
                             break;
                         case EAST:
                             boundaries[1] = new BoundarySpottedInfo(rc.getRoundNum(), loc.x - 1, BoundaryType.EAST);
-                            System.out.println("Setting EAST at " + (loc.x - 1));
+                            //System.out.println("Setting EAST at " + (loc.x - 1));
                             break;
                         case SOUTH:
                             boundaries[2] = new BoundarySpottedInfo(rc.getRoundNum(), loc.y + 1, BoundaryType.SOUTH);
-                            System.out.println("Setting SOUTH at " + (loc.y + 1));
+                            //System.out.println("Setting SOUTH at " + (loc.y + 1));
                             break;
                         case WEST:
                             boundaries[3] = new BoundarySpottedInfo(rc.getRoundNum(), loc.x + 1, BoundaryType.WEST);
-                            System.out.println("Setting WEST at " + (loc.x + 1));
+                            //System.out.println("Setting WEST at " + (loc.x + 1));
                             break;
                     }
                     break;

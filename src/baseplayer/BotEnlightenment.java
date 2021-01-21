@@ -21,7 +21,6 @@ public class BotEnlightenment extends BotController {
     private int prevVoteMult = 1;
     private int lastBotSpawn = 0;
 
-    private final ECBudgetController budgetController;
     private final ECVoteController voteController;
     private final ECFlagController flagController;
     private final ECSpawnController spawnController;
@@ -38,23 +37,20 @@ public class BotEnlightenment extends BotController {
     public BotEnlightenment(RobotController rc) throws GameActionException {
         super(rc);
         senseController = new ECSenseController(rc, this);
-        budgetController = new ECBudgetController(rc, this);
-        voteController = new ECVoteController(rc, this, this.budgetController);
+        voteController = new ECVoteController(rc, this);
         flagController = new ECFlagController(rc, this);
-        spawnController = new ECSpawnController(rc,this, this.budgetController);
+        spawnController = new ECSpawnController(rc,this);
     }
     @Override
     public BotController run() throws GameActionException {
         // Sense danger level
         senseController.run();
-        //Run budget controller
-        budgetController.run();
         // Read and update flags
         flagController.run();
-        //Run spawn controller
-        spawnController.run();
         // Bid for votes
         voteController.run();
+        //Run spawn controller
+        spawnController.run();
         //Set the neutral spotted info
         thisRoundNeutralEcSpottedInfo = Optional.empty();
         // Search for boundary if we can

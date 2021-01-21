@@ -28,7 +28,7 @@ public class BotPolitician extends BotController {
     public BotPolitician(RobotController rc) throws GameActionException {
         super(rc);
         targetLocation = Optional.empty();
-        isLattice = rc.getRoundNum() % 10 == 0;
+        isLattice = false;
         if (parentLoc.isPresent()){
             scoutingDirection = parentLoc.get().directionTo(rc.getLocation());
             assert scoutingDirection != null;
@@ -192,7 +192,7 @@ public class BotPolitician extends BotController {
                         AreaClearInfo areaClearInfo = Flags.decodeAreaClear(currentLoc, nearbyFlag);
                         if (areaClearInfo.location.distanceSquaredTo(targetLocation.get()) < 5) {
                             targetLocation = Optional.empty();
-                            System.out.println("CLEARING TARGET");
+                            //System.out.println("CLEARING TARGET");
                         }
                     }
                     break;

@@ -71,19 +71,19 @@ public class Utilities {
                     switch(dir) {
                         case NORTH:
                             boundaries[0] = new BoundarySpottedInfo(rc.getRoundNum(), loc.y - 1, BoundaryType.NORTH);
-                            System.out.println("Setting NORTH at " + loc.y);
+                            System.out.println("Setting NORTH at " + (loc.y - 1));
                             break;
                         case EAST:
                             boundaries[1] = new BoundarySpottedInfo(rc.getRoundNum(), loc.x - 1, BoundaryType.EAST);
-                            System.out.println("Setting EAST at " + loc.x);
+                            System.out.println("Setting EAST at " + (loc.x - 1));
                             break;
                         case SOUTH:
                             boundaries[2] = new BoundarySpottedInfo(rc.getRoundNum(), loc.y + 1, BoundaryType.SOUTH);
-                            System.out.println("Setting SOUTH at " + loc.y);
+                            System.out.println("Setting SOUTH at " + (loc.y + 1));
                             break;
                         case WEST:
                             boundaries[3] = new BoundarySpottedInfo(rc.getRoundNum(), loc.x + 1, BoundaryType.WEST);
-                            System.out.println("Setting WEST at " + loc.x);
+                            System.out.println("Setting WEST at " + (loc.x + 1));
                             break;
                     }
                     break;
@@ -119,8 +119,8 @@ public class Utilities {
     public static Direction toNearestBoundary(RobotController rc, BoundarySpottedInfo[] boundaries) {
         MapLocation currentLoc = rc.getLocation();
         Direction out = null;
+        int currentMin = 100;
         for (BoundarySpottedInfo boundary : boundaries) {
-            int currentMin = 100;
             if (boundary != null) {
                 int diff;
                 switch(boundary.boundaryType) {
@@ -156,7 +156,17 @@ public class Utilities {
                 }
             }
         }
-        return out;
+        if(currentMin == 0) return Direction.CENTER;
+        else return out;
+    }
+
+    public static MapLocation nearestLocation(RobotController rc, MapLocation locationOne, MapLocation locationTwo) {
+        assert locationOne != null && locationTwo != null;
+        MapLocation currentLocation = rc.getLocation();
+        int deltaOne = Math.abs(currentLocation.x - locationOne.x) + Math.abs(currentLocation.y - locationOne.y);
+        int deltaTwo = Math.abs(currentLocation.x - locationTwo.x) + Math.abs(currentLocation.y - locationTwo.y);
+        if (deltaOne < deltaTwo) return locationOne;
+        else return locationTwo;
     }
 
     /**

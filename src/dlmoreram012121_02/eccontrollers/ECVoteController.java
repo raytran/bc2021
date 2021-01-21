@@ -1,9 +1,9 @@
-package baseplayer.eccontrollers;
+package dlmoreram012121_02.eccontrollers;
 
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
-import baseplayer.BotEnlightenment;
-import baseplayer.Utilities;
+import dlmoreram012121_02.BotEnlightenment;
+import dlmoreram012121_02.Utilities;
 
 /**
  * This class decides for the EC how many votes to bid at this point in the game.

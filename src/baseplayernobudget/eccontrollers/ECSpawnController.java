@@ -20,7 +20,7 @@ public class ECSpawnController implements ECController {
     public void run() throws GameActionException {
         RobotType toBuild;
         int inf = 0;
-        if(ec.getSafetyEval() > 0 && !ec.isEnemyMuckraker()) {
+        if(ec.getSafetyEval() >= 0 && !ec.isEnemyMuckraker()) {
             toBuild = buildQ[buildQIndex];
             switch (toBuild) {
                 case SLANDERER:
@@ -67,6 +67,7 @@ public class ECSpawnController implements ECController {
     }
 
     private int getPoliticianBuildInfluence(){
-        return Math.max(15, (int) (rc.getInfluence() * 0.2));
+        if (ec.isEnemyMuckraker()) return Math.max(21, (int) (rc.getInfluence() * 0.1));
+        else return Math.max(21, (int) (rc.getInfluence() * 0.2));
     }
 }

@@ -1,11 +1,9 @@
-package baseplayernobudget;
+package dlmoreram012121_02;
 
-import baseplayernobudget.ds.CircularLinkedList;
-import baseplayernobudget.ds.LinkedListNode;
-import baseplayernobudget.eccontrollers.*;
-import baseplayernobudget.flags.BoundarySpottedInfo;
-import baseplayernobudget.flags.BoundaryType;
-import baseplayernobudget.flags.NeutralEcSpottedInfo;
+import dlmoreram012121_02.ds.CircularLinkedList;
+import dlmoreram012121_02.ds.LinkedListNode;
+import dlmoreram012121_02.eccontrollers.*;
+import dlmoreram012121_02.flags.NeutralEcSpottedInfo;
 import battlecode.common.*;
 
 import java.util.*;
@@ -14,40 +12,39 @@ public class BotEnlightenment extends BotController {
     private final CircularLinkedList<Map.Entry<Integer,RobotType>> spawnedRobots = new CircularLinkedList<>();
     private final HashMap<Integer, LinkedListNode<Map.Entry<Integer, RobotType>>> robotIdToLLN = new HashMap<>();
     private LinkedListNode<Map.Entry<Integer, RobotType>> lastSample;
-    private final BoundarySpottedInfo[] spottedBoundaries = new BoundarySpottedInfo[4];
 
     private int muckrakerCount = 0;
     private int politicianCount = 0;
     private int slandererCount = 0;
+    private double voteWinRate = 0;
+    private int prevVoteAmount = 0;
+    private int prevVoteMult = 1;
+    private int lastBotSpawn = 0;
 
     private final ECVoteController voteController;
-    private final ECSpawnController spawnController;
     private final ECFlagController flagController;
+    private final ECSpawnController spawnController;
     private final ECSenseController senseController;
     private double safetyEval = 0;
     private double avgSafetyEval = 0;
     private double avgBotChange = 0;
     private double avgInfluenceChange = 0;
-    private boolean enemyMuckraker = false;
     private boolean canSpawn = true;
     private Optional<NeutralEcSpottedInfo> thisRoundNeutralEcSpottedInfo = Optional.empty();
     private boolean opSpawned = false;
+
 
     public BotEnlightenment(RobotController rc) throws GameActionException {
         super(rc);
         senseController = new ECSenseController(rc, this);
         voteController = new ECVoteController(rc, this);
-        spawnController = new ECSpawnController(rc, this);
         flagController = new ECFlagController(rc, this);
+        spawnController = new ECSpawnController(rc,this);
     }
-
     @Override
     public BotController run() throws GameActionException {
-        /*
         // Sense danger level
         senseController.run();
-        //Run budget controller
-        budgetController.run();
         // Read and update flags
         flagController.run();
         //Run spawn controller
@@ -56,22 +53,11 @@ public class BotEnlightenment extends BotController {
         voteController.run();
         //Set the neutral spotted info
         thisRoundNeutralEcSpottedInfo = Optional.empty();
+        System.out.println("DL MORE RAM 012121_02");
         // Search for boundary if we can
         if (Clock.getBytecodesLeft() > 1000){
             searchForNearbyBoundaries();
         }
-        */
-        // check boundaries on the first turn
-        if (rc.getRoundNum() == 1) Utilities.checkBoundaries(rc, spottedBoundaries);
-
-        senseController.run();
-        flagController.run();
-        System.out.println("Wellness Metrics\nSafety Eval: " + safetyEval + "\nAvg Safety: " + avgSafetyEval
-        + "\nAvg Influence: " + avgInfluenceChange + "\nAvg Bot: " + avgBotChange);
-
-        spawnController.run();
-        voteController.run();
-
         return this;
     }
 
@@ -90,6 +76,8 @@ public class BotEnlightenment extends BotController {
         LinkedListNode<Map.Entry<Integer, RobotType>> newLLN
                 = spawnedRobots.addToTail(new AbstractMap.SimpleImmutableEntry<>(id, robotType));
         robotIdToLLN.put(id, newLLN);
+        lastBotSpawn = rc.getRoundNum();
+
         switch(robotType){
             case MUCKRAKER:
                 muckrakerCount++;
@@ -152,9 +140,12 @@ public class BotEnlightenment extends BotController {
         return slandererCount;
     }
 
+    public int getLastBotSpawn() { return lastBotSpawn; }
+
     public int getLocalRobotCount(){
         return slandererCount + politicianCount + muckrakerCount;
     }
+
 
     /**
      * Return the n sampled robot ids
@@ -165,16 +156,29 @@ public class BotEnlightenment extends BotController {
         return spawnedRobots.sampleWithMemory(n);
     }
 
+
+    /**
+     * Update the estimated vote win ratio
+     * @param voteWinRate from ECVoteController
+     */
+    public void setVoteWinRate(double voteWinRate) {
+        this.voteWinRate = voteWinRate;
+    }
+
+    /**
+     * @return current voting win ratio
+     */
+    public double getVoteWinRate() {
+        return voteWinRate;
+    }
+    public Optional<NeutralEcSpottedInfo> getThisRoundNeutralEcSpottedInfo() { return this.thisRoundNeutralEcSpottedInfo; }
     public void setThisRoundNeutralEcSpottedInfo(Optional<NeutralEcSpottedInfo> info){
         this.thisRoundNeutralEcSpottedInfo = info;
     }
 
-    /**
-     * Many a setter and a getter follows here
-     */
-    public Optional<NeutralEcSpottedInfo> getThisRoundNeutralEcSpottedInfo() { return this.thisRoundNeutralEcSpottedInfo; }
-
-    public void setSafetyEval(double newSafety){ safetyEval = newSafety; }
+    public void setSafetyEval(double newSafety){
+        safetyEval = newSafety;
+    }
 
     public double getSafetyEval(){ return safetyEval; }
 
@@ -190,15 +194,19 @@ public class BotEnlightenment extends BotController {
 
     public double getAvgInfluenceChange() { return avgInfluenceChange; }
 
-    public void setOpSpawned(boolean spawned){ opSpawned = spawned; }
-
     public boolean getOpSpawned(){ return opSpawned; }
+
+    public void setOpSpawned(boolean spawned){ opSpawned = spawned; }
 
     public void setCanSpawn(boolean spawn) { canSpawn = spawn; }
 
     public boolean getCanSpawn() { return canSpawn; }
 
-    public void setEnemyMuckraker(boolean present) { enemyMuckraker = present; }
+    public void setPrevVoteAmount(int amount) { prevVoteAmount = amount; }
 
-    public boolean isEnemyMuckraker() { return enemyMuckraker; }
+    public int getPrevVoteAmount() { return prevVoteAmount; }
+
+    public void setPrevVoteMult(int mult) { prevVoteMult = mult; }
+
+    public int getPrevVoteMult() { return prevVoteMult; }
 }
