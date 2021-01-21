@@ -58,7 +58,6 @@ public class BotPolitician extends BotController {
         }
 
         if (isLattice){
-            System.out.println("LATTICE DEF");
             latticeDefense();
         } else {
             if (targetLocation.isPresent()){

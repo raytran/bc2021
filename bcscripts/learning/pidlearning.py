@@ -65,12 +65,11 @@ public class ECBudgetController implements ECController {
         int currentInfluence = rc.getInfluence();
         int currentRound = rc.getRoundNum();
         if (currentRound == 1) {
-            botBudget = 88;
-            voteBudget = 20;
-            hpBudget = 42;
+            voteBudget = 1;
         }
 
         int income = currentInfluence - voteBudget - botBudget - hpBudget;
+        //System.out.println("Income is: " + income);
         if (income > 0) {
             tc.updateHeuristics();
             tc.updateTargets();
@@ -122,42 +121,44 @@ public class ECBudgetController implements ECController {
                 botAllocation = (int) Math.round(botDValue * income);
                 hpAllocation = income - voteAllocation - botAllocation;
                 assert voteAllocation >= 0 && botAllocation >= 0 && hpAllocation >= 0;
+                assert income >= voteAllocation + botAllocation + hpAllocation;
             } catch (AssertionError e) {
                 voteAllocation = (int) Math.floor(voteDValue * income);
                 botAllocation = (int) Math.floor(botDValue * income);
                 hpAllocation = income - voteAllocation - botAllocation;
             }
 
-            /** if there are nearby enemy politicians, make sure we have enough hp
-             int enemyInfluence = ec.checkNearbyEnemies();
-             if (hpBudget <= enemyInfluence && hpBudget != 0) {
-             if (currentInfluence > enemyInfluence + 1) {
-             hpBudget = enemyInfluence + 1;
-             int remainingInfluence = currentInfluence - hpBudget;
-             double newTotal = voteDValue + botDValue;
-             voteAllocation = (int) (voteDValue / newTotal * remainingInfluence);
-             botAllocation = remainingInfluence - (voteBudget + voteAllocation);
-             } else {
-             voteAllocation = 0;
-             botAllocation = 0;
-             hpBudget += income - 1;
-             botBudget += 1;
-             }
-             }**/
+            //if there are nearby enemy politicians, make sure we have enough hp
+            /**double safetyEval = ec.getSafetyEval();
+            if (hpBudget <= safetyEval && hpBudget != 0) {
+                if (currentInfluence > safetyEval + 1) {
+                    hpBudget = (int) safetyEval + 1;
+                    int remainingInfluence = currentInfluence - hpBudget;
+                    double newTotal = voteDValue + botDValue;
+                    voteAllocation = (int) (voteDValue / newTotal * remainingInfluence);
+                    botAllocation = remainingInfluence - (voteBudget + voteAllocation);
+                } else {
+                    voteAllocation = 0;
+                    botAllocation = 0;
+                    hpBudget += income - 1;
+                    botBudget += 1;
+                }
+            }**/
 
             if (rc.getTeamVotes() >= Utilities.VOTE_WIN) {
                 botBudget += voteAllocation + botAllocation + voteBudget;
                 voteBudget = 0;
-            } else if (currentRound - ec.getLastBotSpawn() > 150) {
-                voteBudget = voteAllocation + botAllocation + botBudget;
-                botBudget = 0;
             } else {
                 voteBudget += voteAllocation;
                 botBudget += botAllocation;
             }
 
-            voteBudget += voteAllocation;
-            botBudget += botAllocation;
+            if(voteBudget > 2 * ec.getPrevVoteAmount() * ec.getPrevVoteMult() + 1) {
+                int diff = voteBudget - 2 * ec.getPrevVoteAmount() * ec.getPrevVoteMult() - 1;
+                voteBudget = 2 * ec.getPrevVoteAmount() * ec.getPrevVoteMult() + 1;
+                botBudget += diff;
+            }
+
             hpBudget += hpAllocation;
 
             //System.out.println("Total influence: " + currentInfluence + "\\nVoting Budget: "
@@ -226,12 +227,11 @@ public class ECBudgetController implements ECController {
         int currentInfluence = rc.getInfluence();
         int currentRound = rc.getRoundNum();
         if (currentRound == 1) {
-            botBudget = 88;
-            voteBudget = 20;
-            hpBudget = 42;
+            voteBudget = 1;
         }
 
         int income = currentInfluence - voteBudget - botBudget - hpBudget;
+        //System.out.println("Income is: " + income);
         if (income > 0) {
             tc.updateHeuristics();
             tc.updateTargets();
@@ -283,42 +283,44 @@ public class ECBudgetController implements ECController {
                 botAllocation = (int) Math.round(botDValue * income);
                 hpAllocation = income - voteAllocation - botAllocation;
                 assert voteAllocation >= 0 && botAllocation >= 0 && hpAllocation >= 0;
+                assert income >= voteAllocation + botAllocation + hpAllocation;
             } catch (AssertionError e) {
                 voteAllocation = (int) Math.floor(voteDValue * income);
                 botAllocation = (int) Math.floor(botDValue * income);
                 hpAllocation = income - voteAllocation - botAllocation;
             }
 
-            /** if there are nearby enemy politicians, make sure we have enough hp
-             int enemyInfluence = ec.checkNearbyEnemies();
-             if (hpBudget <= enemyInfluence && hpBudget != 0) {
-             if (currentInfluence > enemyInfluence + 1) {
-             hpBudget = enemyInfluence + 1;
-             int remainingInfluence = currentInfluence - hpBudget;
-             double newTotal = voteDValue + botDValue;
-             voteAllocation = (int) (voteDValue / newTotal * remainingInfluence);
-             botAllocation = remainingInfluence - (voteBudget + voteAllocation);
-             } else {
-             voteAllocation = 0;
-             botAllocation = 0;
-             hpBudget += income - 1;
-             botBudget += 1;
-             }
-             }**/
+            //if there are nearby enemy politicians, make sure we have enough hp
+            /**double safetyEval = ec.getSafetyEval();
+            if (hpBudget <= safetyEval && hpBudget != 0) {
+                if (currentInfluence > safetyEval + 1) {
+                    hpBudget = (int) safetyEval + 1;
+                    int remainingInfluence = currentInfluence - hpBudget;
+                    double newTotal = voteDValue + botDValue;
+                    voteAllocation = (int) (voteDValue / newTotal * remainingInfluence);
+                    botAllocation = remainingInfluence - (voteBudget + voteAllocation);
+                } else {
+                    voteAllocation = 0;
+                    botAllocation = 0;
+                    hpBudget += income - 1;
+                    botBudget += 1;
+                }
+            }**/
 
             if (rc.getTeamVotes() >= Utilities.VOTE_WIN) {
                 botBudget += voteAllocation + botAllocation + voteBudget;
                 voteBudget = 0;
-            } else if (currentRound - ec.getLastBotSpawn() > 150) {
-                voteBudget = voteAllocation + botAllocation + botBudget;
-                botBudget = 0;
             } else {
                 voteBudget += voteAllocation;
                 botBudget += botAllocation;
             }
 
-            voteBudget += voteAllocation;
-            botBudget += botAllocation;
+            if(voteBudget > 2 * ec.getPrevVoteAmount() * ec.getPrevVoteMult() + 1) {
+                int diff = voteBudget - 2 * ec.getPrevVoteAmount() * ec.getPrevVoteMult() - 1;
+                voteBudget = 2 * ec.getPrevVoteAmount() * ec.getPrevVoteMult() + 1;
+                botBudget += diff;
+            }
+
             hpBudget += hpAllocation;
 
             //System.out.println("Total influence: " + currentInfluence + "\\nVoting Budget: "
@@ -356,18 +358,12 @@ public class ECBudgetController implements ECController {
     public boolean canSpend (ECVoteController vc, int amount) { return voteBudget >= amount; }
 }
 """
-base_values = [0.001, 0.01, 0.1, 1, 5, 10, 25, 50, 100]
+base_values = [0.001, 0.01, 0.1, 1, 5, 10, 25, 50]
 initial = [50, 0.1, 0.5, 2, 0.001, 0.1, 0.1, 0.001, 1]
 prev_parameters_blue = pickle.load(open('prev_blue.pkl', 'rb'))
 prev_parameters_red = pickle.load(open('prev_red.pkl', 'rb'))
 win_avg_state = pickle.load(open('state_values.pkl', 'rb'))
 experience_buffer = []  # pickle.load(open('experiences.pkl', 'rb'))
-
-model_arch = OrderedDict([('lin1', nn.Linear(9, 5)),
-                          ('relu1', nn.ReLU()),
-                          ('lin2', nn.Linear(5, 1))])
-
-q_network = nn.Sequential(model_arch)
 
 
 # determines reward based on input team and stdout
@@ -461,7 +457,6 @@ if __name__ == '__main__':
         print(exception)
         os.chdir(home)
         # emergency dump
-        t.save(q_network, 'q_func.pkl')
         pickle.dump(prev_parameters_blue, open('prev_blue.pkl', "wb"))
         pickle.dump(prev_parameters_red, open('prev_red.pkl', 'wb'))
         pickle.dump(win_avg_state, open('state_values.pkl', "wb"))

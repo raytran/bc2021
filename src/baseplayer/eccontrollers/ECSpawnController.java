@@ -9,7 +9,7 @@ public class ECSpawnController implements ECController {
     private static double POLITICIAN_RATE = 0.2;
     private static double MUCKRAKER_RATE = 0.5;
     private static double SLANDERER_RATE = 0.3;
-    private final int[] SLANDERER_VALUES = {21, 42, 63, 85, 107, 130, 154, 178, 203, 228, 255, 282, 310, 339, 368, 399, 431, 463, 497};
+    private final int[] SLANDERER_VALUES = {21, 42, 63, 85, 107, 130, 154, 178, 203, 228, 255, 282, 310, 339, 368, 399, 431, 463, 497, 532, 568, 605, 644, 683, 724, 766, 810, 855, 902, 949};
     private final int MAX_BUILD_AMOUNT = 250;
     private final int MIN_BUILD_AMOUNT = 21;
     private final RobotController rc;
@@ -95,7 +95,15 @@ public class ECSpawnController implements ECController {
     //Round by round hard coding / changing the spawn rates over time
     private RobotType robotToSpawn() throws GameActionException{
         int roundNum = rc.getRoundNum();
-        if (numSpawned < 18 ) {
+        RobotInfo[] robots = rc.senseNearbyRobots(RobotType.ENLIGHTENMENT_CENTER.sensorRadiusSquared,rc.getTeam().opponent());
+        boolean nearbyEnemy = false;
+        for(RobotInfo robot : robots) {
+            nearbyEnemy = true;
+        }
+        if (rc.getRoundNum() == 1 && !nearbyEnemy) {
+            return RobotType.SLANDERER;
+        }
+        if (numSpawned < 18 && roundNum < 100) {
             MUCKRAKER_RATE = 1.0;
             POLITICIAN_RATE = 0.0;
             SLANDERER_RATE = 0.0;
@@ -112,11 +120,11 @@ public class ECSpawnController implements ECController {
             SLANDERER_RATE = 0.3;
         }
 
-        RobotInfo[] robots = rc.senseNearbyRobots(RobotType.ENLIGHTENMENT_CENTER.sensorRadiusSquared,rc.getTeam().opponent());
+
         for(RobotInfo robot : robots){
             if(robot.getType() == RobotType.MUCKRAKER){
-                MUCKRAKER_RATE = 0.35;
-                POLITICIAN_RATE = 0.65;
+                MUCKRAKER_RATE = 0.1;
+                POLITICIAN_RATE = 0.9;
                 SLANDERER_RATE = 0;
             }
         }

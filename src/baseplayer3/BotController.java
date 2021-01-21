@@ -121,7 +121,7 @@ public abstract class BotController {
         int steps = 0;
         for (int n = 0; n < Math.sqrt(rc.getType().sensorRadiusSquared); n++) {
             // Throughout the search, maintain that maxOffset is off the map while minOffset is on the map
-            //System.out.println("Max offset: " + maxOffset + "Min offset: " + minOffset);
+            ////System.out.println("Max offset: " + maxOffset + "Min offset: " + minOffset);
             int newOffset = (maxOffset + minOffset)/2;
             if (maxOffset == minOffset + 1) {
                 // Boundary pinpointed! maxOffset is off grid while minOffset is on grid

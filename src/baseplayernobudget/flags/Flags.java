@@ -88,6 +88,7 @@ public class Flags {
     }
 
     /**
+     * @param currentLoc of bot doing decoding
      * @param flag to be decoded
      * @return information for enemy spotted
      */

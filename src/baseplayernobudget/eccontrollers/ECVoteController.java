@@ -12,7 +12,6 @@ import battlecode.common.RobotController;
 public class ECVoteController implements ECController {
     private final RobotController rc;
     private final BotEnlightenment ec;
-    private final ECBudgetController bc;
     private final int initialAmount = 1;
     private int multiplier = 1;
     private int amount = initialAmount;
@@ -21,15 +20,14 @@ public class ECVoteController implements ECController {
     private boolean prevAdjustMultiplier = false;
     private final static int MAX_VOTE = 20;
     private final static int VOTE_WIN_COUNT = Utilities.VOTE_WIN;
-    private final static int MAX_ROUND = Utilities.MAX_ROUND;
+    private final static int MAX_ROUND = (int) Utilities.MAX_ROUND;
     private final int offset = 1 - initialAmount;
     private int[] counts = new int[MAX_VOTE + offset];
     private int[] wins = new int[MAX_VOTE + offset];
 
-    public ECVoteController(RobotController rc, BotEnlightenment ec, ECBudgetController bc) {
+    public ECVoteController(RobotController rc, BotEnlightenment ec) {
         this.rc = rc;
         this.ec = ec;
-        this.bc = bc;
     }
 
 
@@ -38,7 +36,7 @@ public class ECVoteController implements ECController {
      */
     @Override
     public void run() throws GameActionException {
-        int currentBudget = bc.getVoteBudget();
+        int currentBudget = rc.getRoundNum() > 450 ? (int) (rc.getInfluence() * 0.1) : 0;
         int currentVotes = rc.getTeamVotes();
         if (currentBudget > 0 && currentVotes < VOTE_WIN_COUNT) {
             boolean wonLast = currentVotes - prevVotes == 1;
@@ -86,7 +84,6 @@ public class ECVoteController implements ECController {
                     int setSize = counts[amount - initialAmount] + setSizes[amount - initialAmount];
                     if (setSize > 0) {
                         estimatedWinProb = (double) wins[amount - initialAmount] / setSize;
-                        ec.setVoteWinRate(estimatedWinProb);
                         if (currentVotes + remaining * estimatedWinProb >= VOTE_WIN_COUNT) {
                             break;
                         } else {
@@ -101,16 +98,14 @@ public class ECVoteController implements ECController {
             }
 
             int bidAmount = amount * multiplier;
-            if (rc.canBid(bidAmount) && bc.canSpend(this, bidAmount)) {
+            if (rc.canBid(bidAmount) /*&& bc.canSpend(this, bidAmount)*/) {
                 rc.bid(bidAmount);
                 //System.out.println("bid: " + bidAmount);
-                bc.withdrawBudget(this, bidAmount);
+                //bc.withdrawBudget(this, bidAmount);
                 prevVoted = true;
-                ec.setPrevVoteAmount(amount);
-                ec.setPrevVoteMult(multiplier);
-            } else if (rc.canBid(1) && bc.canSpend(this, 1)){
+            } else if (rc.canBid(1) /*&& bc.canSpend(this, 1)*/){
                 rc.bid(1);
-                bc.withdrawBudget(this, 1);
+                //bc.withdrawBudget(this, 1);
                 prevVoted = false;
             } else {
                 prevVoted = false;

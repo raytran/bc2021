@@ -1,9 +1,13 @@
 package baseplayernobudget;
 
+import baseplayernobudget.flags.BoundarySpottedInfo;
+import baseplayernobudget.flags.BoundaryType;
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
+import battlecode.common.RobotController;
 import battlecode.common.RobotType;
 
+import java.awt.*;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -11,9 +15,10 @@ import java.util.List;
  * Static utility methods
  */
 public class Utilities {
-    public static final int MAX_ROUND = 1500;
+    public static final double MAX_ROUND = 1500.;
     public static final int VOTE_WIN = 751;
     public static final double EPSILON = 0.001;
+    public static final Direction[] CARDINAL_DIRECTIONS = {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
     public static final RobotType[] spawnableRobot = {
             RobotType.POLITICIAN,
             RobotType.SLANDERER,
@@ -47,6 +52,111 @@ public class Utilities {
      */
     public static RobotType randomSpawnableRobotType() {
         return spawnableRobot[(int) (Math.random() * spawnableRobot.length)];
+    }
+
+    /**
+     *
+     * @param rc from bot
+     * @param boundaries internal 4 length array of type BoundarySpottedInfo
+     */
+    public static void checkBoundaries(RobotController rc, BoundarySpottedInfo[] boundaries) {
+        int senseRange = rc.getType().sensorRadiusSquared;
+        for(int i=0;i<4;i++){
+            if (boundaries[i] != null) continue;
+            Direction dir = CARDINAL_DIRECTIONS[i];
+            MapLocation loc = rc.getLocation();
+            for(int j=0;j<Math.floor(Math.sqrt(senseRange));j++) {
+                loc = loc.add(dir);
+                if (!rc.canSenseLocation(loc)) {
+                    switch(dir) {
+                        case NORTH:
+                            boundaries[0] = new BoundarySpottedInfo(rc.getRoundNum(), loc.y - 1, BoundaryType.NORTH);
+                            System.out.println("Setting NORTH at " + loc.y);
+                            break;
+                        case EAST:
+                            boundaries[1] = new BoundarySpottedInfo(rc.getRoundNum(), loc.x - 1, BoundaryType.EAST);
+                            System.out.println("Setting EAST at " + loc.x);
+                            break;
+                        case SOUTH:
+                            boundaries[2] = new BoundarySpottedInfo(rc.getRoundNum(), loc.y + 1, BoundaryType.SOUTH);
+                            System.out.println("Setting SOUTH at " + loc.y);
+                            break;
+                        case WEST:
+                            boundaries[3] = new BoundarySpottedInfo(rc.getRoundNum(), loc.x + 1, BoundaryType.WEST);
+                            System.out.println("Setting WEST at " + loc.x);
+                            break;
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    public static BoundarySpottedInfo getBoundary(BoundaryType boundary, BoundarySpottedInfo[] spottedBoundaries) {
+        BoundarySpottedInfo out;
+        switch(boundary) {
+            case NORTH:
+                assert spottedBoundaries[0] != null;
+                out = spottedBoundaries[0];
+                break;
+            case EAST:
+                assert spottedBoundaries[1] != null;
+                out = spottedBoundaries[1];
+                break;
+            case SOUTH:
+                assert spottedBoundaries[2] != null;
+                out = spottedBoundaries[2];
+                break;
+            case WEST:
+                assert spottedBoundaries[3] != null;
+                out = spottedBoundaries[3];
+                break;
+            default: throw new RuntimeException("BOUNDARY NOT FOUND");
+        }
+        return out;
+    }
+
+    public static Direction toNearestBoundary(RobotController rc, BoundarySpottedInfo[] boundaries) {
+        MapLocation currentLoc = rc.getLocation();
+        Direction out = null;
+        for (BoundarySpottedInfo boundary : boundaries) {
+            int currentMin = 100;
+            if (boundary != null) {
+                int diff;
+                switch(boundary.boundaryType) {
+                    case NORTH:
+                        diff = Math.abs(currentLoc.y - boundary.exactBoundaryLocation);
+                        if (diff < currentMin) {
+                            currentMin = diff;
+                            out = Direction.NORTH;
+                        }
+                        break;
+                    case EAST:
+                        diff = Math.abs(currentLoc.x - boundary.exactBoundaryLocation);
+                        if (diff < currentMin) {
+                            currentMin = diff;
+                            out = Direction.EAST;
+                        }
+                        break;
+                    case SOUTH:
+                        diff = Math.abs(currentLoc.y - boundary.exactBoundaryLocation);
+                        if (diff < currentMin) {
+                            currentMin = diff;
+                            out = Direction.SOUTH;
+                        }
+                        break;
+                    case WEST:
+                        diff = Math.abs(currentLoc.x - boundary.exactBoundaryLocation);
+                        if (diff < currentMin) {
+                            currentMin = diff;
+                            out = Direction.WEST;
+                        }
+                        break;
+                    default: throw new RuntimeException("Shouldn't be here");
+                }
+            }
+        }
+        return out;
     }
 
     /**

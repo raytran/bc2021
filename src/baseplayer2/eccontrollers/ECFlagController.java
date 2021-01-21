@@ -76,14 +76,14 @@ public class ECFlagController implements ECController {
                             if (Math.abs(rc.getRoundNum() - esi.timestamp) < 300){
                                 ec.setThisRoundNeutralEcSpottedInfo(Optional.of(esi));
                             }
-                            //System.out.println("NEUTRAL EC FOUND " + .location + " WITH " + neutralEcSpottedInfo.conviction + " HP");
+                            ////System.out.println("NEUTRAL EC FOUND " + .location + " WITH " + neutralEcSpottedInfo.conviction + " HP");
                             break;
                         default:
                             break;
                     }
             } else {
                 //Can't get flag; must be dead!
-               // System.out.println("Death report for " + id);
+               // //System.out.println("Death report for " + id);
                 ec.recordDeath(id);
             }
         }
@@ -95,7 +95,7 @@ public class ECFlagController implements ECController {
         if (ec.getThisRoundNeutralEcSpottedInfo().isPresent()){
             rc.setFlag(Flags.encodeNeutralEcSpotted(ec.getThisRoundNeutralEcSpottedInfo().get().timestamp, ec.getThisRoundNeutralEcSpottedInfo().get().location, ec.getThisRoundNeutralEcSpottedInfo().get().conviction));
         }else if (enemyReport.isPresent()) {
-            //System.out.println("EC Flagging enemy");
+            ////System.out.println("EC Flagging enemy");
             rc.setFlag(Flags.encodeEnemySpotted(enemyReport.get().timestamp, enemyReport.get().location, enemyReport.get().enemyType, false));
         }else if (ec.getEastBoundary().isPresent() && ec.getWestBoundary().isPresent()
                 || ec.getNorthBoundary().isPresent() && ec.getSouthBoundary().isPresent()) {
@@ -110,7 +110,7 @@ public class ECFlagController implements ECController {
                 rc.setFlag(Flags.encodeEnemySpotted(rc.getRoundNum(), new MapLocation(rc.getLocation().x, targetY), RobotType.ENLIGHTENMENT_CENTER, true));
             }
             if(ec.getOpSpawned() && ec.getThisRoundNeutralEcSpottedInfo().isPresent()){
-                rc.setFlag(baseplayerspawning.flags.Flags.encodeOpSpawned(ec.getThisRoundNeutralEcSpottedInfo().get().timestamp, ec.getThisRoundNeutralEcSpottedInfo().get().location, ec.getThisRoundNeutralEcSpottedInfo().get().conviction));
+                rc.setFlag(Flags.encodeOpSpawned(ec.getThisRoundNeutralEcSpottedInfo().get().timestamp, ec.getThisRoundNeutralEcSpottedInfo().get().location, ec.getThisRoundNeutralEcSpottedInfo().get().conviction));
             }
         }
     }

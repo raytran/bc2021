@@ -1,9 +1,8 @@
 from pidlearning import *
 import numpy as np
 
-experience_buffer = pickle.load(open('experiences_chevron.pkl', 'rb')) + pickle.load(open('experiences_crossstitch.pkl', 'rb'))\
-                    + pickle.load(open('experiences_crownjewels.pkl', 'rb')) + pickle.load(open('experiences_exesandohs.pkl', 'rb'))\
-                    + pickle.load(open('experiences_illusion.pkl', 'rb'))
+experience_buffer = pickle.load(open('experiences_chevron.pkl', 'rb')) + pickle.load(open('experiences_andromeda.pkl', 'rb'))\
+                    + pickle.load(open('experiences_gridlock.pkl', 'rb'))
 print(len(experience_buffer))
 experience, reward = experience_buffer[0]
 experiences = experience
@@ -22,7 +21,7 @@ for experience, reward in experience_buffer[1:]:
 
 
 # train
-def batch_gd(network, loss_fn, optimizer, x, y, iters, lrate=1.5e-4, k=50):
+def batch_gd(network, loss_fn, optimizer, x, y, iters, lrate=1.5e-4, k=25):
     d, n = tuple(x.size())
 
     network.train()
@@ -76,7 +75,7 @@ def gd_optimize(network, initial, iters, lrate):
 
 
 def train_and_save():
-    batch_gd(q_func, nn.MSELoss(), optim.Adadelta, experiences, rewards, 5000)
+    batch_gd(q_func, nn.MSELoss(), optim.SGD, experiences, rewards, 5000)
     ind = 0
     for experience, _ in experience_buffer:
         q_func.eval()
@@ -84,7 +83,7 @@ def train_and_save():
         ind += 1
     q_func.train()
     if input('Save model?') == 'Y':
-       t.save(q_func, 'q_func2.pkl')
+       t.save(q_func, 'q_func.pkl')
 
 
 def optimize_and_save():
@@ -96,7 +95,7 @@ def optimize_and_save():
     inp = stateInput(list_optimal, 'A')
     print(q_func(inp.tensor))
     if input('save this?') == 'Y':
-        t.save(optimal, 'optimal_x2.pkl')
+        t.save(optimal, 'optimal_x.pkl')
 
 
 if __name__ == '__main__':

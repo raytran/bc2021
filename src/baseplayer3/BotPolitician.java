@@ -78,7 +78,7 @@ public class BotPolitician extends BotController {
             }
 
             if (!flagSet){
-                //System.out.println("REBROADCAST");
+                ////System.out.println("REBROADCAST");
                 rc.setFlag(mostRecentEnemyReportRebroadcast);
             }
         }
@@ -139,7 +139,7 @@ public class BotPolitician extends BotController {
                 break;
             case NEUTRAL_EC_SPOTTED:
             case OP_SPAWNED:
-                baseplayerspawning.flags.NeutralEcSpottedInfo neutralEcSpottedInfo = baseplayerspawning.flags.Flags.decodeNeutralEcSpotted(rc.getLocation(), parentFlag);
+                NeutralEcSpottedInfo neutralEcSpottedInfo = Flags.decodeNeutralEcSpotted(rc.getLocation(), parentFlag);
                 setTargetLocIfBetter(Team.NEUTRAL, neutralEcSpottedInfo.location, RobotType.ENLIGHTENMENT_CENTER, false);
                 break;
             default:
@@ -160,7 +160,7 @@ public class BotPolitician extends BotController {
         int actionRadius = rc.getType().actionRadiusSquared;
         if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < actionRadius){
             totalNearbyEnemyConviction += robotInfo.conviction;
-            if (rc.canEmpower(actionRadius) && (totalNearbyEnemyConviction > 3 || (double) rc.getConviction()/totalNearbyFriendlyConviction < 0.25)) {
+            if (rc.canEmpower(actionRadius) && ((double) totalNearbyEnemyConviction/rc.getConviction() > .15 || (double) rc.getConviction()/totalNearbyFriendlyConviction < 0.25)) {
                 rc.empower(actionRadius);
             }
         }
@@ -181,7 +181,7 @@ public class BotPolitician extends BotController {
                     }else{
                         // Check if this is too old to consider
                         if (mostRecentEnemyReportRebroadcastTimestamp - enemySpottedInfo.timestamp > Flags.REBROADCAST_ROUND_LIMIT) {
-                            //System.out.println("TOO OLD!");
+                            ////System.out.println("TOO OLD!");
                             return;
                         }
                     }
@@ -211,9 +211,9 @@ public class BotPolitician extends BotController {
         setTargetLocIfBetter(Team.NEUTRAL, robotInfo.location, robotInfo.type, false);
 
         int actionRadius = rc.getType().actionRadiusSquared;
-        if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < 4
-                && rc.canEmpower(4)) {
-            rc.empower(4);
+        if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < 3
+                && rc.canEmpower(3)) {
+            rc.empower(3);
         }
     }
 

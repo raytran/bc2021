@@ -11,7 +11,7 @@ public strictfp class RobotPlayer {
      **/
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
-        //System.out.println("Just spawned " + rc.getType() + "! @Location " + rc.getLocation());
+        ////System.out.println("Just spawned " + rc.getType() + "! @Location " + rc.getLocation());
         BotController controller;
         switch (rc.getType()) {
             case ENLIGHTENMENT_CENTER:
@@ -36,7 +36,7 @@ public strictfp class RobotPlayer {
                 controller.incrementAge();
                 Clock.yield();
             } catch (Exception e) {
-                //System.out.println(rc.getType() + " Exception");
+                ////System.out.println(rc.getType() + " Exception");
                 e.printStackTrace();
             }
         }

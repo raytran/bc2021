@@ -1,23 +1,34 @@
 package baseplayernobudget;
 
-import baseplayernobudget.flags.Flags;
+import baseplayernobudget.flags.*;
 import battlecode.common.*;
 
 public class BotSlanderer extends BotController {
     Direction awayFromEnemy;
+    BoundarySpottedInfo[] spottedBoundaries = new BoundarySpottedInfo[4];
     MapLocation targetLoc;
+    MapLocation homeLoc;
+    int lastEnemySighting;
     int closest = Integer.MAX_VALUE;
     boolean flagSet = false;
     public BotSlanderer(RobotController rc) throws GameActionException {
         super(rc);
         awayFromEnemy = Utilities.randomDirection();
-        targetLoc = parentLoc.get().translate((int) (5 * Math.random()), (int) (5 * Math.random()));
+        homeLoc = parentLoc.get();
+        targetLoc = homeLoc.translate((int) (5 * Math.random()), (int) (5 * Math.random()));
     }
 
     @Override
     public BotController run() throws GameActionException {
+        Utilities.checkBoundaries(rc, spottedBoundaries);
         senseNearbyRobots(this::onNearbyEnemy, this::onNearbyFriendly, this::onNearbyNeutral);
-        nav.moveTo(targetLoc);
+        /*if (rc.getRoundNum() - lastEnemySighting < 5) {
+            targetLoc = rc.getLocation().add(awayFromEnemy);
+        }*/
+        Direction toBoundary = Utilities.toNearestBoundary(rc, spottedBoundaries);
+        /*nav.moveTo(targetLoc);*/
+        if (toBoundary != null) nav.moveTo(rc.getLocation().add(toBoundary));
+        else nav.moveTo(targetLoc);
         if (rc.getType() == RobotType.POLITICIAN){
             // Just converted; return a politician controller instead
             return BotPolitician.fromSlanderer(this);
@@ -34,6 +45,7 @@ public class BotSlanderer extends BotController {
     }
 
     private void onNearbyEnemy(RobotInfo robotInfo) throws GameActionException {
+        lastEnemySighting = rc.getRoundNum();
         if (rc.getLocation().distanceSquaredTo(robotInfo.location) < closest){
             awayFromEnemy = robotInfo.location.directionTo(rc.getLocation());
             closest = rc.getLocation().distanceSquaredTo(robotInfo.location);
@@ -46,12 +58,17 @@ public class BotSlanderer extends BotController {
     }
 
     private void onNearbyFriendly(RobotInfo robotInfo) throws GameActionException {
-        if (rc.canGetFlag(robotInfo.ID)){
-            if (rc.getFlag(robotInfo.ID) == 1){
-                targetLoc = robotInfo.location;
+        /*if (rc.canGetFlag(robotInfo.ID)){
+            int flag = rc.getFlag(robotInfo.ID);
+            if (flag == 1){
+                robotInfo.location.add(robotInfo.location.directionTo(homeLoc));
             }
-        }
-
+            /*if (Flags.decodeFlagType(flag) == FlagType.ENEMY_SPOTTED) {
+               EnemySpottedInfo enemyInfo = Flags.decodeEnemySpotted(rc.getLocation(), flag);
+               targetLoc = rc.getLocation().add(enemyInfo.location.directionTo(rc.getLocation()));
+               System.out.println("running from reported enemy");
+            }
+        }*/
     }
 
     private void onNearbyNeutral(RobotInfo robotInfo) throws GameActionException {

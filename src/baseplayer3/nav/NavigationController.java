@@ -267,7 +267,7 @@ public class NavigationController {
     private void bugTurn(MapLocation target) throws GameActionException {
         bugTurns += 1;
         if (bugTurnIntoEdge()){
-            //System.out.println("Bug dir into edge");
+            ////System.out.println("Bug dir into edge");
             reverseBugDir();
         }
 

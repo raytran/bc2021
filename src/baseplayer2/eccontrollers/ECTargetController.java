@@ -1,21 +1,22 @@
 package baseplayer2.eccontrollers;
 
 import baseplayer2.BotEnlightenment;
+import baseplayer2.Utilities;
 import battlecode.common.RobotController;
 
 public class ECTargetController {
     private final BotEnlightenment ec;
     private final RobotController rc;
     private final int SE_THRESHOLD = 100;
-    private final double INF_THRESHOLD = 0.5;
+    private final double INF_THRESHOLD = 0.125;
     private double se;
     private double avgSE;
     private double avgInf;
     private double avgBot;
     private boolean canSpawn;
-    private int voteTarget;
-    private int botTarget;
-    private int hpTarget;
+    private double voteTarget;
+    private double botTarget;
+    private double hpTarget;
 
     public ECTargetController(RobotController rc, BotEnlightenment ec) {
         this.rc = rc;
@@ -31,57 +32,54 @@ public class ECTargetController {
     }
 
     public void updateTargets() {
-        voteTarget = rc.getTeamVotes() + 1;
+        int currentInf = rc.getInfluence();
+        voteTarget = rc.getTeamVotes();
         botTarget = ec.getLocalRobotCount() + 1;
-        hpTarget = (int) (0.05 * rc.getRoundNum()); // not sure what's a better system for this one
+        hpTarget = 0.1 * currentInf; // not sure what's a better system for this one
         int hpChange = 0;
         if (se > SE_THRESHOLD) {
-            botTarget++;
-            hpChange--;
+            botTarget += 1;
+            voteTarget += 1;
+            hpChange -= 1;
         } else if (se > 0) {
-            voteTarget--;
-            botTarget++;
+            voteTarget -= 1;
+            botTarget += 1;
         } else {
             voteTarget = 0;
         } if (avgSE > SE_THRESHOLD) {
-            voteTarget++;
-            hpChange--;
+            voteTarget += 1;
+            hpChange -= 1;
         } else if (avgSE > 0) {
-            voteTarget--;
-            botTarget++;
+            botTarget += 1;
         } else {
             if (canSpawn) {
                 voteTarget = 0;
-                botTarget++;
+                botTarget += 1;
             } else {
-                voteTarget++;
+                voteTarget += 1;
                 botTarget = 0;
             }
         } if (avgInf > INF_THRESHOLD) {
-            botTarget++;
-            hpChange--;
+            voteTarget += 1;
+            hpChange -= 1;
         } else if (avgInf > 0) {
-            voteTarget--;
-            botTarget++;
-        } else {
-            voteTarget = 0;
-            botTarget++;
-            hpChange++;
+            botTarget += 1;
         } if (avgBot > 0) {
-            voteTarget++;
-            hpChange--;
+            voteTarget += 1;
+            hpChange -= 1;
         } else {
-            voteTarget--;
-            botTarget++;
+            voteTarget -= 1;
+            botTarget += 1;
         }
-        voteTarget = Math.max(0, voteTarget);
+        double voteBonus =  rc.getRoundNum() > 550 ? (Utilities.VOTE_WIN - rc.getTeamVotes()) * rc.getRoundNum()/Utilities.MAX_ROUND : 0;
+        voteTarget = Math.max(0, voteTarget) + voteBonus;
         botTarget = Math.max(0, botTarget);
-        hpTarget = Math.max(0, hpTarget + hpChange * 15);
+        hpTarget = Math.max(0, hpTarget + hpChange/100. * currentInf);
     }
 
-    public int getVoteTarget() { return voteTarget; }
+    public double getVoteTarget() { return voteTarget; }
 
-    public int getBotTarget() { return botTarget; }
+    public double getBotTarget() { return botTarget; }
 
-    public int getHpTarget() { return hpTarget; }
+    public double getHpTarget() { return hpTarget; }
 }

@@ -103,9 +103,11 @@ public class ECVoteController implements ECController {
             int bidAmount = amount * multiplier;
             if (rc.canBid(bidAmount) && bc.canSpend(this, bidAmount)) {
                 rc.bid(bidAmount);
-                //System.out.println("bid: " + bidAmount);
+                ////System.out.println("bid: " + bidAmount);
                 bc.withdrawBudget(this, bidAmount);
                 prevVoted = true;
+                ec.setPrevVoteAmount(amount);
+                ec.setPrevVoteMult(multiplier);
             } else if (rc.canBid(1) && bc.canSpend(this, 1)){
                 rc.bid(1);
                 bc.withdrawBudget(this, 1);

@@ -17,6 +17,8 @@ public class BotEnlightenment extends BotController {
     private int politicianCount = 0;
     private int slandererCount = 0;
     private double voteWinRate = 0;
+    private int prevVoteAmount = 0;
+    private int prevVoteMult = 1;
     private int lastBotSpawn = 0;
 
     private final ECBudgetController budgetController;
@@ -202,4 +204,12 @@ public class BotEnlightenment extends BotController {
     public void setCanSpawn(boolean spawn) { canSpawn = spawn; }
 
     public boolean getCanSpawn() { return canSpawn; }
+
+    public void setPrevVoteAmount(int amount) { prevVoteAmount = amount; }
+
+    public int getPrevVoteAmount() { return prevVoteAmount; }
+
+    public void setPrevVoteMult(int mult) { prevVoteMult = mult; }
+
+    public int getPrevVoteMult() { return prevVoteMult; }
 }

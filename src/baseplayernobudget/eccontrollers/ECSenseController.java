@@ -6,6 +6,8 @@ import baseplayernobudget.flags.FlagType;
 import baseplayernobudget.flags.Flags;
 import battlecode.common.*;
 
+import java.awt.*;
+
 /**
  * Senses nearby environment and generates a safety evaluation
  * Where more positive = safer
@@ -29,19 +31,22 @@ public class ECSenseController implements ECController {
     @Override
     public void run() throws GameActionException {
         // update safety metric
-        double safetyEval = 1;
+        double safetyEval = 0.;
         int radius = rc.getType().sensorRadiusSquared;
         Team enemy = rc.getTeam().opponent();
         MapLocation currentLoc = rc.getLocation();
+        boolean enemyMuckraker = false;
         for (RobotInfo ri : rc.senseNearbyRobots(radius)) {
             if (ri.team.equals(enemy) && !ri.getType().equals(RobotType.ENLIGHTENMENT_CENTER)) {
+                if (ri.getType().equals(RobotType.MUCKRAKER)) enemyMuckraker = true;
                 safetyEval -= ri.influence;
             } else {
-                safetyEval += ri.influence;
+                if(ri.getType().equals(RobotType.POLITICIAN)) safetyEval += ri.influence;
                 int friendFlag = rc.getFlag(ri.ID);
                 if (Flags.decodeFlagType(rc.getFlag(ri.ID)) == FlagType.ENEMY_SPOTTED) {
                     EnemySpottedInfo esi = Flags.decodeEnemySpotted(currentLoc, friendFlag);
                     if (esi.enemyType != RobotType.SLANDERER) {
+                        if (esi.enemyType.equals(RobotType.MUCKRAKER)) enemyMuckraker = true;
                         if (esi.location.distanceSquaredTo(currentLoc) < rc.getType().sensorRadiusSquared + 20){
                             safetyEval -= 1/(1+(double) esi.location.distanceSquaredTo(currentLoc));
                         }
@@ -49,17 +54,17 @@ public class ECSenseController implements ECController {
                 }
             }
         }
-        //System.out.println("SAFETY EVAL: " + safetyEval);
+        ec.setEnemyMuckraker(enemyMuckraker);
         ec.setSafetyEval(safetyEval);
         updateAverageSafety(safetyEval);
 
-        // update bot metrics
+        // update bot metric
         int currentBotCount = ec.getLocalRobotCount();
         int botChange = currentBotCount - prevBotCount;
         updateAverageBotChange(botChange);
         prevBotCount = currentBotCount;
 
-        // update influence metrics
+        // update influence metric
         int currentInfluence = rc.getInfluence();
         int influenceChange = rc.getRoundNum() != 1 ? currentInfluence - prevInfluence : 0;
         updateAverageInfluenceChange(influenceChange);

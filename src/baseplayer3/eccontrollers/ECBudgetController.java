@@ -9,9 +9,9 @@ public class ECBudgetController implements ECController {
     private final RobotController rc;
     private final BotEnlightenment ec;
     private final ECTargetController tc;
-    private final PIDBudgetVariable voteDelta = new PIDBudgetVariable(1.992340467902314, 13.33508709416899, 10.147950143760873);
-    private final PIDBudgetVariable botDelta = new PIDBudgetVariable(1.645671505485164, 4.566132458022629, 10.223223034742178);
-    private final PIDBudgetVariable hpDelta = new PIDBudgetVariable(13.697310253660023, 13.54050566507965, 2.597528091615467);
+    private final PIDBudgetVariable voteDelta = new PIDBudgetVariable(0.11469964974082586, 0.39256529016217423, 0.7325456560330346);
+    private final PIDBudgetVariable botDelta = new PIDBudgetVariable(11.645894011421515, 13.911652305621208, 19.319419346129393);
+    private final PIDBudgetVariable hpDelta = new PIDBudgetVariable(0.12191223565787411, 3.2026288772859512, 1.0535633255864423);
 
     private int voteBudget;
     private int botBudget;
@@ -29,12 +29,11 @@ public class ECBudgetController implements ECController {
         int currentInfluence = rc.getInfluence();
         int currentRound = rc.getRoundNum();
         if (currentRound == 1) {
-            botBudget = 88;
-            voteBudget = 20;
-            hpBudget = 42;
+            voteBudget = 1;
         }
 
         int income = currentInfluence - voteBudget - botBudget - hpBudget;
+        //System.out.println("Income is: " + income);
         if (income > 0) {
             tc.updateHeuristics();
             tc.updateTargets();
@@ -86,42 +85,44 @@ public class ECBudgetController implements ECController {
                 botAllocation = (int) Math.round(botDValue * income);
                 hpAllocation = income - voteAllocation - botAllocation;
                 assert voteAllocation >= 0 && botAllocation >= 0 && hpAllocation >= 0;
+                assert income >= voteAllocation + botAllocation + hpAllocation;
             } catch (AssertionError e) {
                 voteAllocation = (int) Math.floor(voteDValue * income);
                 botAllocation = (int) Math.floor(botDValue * income);
                 hpAllocation = income - voteAllocation - botAllocation;
             }
 
-            /** if there are nearby enemy politicians, make sure we have enough hp
-             int enemyInfluence = ec.checkNearbyEnemies();
-             if (hpBudget <= enemyInfluence && hpBudget != 0) {
-             if (currentInfluence > enemyInfluence + 1) {
-             hpBudget = enemyInfluence + 1;
-             int remainingInfluence = currentInfluence - hpBudget;
-             double newTotal = voteDValue + botDValue;
-             voteAllocation = (int) (voteDValue / newTotal * remainingInfluence);
-             botAllocation = remainingInfluence - (voteBudget + voteAllocation);
-             } else {
-             voteAllocation = 0;
-             botAllocation = 0;
-             hpBudget += income - 1;
-             botBudget += 1;
-             }
-             }**/
+            //if there are nearby enemy politicians, make sure we have enough hp
+            /**double safetyEval = ec.getSafetyEval();
+            if (hpBudget <= safetyEval && hpBudget != 0) {
+                if (currentInfluence > safetyEval + 1) {
+                    hpBudget = (int) safetyEval + 1;
+                    int remainingInfluence = currentInfluence - hpBudget;
+                    double newTotal = voteDValue + botDValue;
+                    voteAllocation = (int) (voteDValue / newTotal * remainingInfluence);
+                    botAllocation = remainingInfluence - (voteBudget + voteAllocation);
+                } else {
+                    voteAllocation = 0;
+                    botAllocation = 0;
+                    hpBudget += income - 1;
+                    botBudget += 1;
+                }
+            }**/
 
             if (rc.getTeamVotes() >= Utilities.VOTE_WIN) {
                 botBudget += voteAllocation + botAllocation + voteBudget;
                 voteBudget = 0;
-            } else if (currentRound - ec.getLastBotSpawn() > 150) {
-                voteBudget = voteAllocation + botAllocation + botBudget;
-                botBudget = 0;
             } else {
                 voteBudget += voteAllocation;
                 botBudget += botAllocation;
             }
 
-            voteBudget += voteAllocation;
-            botBudget += botAllocation;
+            if(voteBudget > 2 * ec.getPrevVoteAmount() * ec.getPrevVoteMult() + 1) {
+                int diff = voteBudget - 2 * ec.getPrevVoteAmount() * ec.getPrevVoteMult() - 1;
+                voteBudget = 2 * ec.getPrevVoteAmount() * ec.getPrevVoteMult() + 1;
+                botBudget += diff;
+            }
+
             hpBudget += hpAllocation;
 
             //System.out.println("Total influence: " + currentInfluence + "\nVoting Budget: "
