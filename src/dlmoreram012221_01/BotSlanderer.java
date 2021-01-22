@@ -1,8 +1,8 @@
-package baseplayer;
+package dlmoreram012221_01;
 
-import baseplayer.flags.EnemySpottedInfo;
-import baseplayer.flags.FlagType;
-import baseplayer.flags.Flags;
+import dlmoreram012221_01.flags.EnemySpottedInfo;
+import dlmoreram012221_01.flags.FlagType;
+import dlmoreram012221_01.flags.Flags;
 import battlecode.common.*;
 
 import java.util.Map;

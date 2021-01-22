@@ -1,7 +1,7 @@
-package baseplayer.eccontrollers;
+package dlmoreram012221_01.eccontrollers;
 
 import battlecode.common.*;
-import baseplayer.BotEnlightenment;
+import dlmoreram012221_01.BotEnlightenment;
 
 import java.awt.*;
 
@@ -27,7 +27,7 @@ public class ECSpawnController implements ECController {
         int budget = (int) Math.max((rc.getInfluence() * 0.5), MIN_BUILD_AMOUNT);
         if (ec.getDefenderCount() < MIN_DEFENDER_COUNT) {
             if (!ec.isInCorner() || (ec.isInCorner() && ec.getSafetyEval() < 25)) {
-                System.out.println("spawning defender at eval: " + ec.getSafetyEval());
+                //System.out.println("spawning defender at eval: " + ec.getSafetyEval());
                 budget = MIN_BUILD_AMOUNT;
             } else {
                 budget++;
@@ -111,7 +111,7 @@ public class ECSpawnController implements ECController {
             return RobotType.POLITICIAN;
         }
         else{
-            ////System.out.println("TRYING TO SPAWN AN ENLIGHTENMENT CENTER");
+            //////System.out.println("TRYING TO SPAWN AN ENLIGHTENMENT CENTER");
             return RobotType.MUCKRAKER;
         }
     }

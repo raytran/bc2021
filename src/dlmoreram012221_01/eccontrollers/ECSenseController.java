@@ -1,9 +1,9 @@
-package baseplayer.eccontrollers;
+package dlmoreram012221_01.eccontrollers;
 
-import baseplayer.BotEnlightenment;
-import baseplayer.flags.EnemySpottedInfo;
-import baseplayer.flags.FlagType;
-import baseplayer.flags.Flags;
+import dlmoreram012221_01.BotEnlightenment;
+import dlmoreram012221_01.flags.EnemySpottedInfo;
+import dlmoreram012221_01.flags.FlagType;
+import dlmoreram012221_01.flags.Flags;
 import battlecode.common.*;
 
 /**
@@ -56,7 +56,7 @@ public class ECSenseController implements ECController{
             }
         }
         ec.setDefenderCount(defenders);
-        //System.out.println("SAFETY EVAL: " + safetyEval);
+        ////System.out.println("SAFETY EVAL: " + safetyEval);
         ec.setSafetyEval(safetyEval);
         updateAverageSafety(safetyEval);
 
@@ -74,7 +74,7 @@ public class ECSenseController implements ECController{
 
         // check we are not surrounded
         checkSpawn();
-        if (safetyEval < 0) System.out.println("grave danger: " + safetyEval);
+        //System.out.println("grave danger: " + safetyEval);
     }
 
     /**

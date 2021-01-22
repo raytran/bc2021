@@ -1,7 +1,7 @@
-package baseplayer.eccontrollers;
+package dlmoreram012221_01.eccontrollers;
 
-import baseplayer.BotEnlightenment;
-import baseplayer.flags.*;
+import dlmoreram012221_01.BotEnlightenment;
+import dlmoreram012221_01.flags.*;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
@@ -36,7 +36,7 @@ public class ECFlagController implements ECController {
     }
 
     private void readFlags() throws GameActionException{
-        // Check baseplayer.flags
+        // Check dlmoreram012221_01.flags
         for (Map.Entry<Integer, RobotType> entry : ec.getNSpawnedRobotInfos(50)) {
             int id = entry.getKey();
             if (rc.canGetFlag(id)) {
@@ -48,7 +48,7 @@ public class ECFlagController implements ECController {
                                 ec.recordEnemy(enemySpottedInfo);
                                 mostRecentEnemyReportTimestamp = enemySpottedInfo.timestamp;
                             }else{
-                                System.out.println("CAUGHT A STALE");
+                                //System.out.println("CAUGHT A STALE");
                             }
                             break;
                         case BOUNDARY_SPOTTED:
@@ -76,14 +76,14 @@ public class ECFlagController implements ECController {
                             if (Math.abs(rc.getRoundNum() - esi.timestamp) < 300){
                                 ec.setThisRoundNeutralEcSpottedInfo(Optional.of(esi));
                             }
-                            //System.out.println("NEUTRAL EC FOUND " + .location + " WITH " + neutralEcSpottedInfo.conviction + " HP");
+                            ////System.out.println("NEUTRAL EC FOUND " + .location + " WITH " + neutralEcSpottedInfo.conviction + " HP");
                             break;
                         default:
                             break;
                     }
             } else {
                 //Can't get flag; must be dead!
-               // System.out.println("Death report for " + id);
+               // //System.out.println("Death report for " + id);
                 ec.recordDeath(id);
             }
         }
@@ -95,11 +95,11 @@ public class ECFlagController implements ECController {
         if (ec.getThisRoundNeutralEcSpottedInfo().isPresent()){
             rc.setFlag(Flags.encodeNeutralEcSpotted(ec.getThisRoundNeutralEcSpottedInfo().get().timestamp, ec.getThisRoundNeutralEcSpottedInfo().get().location, ec.getThisRoundNeutralEcSpottedInfo().get().conviction));
         }else if (enemyReport.isPresent()) {
-            //System.out.println("EC Flagging enemy");
+            ////System.out.println("EC Flagging enemy");
             rc.setFlag(Flags.encodeEnemySpotted(enemyReport.get().timestamp, enemyReport.get().location, enemyReport.get().enemyType, false));
         }else if (ec.getEastBoundary().isPresent() && ec.getWestBoundary().isPresent()
                 || ec.getNorthBoundary().isPresent() && ec.getSouthBoundary().isPresent()) {
-            System.out.println("TRYING REFLECTION");
+            //System.out.println("TRYING REFLECTION");
             if (ec.getEastBoundary().isPresent() && ec.getWestBoundary().isPresent()) {
                 int xDelta = rc.getLocation().x - ec.getWestBoundary().get();
                 int targetX = ec.getEastBoundary().get() - xDelta;

@@ -1,10 +1,10 @@
-package baseplayer;
+package dlmoreram012221_01;
 
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotType;
 import battlecode.common.RobotController;
-import baseplayer.flags.*;
+import dlmoreram012221_01.flags.*;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

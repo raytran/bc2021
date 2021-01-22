@@ -1,6 +1,6 @@
-package baseplayer;
+package dlmoreram012221_01;
 
-import baseplayer.flags.*;
+import dlmoreram012221_01.flags.*;
 import battlecode.common.*;
 
 import java.util.ArrayList;
@@ -85,7 +85,7 @@ public class BotMuckraker extends BotController {
 
 
         if (!flagSet){
-            //System.out.println("REBROADCAST");
+            ////System.out.println("REBROADCAST");
             rc.setFlag(mostRecentEnemyReportRebroadcast);
         }
 
@@ -171,7 +171,7 @@ public class BotMuckraker extends BotController {
                     }else{
                         // Check if this is too old to consider
                         if (mostRecentEnemyReportRebroadcastTimestamp - enemySpottedInfo.timestamp > Flags.REBROADCAST_ROUND_LIMIT) {
-                            //System.out.println("TOO OLD!");
+                            ////System.out.println("TOO OLD!");
                             return;
                         }
                     }
@@ -183,7 +183,7 @@ public class BotMuckraker extends BotController {
                         AreaClearInfo areaClearInfo = Flags.decodeAreaClear(currentLoc, nearbyFlag);
                         if (areaClearInfo.location.distanceSquaredTo(targetLocation.get()) < 5) {
                             targetLocation = Optional.empty();
-                            System.out.println("CLEARING TARGET");
+                            //System.out.println("CLEARING TARGET");
                         }
                     }
                     break;
@@ -194,7 +194,7 @@ public class BotMuckraker extends BotController {
     private void onNeutralNearby(RobotInfo robotInfo) throws GameActionException{
         thisRoundNearbyNeutralCount += 1;
         if (!flagSet){
-            System.out.println("FLAGGING NEUTRAl");
+            //System.out.println("FLAGGING NEUTRAl");
             rc.setFlag(Flags.encodeNeutralEcSpotted(rc.getRoundNum(), robotInfo.location, robotInfo.conviction));
             flagSet = true;
         }
@@ -221,7 +221,7 @@ public class BotMuckraker extends BotController {
 
     private void runCircleDefense() throws GameActionException {
         if (circleLocs.size() == 0){
-            //System.out.println("CIRCLE DONE");
+            ////System.out.println("CIRCLE DONE");
             currentRadius = currentRadius +3;
             circleLocs =
                     Utilities.getFilteredCircleLocs(1, parentLoc.get().x, parentLoc.get().y, parentLoc.get(), currentRadius);

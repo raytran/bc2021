@@ -1,10 +1,10 @@
-package baseplayer;
+package dlmoreram012221_01;
 
-import baseplayer.ds.CircularLinkedList;
-import baseplayer.flags.BoundaryType;
-import baseplayer.flags.EnemySpottedInfo;
-import baseplayer.flags.Flags;
-import baseplayer.nav.NavigationController;
+import dlmoreram012221_01.ds.CircularLinkedList;
+import dlmoreram012221_01.flags.BoundaryType;
+import dlmoreram012221_01.flags.EnemySpottedInfo;
+import dlmoreram012221_01.flags.Flags;
+import dlmoreram012221_01.nav.NavigationController;
 import battlecode.common.*;
 
 import java.util.*;
@@ -142,7 +142,7 @@ public abstract class BotController {
         int steps = 0;
         for (int n = 0; n < Math.sqrt(rc.getType().sensorRadiusSquared); n++) {
             // Throughout the search, maintain that maxOffset is off the map while minOffset is on the map
-            //System.out.println("Max offset: " + maxOffset + "Min offset: " + minOffset);
+            ////System.out.println("Max offset: " + maxOffset + "Min offset: " + minOffset);
             int newOffset = (maxOffset + minOffset)/2;
             if (maxOffset == minOffset + 1) {
                 // Boundary pinpointed! maxOffset is off grid while minOffset is on grid
@@ -332,7 +332,7 @@ public abstract class BotController {
         Team enemy = rc.getTeam().opponent();
         for (RobotInfo robotInfo : rc.senseNearbyRobots()){
             if (robotInfo.team.equals(Team.NEUTRAL)){
-                System.out.println("NEUTRAL HERE");
+                //System.out.println("NEUTRAL HERE");
                 onNeutral.run(robotInfo);
             } else if (robotInfo.team.equals(enemy)){
                 onEnemy.run(robotInfo);
