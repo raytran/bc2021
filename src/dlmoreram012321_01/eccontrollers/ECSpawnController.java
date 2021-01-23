@@ -1,7 +1,7 @@
-package baseplayer.eccontrollers;
+package dlmoreram012321_01.eccontrollers;
 
 import battlecode.common.*;
-import baseplayer.BotEnlightenment;
+import dlmoreram012321_01.BotEnlightenment;
 
 import java.awt.*;
 

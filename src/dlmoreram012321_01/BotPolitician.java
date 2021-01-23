@@ -1,6 +1,6 @@
-package baseplayer;
+package dlmoreram012321_01;
 
-import baseplayer.flags.*;
+import dlmoreram012321_01.flags.*;
 import battlecode.common.*;
 
 import java.util.Optional;

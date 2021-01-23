@@ -1,9 +1,9 @@
-package baseplayer;
+package dlmoreram012321_01;
 
-import baseplayer.ds.CircularLinkedList;
-import baseplayer.ds.LinkedListNode;
-import baseplayer.eccontrollers.*;
-import baseplayer.flags.NeutralEcSpottedInfo;
+import dlmoreram012321_01.ds.CircularLinkedList;
+import dlmoreram012321_01.ds.LinkedListNode;
+import dlmoreram012321_01.eccontrollers.*;
+import dlmoreram012321_01.flags.NeutralEcSpottedInfo;
 import battlecode.common.*;
 
 import java.util.*;
@@ -55,6 +55,7 @@ public class BotEnlightenment extends BotController {
         spawnController.run();
         //Set the neutral spotted info
         thisRoundNeutralEcSpottedInfo = Optional.empty();
+        System.out.println("DL MORE RAM 012321_01");
         // Search for boundary if we can
         if (Clock.getBytecodesLeft() > 1000){
             searchForNearbyBoundaries();
