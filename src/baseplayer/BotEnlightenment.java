@@ -19,6 +19,7 @@ public class BotEnlightenment extends BotController {
     private int slandererCount = 0;
     private double voteWinRate = 0;
     private int lastBotSpawn = 0;
+    private int nearbyEnemyMuckrakers = 0;
 
     private final ECVoteController voteController;
     private final ECFlagController flagController;
@@ -32,6 +33,7 @@ public class BotEnlightenment extends BotController {
     private boolean canSpawn = true;
     private Optional<NeutralEcSpottedInfo> thisRoundNeutralEcSpottedInfo = Optional.empty();
     private boolean inCorner = false;
+    private boolean spawnNextToEnemyEC = false;
 
 
     public BotEnlightenment(RobotController rc) throws GameActionException {
@@ -58,7 +60,7 @@ public class BotEnlightenment extends BotController {
             searchForNearbyBoundaries();
             if (!inCorner && inCorner() != null) {
                 inCorner = true;
-                System.out.println("We are in a corner");
+                //System.out.println("We are in a corner");
             }
         }
         return this;
@@ -174,7 +176,9 @@ public class BotEnlightenment extends BotController {
     public double getVoteWinRate() {
         return voteWinRate;
     }
+
     public Optional<NeutralEcSpottedInfo> getThisRoundNeutralEcSpottedInfo() { return this.thisRoundNeutralEcSpottedInfo; }
+
     public void setThisRoundNeutralEcSpottedInfo(Optional<NeutralEcSpottedInfo> info){
         this.thisRoundNeutralEcSpottedInfo = info;
     }
@@ -216,4 +220,20 @@ public class BotEnlightenment extends BotController {
     public void setDefenderCount(int amount) { defenderCount = amount; }
 
     public boolean isInCorner() { return inCorner; }
+
+    public boolean isSpawnNextToEnemyEC() {
+        return spawnNextToEnemyEC;
+    }
+
+    public void setSpawnNextToEnemyEC(boolean spawnNextToEnemyEC) {
+        this.spawnNextToEnemyEC = spawnNextToEnemyEC;
+    }
+
+    public int getNearbyEnemyMuckrakers() {
+        return nearbyEnemyMuckrakers;
+    }
+
+    public void setNearbyEnemyMuckrakers(int nearbyEnemyMuckrakers) {
+        this.nearbyEnemyMuckrakers = nearbyEnemyMuckrakers;
+    }
 }

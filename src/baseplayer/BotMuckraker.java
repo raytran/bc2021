@@ -183,7 +183,7 @@ public class BotMuckraker extends BotController {
                         AreaClearInfo areaClearInfo = Flags.decodeAreaClear(currentLoc, nearbyFlag);
                         if (areaClearInfo.location.distanceSquaredTo(targetLocation.get()) < 5) {
                             targetLocation = Optional.empty();
-                            System.out.println("CLEARING TARGET");
+                            //System.out.println("CLEARING TARGET");
                         }
                     }
                     break;
@@ -194,7 +194,7 @@ public class BotMuckraker extends BotController {
     private void onNeutralNearby(RobotInfo robotInfo) throws GameActionException{
         thisRoundNearbyNeutralCount += 1;
         if (!flagSet){
-            System.out.println("FLAGGING NEUTRAl");
+            //System.out.println("FLAGGING NEUTRAl");
             rc.setFlag(Flags.encodeNeutralEcSpotted(rc.getRoundNum(), robotInfo.location, robotInfo.conviction));
             flagSet = true;
         }

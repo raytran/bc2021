@@ -26,10 +26,12 @@ public class BotPolitician extends BotController {
     boolean enemyFound = false;
     boolean flagSet = false;
     boolean isLattice;
+    boolean onlyTargetEC;
     public BotPolitician(RobotController rc) throws GameActionException {
         super(rc);
         targetLocation = Optional.empty();
         isLattice = rc.getInfluence() <= 21;
+        onlyTargetEC = rc.getInfluence() == 130;
         if (parentLoc.isPresent()){
             scoutingDirection = parentLoc.get().directionTo(rc.getLocation());
             assert scoutingDirection != null;
@@ -112,20 +114,20 @@ public class BotPolitician extends BotController {
         double typeMulti = 0;
         switch (type){
             case POLITICIAN:
-                typeMulti = 0.5;
+                typeMulti = onlyTargetEC ? 0 : 0.5;
                 break;
             case MUCKRAKER:
                 /*if (parentLoc.isPresent()) typeMulti = Math.min(1, 0.05 * Math.pow((location.distanceSquaredTo(parentLoc.get()) / (double) (64 * 64)), -0.5));
-                else*/ typeMulti = 0.5;
+                else*/ typeMulti = onlyTargetEC ? 0 : 0.5;
                 break;
             case ENLIGHTENMENT_CENTER:
-                typeMulti = 0.8;
+                typeMulti = onlyTargetEC ? 10 : 0.8;
                 break;
             case SLANDERER:
-                typeMulti = 0.4;
+                typeMulti = onlyTargetEC ? 0 : 0.4;
                 break;
         }
-        return (1 - distNorm) * typeMulti + (targetTeam.equals(Team.NEUTRAL) ? 0.7 : 0);
+        return (1 - distNorm) * typeMulti + (targetTeam.equals(Team.NEUTRAL) ? onlyTargetEC ? 10 : 0.7 : 0);
     }
 
     private void talkToParent() throws GameActionException {
@@ -165,11 +167,19 @@ public class BotPolitician extends BotController {
             flagSet = true;
         }
 
-        int actionRadius = rc.getType().actionRadiusSquared;
-        if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < actionRadius){
-            totalNearbyEnemyInfluence += robotInfo.influence;
-            if (rc.canEmpower(actionRadius) && ((double) totalNearbyEnemyInfluence/rc.getInfluence() > .10 || (double) rc.getInfluence()/ totalNearbyFriendlyInfluence < 0.25 || totalNearbyEnemyInfluence > 3)) {
-                rc.empower(actionRadius);
+        if (!onlyTargetEC) {
+            int actionRadius = rc.getType().actionRadiusSquared;
+            if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < actionRadius) {
+                totalNearbyEnemyInfluence += robotInfo.influence;
+                if (rc.canEmpower(actionRadius) && ((double) totalNearbyEnemyInfluence / rc.getInfluence() > .10 || (double) rc.getInfluence() / totalNearbyFriendlyInfluence < 0.25 || totalNearbyEnemyInfluence > 3)) {
+                    rc.empower(actionRadius);
+                }
+            }
+        } else {
+            if (robotInfo.location.distanceSquaredTo(rc.getLocation()) == 1
+                    && rc.canEmpower(1) && robotInfo.getType().equals(RobotType.ENLIGHTENMENT_CENTER)
+                    && rc.getInfluence() > robotInfo.getInfluence()) {
+                rc.empower(1);
             }
         }
     }
@@ -201,7 +211,7 @@ public class BotPolitician extends BotController {
                         AreaClearInfo areaClearInfo = Flags.decodeAreaClear(currentLoc, nearbyFlag);
                         if (areaClearInfo.location.distanceSquaredTo(targetLocation.get()) < 5) {
                             targetLocation = Optional.empty();
-                            System.out.println("CLEARING TARGET");
+                            //System.out.println("CLEARING TARGET");
                         }
                     }
                     break;
@@ -217,7 +227,6 @@ public class BotPolitician extends BotController {
             flagSet = true;
         }
         setTargetLocIfBetter(Team.NEUTRAL, robotInfo.location, robotInfo.type, false);
-
         if (robotInfo.location.distanceSquaredTo(rc.getLocation()) == 1
                 && rc.canEmpower(1)) {
             rc.empower(1);

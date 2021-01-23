@@ -332,7 +332,7 @@ public abstract class BotController {
         Team enemy = rc.getTeam().opponent();
         for (RobotInfo robotInfo : rc.senseNearbyRobots()){
             if (robotInfo.team.equals(Team.NEUTRAL)){
-                System.out.println("NEUTRAL HERE");
+                //System.out.println("NEUTRAL HERE");
                 onNeutral.run(robotInfo);
             } else if (robotInfo.team.equals(enemy)){
                 onEnemy.run(robotInfo);

@@ -31,14 +31,25 @@ public class ECSenseController implements ECController{
         // update safety metric
         double safetyEval = ec.isInCorner() ? 25 : 0;
         int defenders = 0;
+        int enemyMucks = 0;
         int radius = rc.getType().sensorRadiusSquared;
         Team enemy = rc.getTeam().opponent();
         MapLocation currentLoc = rc.getLocation();
         ec.setEnemyMuckraker(false);
+        boolean ecPresent = false;
         for (RobotInfo ri : rc.senseNearbyRobots(radius)) {
-            if (ri.team.equals(enemy) && !ri.getType().equals(RobotType.ENLIGHTENMENT_CENTER)) {
-                if (ri.getType().equals(RobotType.MUCKRAKER)) ec.setEnemyMuckraker(true);
-                safetyEval -= ri.influence;
+            if (ri.team.equals(enemy)) {
+                if (ri.getType().equals(RobotType.MUCKRAKER)){
+                    ec.setEnemyMuckraker(true);
+                    enemyMucks++;
+                }
+                if (ri.getType().equals(RobotType.ENLIGHTENMENT_CENTER)) {
+                    ecPresent = true;
+                    if(rc.getRoundNum() == 1) {
+                        ec.setSpawnNextToEnemyEC(true);
+                    }
+                }
+                if(ri.getType().equals(RobotType.POLITICIAN)) safetyEval -= ri.influence;
             } else {
                 if(ri.getType().equals(RobotType.POLITICIAN)) safetyEval += ri.influence;
                 int friendFlag = rc.getFlag(ri.ID);
@@ -55,6 +66,10 @@ public class ECSenseController implements ECController{
                 }
             }
         }
+        if (!(ecPresent && ec.isSpawnNextToEnemyEC())) {
+            ec.setSpawnNextToEnemyEC(false);
+        }
+        ec.setNearbyEnemyMuckrakers(enemyMucks);
         ec.setDefenderCount(defenders);
         //System.out.println("SAFETY EVAL: " + safetyEval);
         ec.setSafetyEval(safetyEval);
@@ -74,7 +89,7 @@ public class ECSenseController implements ECController{
 
         // check we are not surrounded
         checkSpawn();
-        if (safetyEval < 0) System.out.println("grave danger: " + safetyEval);
+        //if (safetyEval < 0) System.out.println("grave danger: " + safetyEval);
     }
 
     /**

@@ -36,35 +36,37 @@ public class ECVoteController implements ECController {
      */
     @Override
     public void run() throws GameActionException {
-        int currentBudget = (ec.getAvgSafetyEval() > 150 && ec.getSafetyEval() > 50) ? (int) (0.1 * rc.getInfluence()) : 0;
+        int currentBudget = (ec.getAvgSafetyEval() > 150 && ec.getSafetyEval() > 50) ? (int) (0.1 * rc.getInfluence()) : 1;
         int currentVotes = rc.getTeamVotes();
         if (currentVotes < VOTE_WIN_COUNT) {
-            boolean wonLast = currentVotes - prevVotes == 1;
-            if (wonLast) {
-                for(int i=amount;i<=MAX_VOTE;i++) {
-                    counts[i - initialAmount]++;
-                    wins[i - initialAmount]++;
-                }
-                if (!prevAdjustMultiplier && multiplier > 1 && amount == initialAmount) {
-                    prevAdjustMultiplier = true;
-                    multiplier--;
-                    amount = MAX_VOTE;
-                    counts = new int[MAX_VOTE + offset];
-                    wins = new int[MAX_VOTE + offset];
-                } else {
-                    prevAdjustMultiplier = false;
-                }
-            } else if (prevVoted) {
-                for(int i=initialAmount;i<=amount;i++) {
-                    counts[i - initialAmount]++;
-                }
-                if (!prevAdjustMultiplier && amount == MAX_VOTE) {
-                    prevAdjustMultiplier = true;
-                    multiplier++;
-                    counts = new int[MAX_VOTE + offset];
-                    wins = new int[MAX_VOTE + offset];
-                } else {
-                    prevAdjustMultiplier = false;
+            if (rc.getRoundNum() != 1) {
+                boolean wonLast = currentVotes - prevVotes == 1;
+                if (wonLast) {
+                    for (int i = amount; i <= MAX_VOTE; i++) {
+                        counts[i - initialAmount]++;
+                        wins[i - initialAmount]++;
+                    }
+                    if (!prevAdjustMultiplier && multiplier > 1 && amount == initialAmount) {
+                        prevAdjustMultiplier = true;
+                        multiplier--;
+                        amount = MAX_VOTE;
+                        counts = new int[MAX_VOTE + offset];
+                        wins = new int[MAX_VOTE + offset];
+                    } else {
+                        prevAdjustMultiplier = false;
+                    }
+                } else if (prevVoted) {
+                    for (int i = initialAmount; i <= amount; i++) {
+                        counts[i - initialAmount]++;
+                    }
+                    if (!prevAdjustMultiplier && amount == MAX_VOTE) {
+                        prevAdjustMultiplier = true;
+                        multiplier++;
+                        counts = new int[MAX_VOTE + offset];
+                        wins = new int[MAX_VOTE + offset];
+                    } else {
+                        prevAdjustMultiplier = false;
+                    }
                 }
             }
             prevVotes = currentVotes;
@@ -99,7 +101,7 @@ public class ECVoteController implements ECController {
             }
 
             int bidAmount = amount * multiplier;
-            if (rc.canBid(bidAmount) && bidAmount < currentBudget) {
+            if (rc.canBid(bidAmount) && bidAmount <= currentBudget) {
                 rc.bid(bidAmount);
                 prevVoted = true;
             } else {

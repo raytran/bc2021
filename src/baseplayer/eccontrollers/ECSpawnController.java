@@ -27,7 +27,7 @@ public class ECSpawnController implements ECController {
         int budget = (int) Math.max((rc.getInfluence() * 0.5), MIN_BUILD_AMOUNT);
         if (ec.getDefenderCount() < MIN_DEFENDER_COUNT) {
             if (!ec.isInCorner() || (ec.isInCorner() && ec.getSafetyEval() < 25)) {
-                System.out.println("spawning defender at eval: " + ec.getSafetyEval());
+                //System.out.println("spawning defender at eval: " + ec.getSafetyEval());
                 budget = MIN_BUILD_AMOUNT;
             } else {
                 budget++;
@@ -54,6 +54,13 @@ public class ECSpawnController implements ECController {
             buildAmount = 130;
         }
 
+        if (ec.isSpawnNextToEnemyEC() || ec.getNearbyEnemyMuckrakers() > 10) {
+            toBuild = RobotType.POLITICIAN;
+            buildAmount = 130;
+        } else if (toBuild.equals(RobotType.POLITICIAN) && buildAmount == 130) {
+            buildAmount--;
+        }
+
         for (int i = 0; i < 8; i++) {
             if (rc.canBuildRobot(toBuild, nextSpawnDirection, buildAmount)) {
                 //Built the robot, add id to total
@@ -77,9 +84,7 @@ public class ECSpawnController implements ECController {
         for(RobotInfo robot : robots) {
             nearbyEnemy = true;
         }
-        if (rc.getRoundNum() == 1 && !nearbyEnemy) {
-            return RobotType.SLANDERER;
-        }
+
         if (numSpawned < 9 && roundNum < 100) {
             return EARLY_BUILD_Q[rc.getRoundNum() % 2];
         }
