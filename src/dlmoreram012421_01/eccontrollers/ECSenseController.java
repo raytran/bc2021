@@ -1,9 +1,9 @@
-package baseplayer.eccontrollers;
+package dlmoreram012421_01.eccontrollers;
 
-import baseplayer.BotEnlightenment;
-import baseplayer.flags.EnemySpottedInfo;
-import baseplayer.flags.FlagType;
-import baseplayer.flags.Flags;
+import dlmoreram012421_01.BotEnlightenment;
+import dlmoreram012421_01.flags.EnemySpottedInfo;
+import dlmoreram012421_01.flags.FlagType;
+import dlmoreram012421_01.flags.Flags;
 import battlecode.common.*;
 
 /**
