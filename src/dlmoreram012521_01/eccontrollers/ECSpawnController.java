@@ -1,8 +1,8 @@
-package baseplayer.eccontrollers;
+package dlmoreram012521_01.eccontrollers;
 
-import baseplayer.Utilities;
+import dlmoreram012521_01.Utilities;
 import battlecode.common.*;
-import baseplayer.BotEnlightenment;
+import dlmoreram012521_01.BotEnlightenment;
 
 public class ECSpawnController implements ECController {
     private final int[] SLANDERER_VALUES = Utilities.SLANDERER_VALUES;

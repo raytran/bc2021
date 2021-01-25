@@ -1,15 +1,14 @@
-package baseplayer.eccontrollers;
+package baseplayertargeting.eccontrollers;
 
-import baseplayer.Utilities;
+import baseplayertargeting.BotEnlightenment;
+import baseplayertargeting.Utilities;
 import battlecode.common.*;
-import baseplayer.BotEnlightenment;
 
 public class ECSpawnController implements ECController {
     private final int[] SLANDERER_VALUES = Utilities.SLANDERER_VALUES;
     private final RobotType[] EARLY_BUILD_Q = {RobotType.SLANDERER, RobotType.MUCKRAKER, RobotType.MUCKRAKER, RobotType.MUCKRAKER, RobotType.POLITICIAN};
     private final RobotType[] NORMAL_BUILD_Q = {RobotType.POLITICIAN, RobotType.SLANDERER, RobotType.MUCKRAKER, RobotType.SLANDERER, RobotType.POLITICIAN, RobotType.SLANDERER, RobotType.POLITICIAN};
     private final RobotType[] SAFE_BUILD_Q = {RobotType.SLANDERER, RobotType.MUCKRAKER, RobotType.SLANDERER, RobotType.POLITICIAN, RobotType.POLITICIAN, RobotType.SLANDERER};
-    private final RobotType[] NO_SLANDERER_Q = {RobotType.POLITICIAN, RobotType.MUCKRAKER, RobotType.MUCKRAKER, RobotType.POLITICIAN};
     private final int MIN_BUILD_AMOUNT = 21;
     private int MIN_DEFENDER_COUNT;
     private final int MIN_SLANDERER_AMOUNT = 85;
@@ -72,11 +71,11 @@ public class ECSpawnController implements ECController {
                 outwardsDirections = new Direction[]{Direction.NORTHWEST, Direction.NORTH, Direction.SOUTHWEST, Direction.SOUTH, Direction.SOUTHEAST, Direction.EAST, Direction.NORTHEAST};
             }
 
-            /*if(outwardsDirections != null) {
+            if(outwardsDirections != null) {
                 for (Direction dir : outwardsDirections) {
                     System.out.println(dir);
                 }
-            }*/
+            }
             MIN_DEFENDER_COUNT = outwardsDirections != null ? outwardsDirections.length : 8;
             defenderDirections = new int[8];
         }
@@ -128,12 +127,7 @@ public class ECSpawnController implements ECController {
                     if (rc.canBuildRobot(toBuild, nextDefenderSpawnDirection, inf)) {
                         nextSpawnDirection = nextDefenderSpawnDirection;
                     } else {
-                        if (rc.canBuildRobot(toBuild, nextSpawnDirection, inf + 1)) {
-                            inf++;
-                        } else {
-                            toBuild = RobotType.MUCKRAKER;
-                            inf = 1;
-                        }
+                        inf++;
                     }
                 }
                 rc.buildRobot(toBuild, nextSpawnDirection, inf);
@@ -187,16 +181,10 @@ public class ECSpawnController implements ECController {
         RobotType toBuild;
 
         //pick from build queues most of the time
-        if ((numSpawned < 9 && roundNum < 50 && outwardsDirections != null) || rc.getRoundNum() == 1) {
+        if (numSpawned < 9 && roundNum < 50) {
             toBuild = EARLY_BUILD_Q[numSpawned % EARLY_BUILD_Q.length];
         } else if (ec.getAvgSafetyEval() > 150 && ec.getSafetyEval() > 100 && roundNum - ec.getLastEnemySeen() > 25) {
             toBuild = SAFE_BUILD_Q[numSpawned % SAFE_BUILD_Q.length];
-        } else if (outwardsDirections == null) {
-            if (!(rc.getRoundNum() - ec.getLastEnemySeen() > 10 && rc.getRoundNum() > 10) || ec.getSafetyEval() < 0 || ec.getAvgSafetyEval() < 20) {
-                toBuild = NO_SLANDERER_Q[numSpawned % NO_SLANDERER_Q.length];
-            } else {
-                toBuild = NORMAL_BUILD_Q[numSpawned % NORMAL_BUILD_Q.length];
-            }
         } else {
             toBuild = NORMAL_BUILD_Q[numSpawned % NORMAL_BUILD_Q.length];
         }
@@ -250,12 +238,6 @@ public class ECSpawnController implements ECController {
         // build a defender if needed
         if (ec.getDefenderCount() < MIN_DEFENDER_COUNT) {
             inf = MIN_BUILD_AMOUNT - 1;
-        }
-
-        if (outwardsDirections == null) {
-            if (!(rc.getRoundNum() - ec.getLastEnemySeen() > 10 && rc.getRoundNum() > 10) || ec.getSafetyEval() < 0 || ec.getAvgSafetyEval() < 20) {
-                inf = Math.max((int) (0.25 * rc.getInfluence()), MIN_BUILD_AMOUNT);
-            }
         }
 
         if (ec.getThisRoundNeutralEcSpottedInfo().isPresent() && ec.getSafetyEval() > 0) {

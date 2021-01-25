@@ -1,9 +1,11 @@
-package baseplayer;
+package baseplayertargeting;
 
-import baseplayer.flags.*;
+import baseplayertargeting.flags.AreaClearInfo;
+import baseplayertargeting.flags.EnemySpottedInfo;
+import baseplayertargeting.flags.FlagType;
+import baseplayertargeting.flags.Flags;
 import battlecode.common.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,7 +34,7 @@ public class BotMuckraker extends BotController {
         super(rc);
         targetLocation = Optional.empty();
         scoutingDirection = parentLoc.get().directionTo(rc.getLocation());
-        isScout = rc.getRoundNum() < 50;
+        isScout = rc.getRoundNum() < 10;
         if (isDefending) {
             circleLocs = Utilities.getFilteredCircleLocs(1,parentLoc.get().x, parentLoc.get().y, parentLoc.get(), currentRadius);
         }
