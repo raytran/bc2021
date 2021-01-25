@@ -37,7 +37,7 @@ public class ECFlagController implements ECController {
 
     private void readFlags() throws GameActionException{
         // Check baseplayer.flags
-        for (Map.Entry<Integer, RobotType> entry : ec.getNSpawnedRobotInfos(50)) {
+        for (Map.Entry<Integer, RobotType> entry : ec.getNSpawnedRobotInfos(40)) {
             int id = entry.getKey();
             if (rc.canGetFlag(id)) {
                 int flag = rc.getFlag(id);
@@ -83,7 +83,6 @@ public class ECFlagController implements ECController {
                     }
             } else {
                 //Can't get flag; must be dead!
-               // System.out.println("Death report for " + id);
                 ec.recordDeath(id);
             }
         }
@@ -94,10 +93,16 @@ public class ECFlagController implements ECController {
         Optional<EnemySpottedInfo> enemyReport = ec.getLatestRecordedEnemyLocation();
         if (ec.getThisRoundNeutralEcSpottedInfo().isPresent()){
             rc.setFlag(Flags.encodeNeutralEcSpotted(ec.getThisRoundNeutralEcSpottedInfo().get().timestamp, ec.getThisRoundNeutralEcSpottedInfo().get().location, ec.getThisRoundNeutralEcSpottedInfo().get().conviction));
-        }else if (enemyReport.isPresent()) {
+        } else if (enemyReport.isPresent()) {
             //System.out.println("EC Flagging enemy");
             rc.setFlag(Flags.encodeEnemySpotted(enemyReport.get().timestamp, enemyReport.get().location, enemyReport.get().enemyType, false));
-        }else if (ec.getEastBoundary().isPresent() && ec.getWestBoundary().isPresent()
+        } else if (ec.areAllBoundariesFound()) {
+            int xDelta = rc.getLocation().x - ec.getWestBoundary().get();
+            int yDelta = rc.getLocation().y - ec.getNorthBoundary().get();
+            int targetX = ec.getEastBoundary().get() - xDelta;
+            int targetY = ec.getSouthBoundary().get() - yDelta;
+            rc.setFlag(Flags.encodeEnemySpotted(rc.getRoundNum(), new MapLocation (targetX, targetY), RobotType.ENLIGHTENMENT_CENTER, true));
+        } else if (ec.getEastBoundary().isPresent() && ec.getWestBoundary().isPresent()
                 || ec.getNorthBoundary().isPresent() && ec.getSouthBoundary().isPresent()) {
             //System.out.println("TRYING REFLECTION");
             if (ec.getEastBoundary().isPresent() && ec.getWestBoundary().isPresent()) {

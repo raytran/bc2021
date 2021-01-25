@@ -33,11 +33,15 @@ public class ECSenseController implements ECController{
         int enemyMucks = 0;
         int allyPoliticians = 0;
         int radius = rc.getType().sensorRadiusSquared;
+        int turnDist = ec.getTurnDistFromEnemy();
         Team enemy = rc.getTeam().opponent();
         MapLocation currentLoc = rc.getLocation();
         boolean ecPresent = false;
         for (RobotInfo ri : rc.senseNearbyRobots(radius)) {
             if (ri.team.equals(enemy)) {
+                if (turnDist == 0) {
+                    ec.setTurnDistFromEnemy(rc.getRoundNum());
+                }
                 ec.setLastEnemySeen(rc.getRoundNum());
                 if (ri.getType().equals(RobotType.MUCKRAKER)){
                     enemyMucks++;
@@ -57,6 +61,9 @@ public class ECSenseController implements ECController{
                 int friendFlag = rc.getFlag(ri.ID);
                 if (Flags.decodeFlagType(rc.getFlag(ri.ID)) == FlagType.ENEMY_SPOTTED) {
                     EnemySpottedInfo esi = Flags.decodeEnemySpotted(currentLoc, friendFlag);
+                    if (turnDist == 0) {
+                        ec.setTurnDistFromEnemy(rc.getRoundNum());
+                    }
                     if (esi.enemyType != RobotType.SLANDERER) {
                         if (esi.location.distanceSquaredTo(currentLoc) < rc.getType().sensorRadiusSquared + 20){
                             safetyEval -= 1/(1+(double) esi.location.distanceSquaredTo(currentLoc));

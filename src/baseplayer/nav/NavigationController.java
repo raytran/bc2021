@@ -5,6 +5,8 @@ import baseplayer.Utilities;
 import baseplayer.ds.MapLocationArray;
 import baseplayer.ds.MinHeap;
 import baseplayer.nav.bellmanford.Pather;
+
+import baseplayer.nav.boundbellmanford.BoundPather;
 import battlecode.common.*;
 
 import java.util.*;
@@ -25,6 +27,7 @@ public class NavigationController {
     public NavigationController(RobotController rc) {
         this.rc = rc;
         Pather.init(rc);
+        BoundPather.init(rc);
         currentMode = NavMode.DIRECT;
     }
 
@@ -44,6 +47,12 @@ public class NavigationController {
             bugTurn(target);
         }
 
+    }
+
+    public void boundMoveTo(MapLocation target, BoundingBox box) throws GameActionException {
+        if (Clock.getBytecodesLeft() > 6700) {
+            BoundPather.pathTo(target, box);
+        }
     }
 
     /**

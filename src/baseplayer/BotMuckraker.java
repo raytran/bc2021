@@ -23,16 +23,16 @@ public class BotMuckraker extends BotController {
     boolean enemyFound = false;
     boolean flagSet = false;
     boolean targetLocIsGuess = true;
-    boolean isScout;
+    boolean isScout = false;
 
     int thisRoundNearbyEnemyCount = 0;
     int thisRoundNearbyNeutralCount = 0;
     int thisRoundNearbyFriendlyCount = 0;
     public BotMuckraker(RobotController rc) throws GameActionException {
         super(rc);
-        isScout = rc.getRoundNum() < 50;
         targetLocation = Optional.empty();
         scoutingDirection = parentLoc.get().directionTo(rc.getLocation());
+        isScout = rc.getRoundNum() < 10;
         if (isDefending) {
             circleLocs = Utilities.getFilteredCircleLocs(1,parentLoc.get().x, parentLoc.get().y, parentLoc.get(), currentRadius);
         }
@@ -111,9 +111,9 @@ public class BotMuckraker extends BotController {
     }*/
 
     private void setTargetLocIfBetter(Team targetTeam, MapLocation newLoc, RobotType type,  boolean isGuess){
-        if (!targetLocation.isPresent()
+        if ((!targetLocation.isPresent()
                 || targetLocIsGuess
-                || scoreTarget(targetTeam, newLoc, type) > bestTargetScore) {
+                || scoreTarget(targetTeam, newLoc, type) > bestTargetScore) && scoreTarget(targetTeam, newLoc, type) > 0.5) {
             targetLocation = Optional.of(newLoc);
             targetLocIsGuess = isGuess;
             bestTargetScore = scoreTarget(targetTeam, newLoc, type);

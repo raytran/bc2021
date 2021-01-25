@@ -22,6 +22,7 @@ public class BotEnlightenment extends BotController {
     private int nearbyEnemyMuckrakers = 0;
     private int nearbyAllyPoliticians = 0;
     private int lastEnemySeen = 0;
+    private int turnDistFromEnemy = 0;
 
     private final ECVoteController voteController;
     private final ECFlagController flagController;
@@ -224,8 +225,6 @@ public class BotEnlightenment extends BotController {
         return defenderCount;
     }
 
-    public void setDefenderCount(int amount) { defenderCount = amount; }
-
     public boolean isInCorner() { return inCorner; }
 
     public boolean isSpawnNextToEnemyEC() {
@@ -258,5 +257,13 @@ public class BotEnlightenment extends BotController {
 
     public void setNearbyAllyPoliticians(int nearbyAllyPoliticians) {
         this.nearbyAllyPoliticians = nearbyAllyPoliticians;
+    }
+
+    public int getTurnDistFromEnemy() {
+        return turnDistFromEnemy;
+    }
+
+    public void setTurnDistFromEnemy(int turnDistFromEnemy) {
+        this.turnDistFromEnemy = turnDistFromEnemy;
     }
 }

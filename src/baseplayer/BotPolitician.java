@@ -1,6 +1,7 @@
 package baseplayer;
 
 import baseplayer.flags.*;
+import baseplayer.nav.BoundingBox;
 import battlecode.common.*;
 
 import java.util.Optional;
@@ -9,7 +10,7 @@ public class BotPolitician extends BotController {
 
 
     Optional<MapLocation> targetLocation;
-    Direction scoutingDirection;
+    static Direction initialDirection;
     double bestTargetScore = 0;
     int thisRoundNearbyFriendlyCount = 0;
     int thisRoundNearbyEnemyCount = 0;
@@ -21,21 +22,25 @@ public class BotPolitician extends BotController {
     int mostRecentEnemyReportRebroadcastTimestamp = 0;
     int mostRecentEnemyReportRebroadcast = 0;
     RobotInfo closestEnemy = null;
+    BoundingBox guardPerimeter;
 
     boolean targetLocIsGuess = true;
     boolean enemyFound = false;
     boolean flagSet = false;
-    boolean isLattice;
+    boolean isDefending;
     boolean onlyTargetEC;
     public BotPolitician(RobotController rc) throws GameActionException {
         super(rc);
         targetLocation = Optional.empty();
-        isLattice = rc.getInfluence() <= 20;
+        isDefending = rc.getInfluence() <= 20 && parentLoc.isPresent();
+        if (isDefending) {
+            guardPerimeter = new BoundingBox(parentLoc.get().translate(5, 5), parentLoc.get().translate(-5, -5));
+        }
         onlyTargetEC = rc.getInfluence() == 131;
         if (parentLoc.isPresent()){
-            scoutingDirection = parentLoc.get().directionTo(rc.getLocation());
-            assert scoutingDirection != null;
+            initialDirection = parentLoc.get().directionTo(rc.getLocation());
         }
+
     }
 
     public static BotPolitician fromSlanderer(BotSlanderer slanderer) throws GameActionException {
@@ -51,11 +56,11 @@ public class BotPolitician extends BotController {
         senseNearbyRobots(this::onEnemyNearby, this::onFriendlyNearby, this::onNeutralNearby);
 
         if (parentID.isPresent()) talkToParent();
-        if(isLattice) {
+        if(isDefending) {
             if (closestEnemy != null) {
                 nav.moveTo(closestEnemy.getLocation());
             } else {
-                latticeDefense();
+                boundaryDefense();
             }
         } else {
             if (targetLocation.isPresent() && rc.getLocation().distanceSquaredTo(targetLocation.get()) < rc.getType().actionRadiusSquared) {
@@ -70,8 +75,8 @@ public class BotPolitician extends BotController {
             if (targetLocation.isPresent()) {
                 nav.moveTo(targetLocation.get());
             } else {
-                if (scoutingDirection != null) {
-                    nav.spreadOut(scoutingDirection);
+                if (initialDirection != null) {
+                    nav.spreadOut(initialDirection);
                 } else {
                     Direction random = Utilities.randomDirection();
                     nav.spreadOut(random);
@@ -118,10 +123,10 @@ public class BotPolitician extends BotController {
                 break;
             case MUCKRAKER:
                 /*if (parentLoc.isPresent()) typeMulti = Math.min(1, 0.05 * Math.pow((location.distanceSquaredTo(parentLoc.get()) / (double) (64 * 64)), -0.5));
-                else*/ typeMulti = onlyTargetEC ? 0 : 0.5;
+                else*/ typeMulti = onlyTargetEC ? 0 : 0.7;
                 break;
             case ENLIGHTENMENT_CENTER:
-                typeMulti = onlyTargetEC ? 10 : 0.8;
+                typeMulti = onlyTargetEC ? 10 : 0.75;
                 break;
             case SLANDERER:
                 typeMulti = onlyTargetEC ? 0 : 0.4;
@@ -168,10 +173,10 @@ public class BotPolitician extends BotController {
         }
 
         if (!onlyTargetEC) {
-            int actionRadius = robotInfo.getType().equals(RobotType.ENLIGHTENMENT_CENTER) ? 2 : rc.getType().actionRadiusSquared; //TODO
+            int actionRadius = robotInfo.getType().equals(RobotType.ENLIGHTENMENT_CENTER) ? 2 : rc.getType().actionRadiusSquared;
             if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < actionRadius) {
                 totalNearbyEnemyInfluence += robotInfo.influence;
-                if (rc.canEmpower(actionRadius) && ((double) totalNearbyEnemyInfluence / rc.getInfluence() > .10 || (double) rc.getInfluence() / totalNearbyFriendlyInfluence < 0.25 || totalNearbyEnemyInfluence > 3)) {
+                if (rc.canEmpower(actionRadius) && ((double) totalNearbyEnemyInfluence / rc.getInfluence() >= .05 || (double) rc.getInfluence() / totalNearbyFriendlyInfluence < 0.25 || totalNearbyEnemyInfluence > 3)) {
                     rc.empower(actionRadius);
                 }
             }
@@ -238,11 +243,13 @@ public class BotPolitician extends BotController {
     static MapLocation latticeLoc;
     private void latticeDefense() throws GameActionException {
         if (!inGrid) {
+            boolean senseOtherFlag = false;
             if (latticeLoc == null) {
                 int closestDist = Integer.MAX_VALUE;
                 MapLocation closestBot = null;
                 for (RobotInfo robotInfo : rc.senseNearbyRobots()){
                     if (robotInfo.type == RobotType.ENLIGHTENMENT_CENTER || rc.getFlag(robotInfo.ID) == 1){
+                        senseOtherFlag = true;
                         if (robotInfo.location.distanceSquaredTo(rc.getLocation()) < closestDist){
                             closestDist = robotInfo.location.distanceSquaredTo(rc.getLocation());
                             closestBot = robotInfo.location;
@@ -253,7 +260,7 @@ public class BotPolitician extends BotController {
                 if (closestBot != null){
                     for (int[] offset : offsets){
                         MapLocation possible = closestBot.translate(offset[0], offset[1]);
-                        if (rc.canSenseLocation(possible) && rc.onTheMap(possible) && !rc.isLocationOccupied(possible)){
+                        if (rc.canSenseLocation(possible) && rc.onTheMap(possible) && !rc.isLocationOccupied(possible) && !guardPerimeter.isContained(possible) && possible.distanceSquaredTo(parentLoc.get()) > 25){
                             latticeLoc = possible;
                         }
                     }
@@ -265,6 +272,9 @@ public class BotPolitician extends BotController {
                     nav.fuzzyMove(parentLoc.get().directionTo(rc.getLocation()));
                 else
                     nav.fuzzyMove(Utilities.randomDirection());
+                if (!guardPerimeter.isContained(rc.getLocation()) && !senseOtherFlag) {
+                    latticeLoc = rc.getLocation();
+                }
             }else{
                 nav.moveTo(latticeLoc);
                 if (rc.getLocation().equals(latticeLoc)){
@@ -277,10 +287,69 @@ public class BotPolitician extends BotController {
                     MapLocation original = rc.senseRobotAtLocation(latticeLoc).location;
                     for (int[] offset : offsets){
                         MapLocation possible = original.translate(offset[0], offset[1]);
-                        if (rc.canSenseLocation(possible) && rc.onTheMap(possible) && !rc.isLocationOccupied(possible)){
+                        if (rc.canSenseLocation(possible) && rc.onTheMap(possible) && !rc.isLocationOccupied(possible) && !guardPerimeter.isContained(possible) && possible.distanceSquaredTo(parentLoc.get()) > 25){
                             latticeLoc = possible;
                         }
                     }
+                }
+            }
+        }
+    }
+
+    static boolean inPosition = false;
+    static MapLocation defenseLocation;
+    private void boundaryDefense() throws GameActionException {
+        if (!inPosition) {
+            if (defenseLocation == null) {
+                switch (initialDirection) {
+                    case NORTH:
+                        defenseLocation = rc.getLocation().translate(3, 5);
+                        break;
+                    case NORTHEAST:
+                        defenseLocation = rc.getLocation().translate(5, 2);
+                        break;
+                    case NORTHWEST:
+                        defenseLocation = rc.getLocation().translate(-2, 5);
+                        break;
+                    case EAST:
+                        defenseLocation = rc.getLocation().translate(5, -3);
+                        break;
+                    case SOUTH:
+                        defenseLocation = rc.getLocation().translate(-3, -5);
+                        break;
+                    case SOUTHEAST:
+                        defenseLocation = rc.getLocation().translate(2, -5);
+                        break;
+                    case SOUTHWEST:
+                        defenseLocation = rc.getLocation().translate(-5, -2);
+                        break;
+                    case WEST:
+                        defenseLocation = rc.getLocation().translate(-5, 3);
+                        break;
+                    default:
+                        throw new RuntimeException();
+                }
+            }
+            if (rc.getLocation().distanceSquaredTo(defenseLocation) <= RobotType.POLITICIAN.sensorRadiusSquared && !rc.onTheMap(defenseLocation)) {
+                defenseLocation = rc.getLocation().add(initialDirection);
+            }
+            nav.moveTo(defenseLocation);
+            if (rc.getLocation().equals(defenseLocation)) {
+                inPosition = true;
+                flagSet = true;
+                rc.setFlag(1);
+            } else if (rc.canSenseLocation(defenseLocation) && rc.isLocationOccupied(defenseLocation)
+                    && rc.getFlag(rc.senseRobotAtLocation(defenseLocation).ID) == 1) {
+                isDefending = false;
+                defenseLocation = null;
+            } else if (rc.getLocation().distanceSquaredTo(parentLoc.get()) >= 50) {
+                defenseLocation = rc.getLocation();
+            }
+        } else {
+            for (RobotInfo ri : rc.senseNearbyRobots()) {
+                if (rc.canGetFlag(ri.ID) && rc.getFlag(ri.ID) == 2 && defenseLocation.distanceSquaredTo(ri.getLocation()) < 9) {
+                    defenseLocation = rc.getLocation().add(ri.getLocation().directionTo(rc.getLocation()));
+                    inPosition = false;
                 }
             }
         }
